@@ -27,9 +27,7 @@ jobs:
 
     - name: Deploy to Vercel
       run: npx vercel --prod --token ${{ secrets.VERCEL_TOKEN }}
-      env:
-        VERCEL_PROJECT: ${{ secrets.VERCEL_PROJECT }}
-        VERCEL_ORG: ${{ secrets.VERCEL_ORG }}
+
 
     - name: Check Deployment
       run: curl -I $(npx vercel --prod --token ${{ secrets.VERCEL_TOKEN }} --output-only)
