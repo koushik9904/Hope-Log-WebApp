@@ -31,6 +31,3 @@ jobs:
         URL=$(npx vercel deploy --prod --token ${{ secrets.VERCEL_TOKEN }} --yes)
         echo "Deployment URL: $URL"
         echo "DEPLOYMENT_URL=$URL" >> $GITHUB_ENV
-
-    - name: Check Deployment
-      run: curl -I $(npx vercel --prod --token ${{ secrets.VERCEL_TOKEN }} --output-only)
