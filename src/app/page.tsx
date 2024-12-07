@@ -42,6 +42,7 @@ export default function Home() {
             <h2 className="text-ascent text-2xl">Today's Collective Prompt</h2>
             <p className="text-black text-lg">What brought you joy today?</p>
             <textarea
+              rows={10}
               className="w-full mt-4 p-2 border border-gray-300 rounded"
               placeholder="Type your thoughts here..."
             ></textarea>
