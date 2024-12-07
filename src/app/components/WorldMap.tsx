@@ -1,27 +1,91 @@
-"use client"
-import dynamic from "next/dynamic";
-import React, { useRef } from "react";
+"use client";
+import React from "react";
+import { FaceAngrySVG, FaceSadSVG, FaceSmileSVG } from "../assets/assets";
+import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-const MapContainer = dynamic(() => import("react-leaflet").then(mod => mod.MapContainer), { ssr: false });
-const TileLayer = dynamic(() => import("react-leaflet").then(mod => mod.TileLayer), { ssr: false });
+import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
+
+const getEmotionIcon = (emotion) => {
+    switch (emotion) {
+        case "joy":
+            return L.icon({
+                iconUrl: FaceSmileSVG.src,
+                iconSize: [25, 41], 
+                iconAnchor: [12, 41], 
+                popupAnchor: [0, -41],
+            });
+        case "depressed":
+            return L.icon({
+                iconUrl: FaceSadSVG.src,
+                iconSize: [25, 41],
+                iconAnchor: [12, 41],
+                popupAnchor: [0, -41],
+            });
+        case "angry":
+            return L.icon({
+                iconUrl: FaceAngrySVG.src,
+                iconSize: [25, 41],
+                iconAnchor: [12, 41],
+                popupAnchor: [0, -41],
+            });
+        default:
+            return L.icon({
+                iconUrl: FaceSmileSVG.src, 
+                iconSize: [25, 41],
+                iconAnchor: [12, 41],
+                popupAnchor: [0, -41],
+            });
+    }
+};
+
+
+const mockJournalData = [
+    { lat: 51.505, lng: -0.09, emotion: "joy", message: "Feeling great today!" },
+    { lat: 40.7128, lng: -74.006, emotion: "depressed", message: "Feeling down..." },
+    { lat: 35.6895, lng: 139.6917, emotion: "angry", message: "Had a rough day!" },
+    { lat: 48.8566, lng: 2.3522, emotion: "joy", message: "Loving Paris!" },
+    { lat: 34.0522, lng: -118.2437, emotion: "depressed", message: "Missing home..." },
+    { lat: 55.7558, lng: 37.6173, emotion: "angry", message: "Traffic is terrible!" },
+    { lat: 52.5200, lng: 13.4050, emotion: "joy", message: "Berlin is amazing!" },
+    { lat: 37.7749, lng: -122.4194, emotion: "depressed", message: "Feeling lonely..." },
+    { lat: 31.2304, lng: 121.4737, emotion: "angry", message: "Work stress!" },
+    { lat: 28.6139, lng: 77.2090, emotion: "joy", message: "Enjoying the culture!" },
+    { lat: -33.8688, lng: 151.2093, emotion: "depressed", message: "Feeling homesick..." },
+    { lat: 35.6762, lng: 139.6503, emotion: "angry", message: "Long day at work!" },
+    { lat: 19.0760, lng: 72.8777, emotion: "joy", message: "Loving the food!" },
+    { lat: 51.1657, lng: 10.4515, emotion: "depressed", message: "Missing family..." },
+    { lat: 41.9028, lng: 12.4964, emotion: "angry", message: "Frustrated with traffic!" },
+    { lat: 40.4168, lng: -3.7038, emotion: "joy", message: "Madrid is beautiful!" },
+    { lat: 39.9042, lng: 116.4074, emotion: "depressed", message: "Feeling isolated..." },
+    { lat: 34.6937, lng: 135.5023, emotion: "angry", message: "Busy day!" },
+    { lat: 55.9533, lng: -3.1883, emotion: "joy", message: "Edinburgh is stunning!" },
+    { lat: 45.4642, lng: 9.1900, emotion: "depressed", message: "Feeling blue..." },
+    { lat: 50.1109, lng: 8.6821, emotion: "angry", message: "Annoyed with work!" },
+];
+
 
 
 const WorldMap = () => {
-    const mapRef = useRef(null);
     const latitude = 51.505;
     const longitude = -0.09;
+    console.log(FaceAngrySVG, FaceSadSVG, FaceSmileSVG);
+
 
     return (
         <div className="flex justify-center items-center mt-3">
-            <MapContainer center={[latitude, longitude]} zoom={13} ref={mapRef} className="h-80 w-80">
+            <MapContainer center={[latitude, longitude]} zoom={2}  className="h-[80vh] w-[80vw]">
                 <TileLayer
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
+                {mockJournalData.map((entry, index) => (
+                    <Marker key={index} position={[entry.lat, entry.lng]} icon={getEmotionIcon(entry.emotion)}>
+                        <Popup>{entry.message}</Popup>
+                    </Marker>
+                ))}
             </MapContainer>
         </div>
-
     );
 };
 
