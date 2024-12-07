@@ -14,13 +14,6 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Install specific packages with legacy-peer-deps
-      run: |
-        npm install leaflet react-leaflet --legacy-peer-deps
-
-    - name: Add TypeScript definitions for Leaflet
-      run: npm install @types/leaflet --save-dev --legacy-peer-deps
-
     - name: Install Node.js
       uses: actions/setup-node@v4
       with:
@@ -28,7 +21,7 @@ jobs:
         cache: 'npm'
 
     - name: Install Dependencies
-      run: npm install --omit=leaflet --omit=react-leaflet --omit=@types/leaflet
+      run: npm install --legacy-peer-deps
 
     - name: Build Project
       run: npm run build
