@@ -28,7 +28,7 @@ jobs:
         cache: 'npm'
 
     - name: Install Dependencies
-      run: npm install
+      run: npm install --omit=leaflet --omit=react-leaflet --omit=@types/leaflet
 
     - name: Build Project
       run: npm run build
