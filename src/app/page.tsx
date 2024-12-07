@@ -1,7 +1,6 @@
 import FeatureSession from "./components/FeatureSession";
 import { BookIconSVG, FaceIconSVG, GlobeIconSVG, SeedlingIconSVG } from "./assets/assets";
-import WorldMap from "./components/WorldMap";
-
+import DynamicWorldMap from "./components/DynamicWorldMap";
 
 const sections = [
   {
@@ -42,7 +41,7 @@ export default function Home() {
             <h2 className="text-ascent text-2xl">Today's Collective Prompt</h2>
             <p className="text-black text-lg">What brought you joy today?</p>
             <textarea
-              rows={10}
+              rows={5}
               className="w-full mt-4 p-2 border border-gray-300 rounded"
               placeholder="Type your thoughts here..."
             ></textarea>
@@ -62,7 +61,6 @@ export default function Home() {
             <p className="text-2xl">Discover the World's Emotional Pulse</p>
             <p className="mt-2">See what's on Everyone's Mind Today</p>
           </div>
-          <WorldMap />
         </div>
       </div>
 
@@ -80,6 +78,7 @@ export default function Home() {
             <textarea
               className="w-full mt-4 p-2 border border-gray-300 rounded"
               placeholder="Type your thoughts here..."
+              rows={5}
             ></textarea>
             <button className="rounded-2xl bg-ascent text-white py-2 px-4 mt-4">
               Join the Global Conversation
@@ -99,7 +98,6 @@ export default function Home() {
             <p className="text-2xl">Discover the World's Emotional Pulse</p>
             <p className="mt-2">See what's on Everyone's Mind Today</p>
           </div>
-          <WorldMap />
         </div>
       </div>
       <div className="hidden lg:block">
@@ -116,6 +114,7 @@ export default function Home() {
             <textarea
               className="w-full mt-4 p-2 border border-gray-300 rounded"
               placeholder="Type your thoughts here..."
+              rows={5}
             ></textarea>
             <button className="rounded-2xl bg-ascent text-white py-2 px-4 mt-4">
               Join the Global Conversation
@@ -135,9 +134,10 @@ export default function Home() {
             <p className="text-2xl">Discover the World's Emotional Pulse</p>
             <p className="mt-2">See what's on Everyone's Mind Today</p>
           </div>
-          <WorldMap />
         </div>
       </div>
+      <DynamicWorldMap />
+
     </main >
   );
 }

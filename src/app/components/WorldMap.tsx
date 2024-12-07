@@ -1,50 +1,17 @@
-"use client";
-import React from "react";
+import React, { useRef } from "react";
 import { FaceAngrySVG, FaceSadSVG, FaceSmileSVG } from "../assets/assets";
+import { MapContainer, TileLayer , Marker , Popup } from "react-leaflet";
 import L from "leaflet";
-import dynamic from 'next/dynamic';
 import "leaflet/dist/leaflet.css";
-const MapContainer = dynamic(() => import("react-leaflet").then(mod => mod.MapContainer), { ssr: false });
-const TileLayer = dynamic(() => import("react-leaflet").then(mod => mod.TileLayer), { ssr: false });
-const Marker = dynamic(() => import("react-leaflet").then(mod => mod.Marker), { ssr: false });
-const Popup = dynamic(() => import("react-leaflet").then(mod => mod.Popup), { ssr: false });
 
+interface JournalEntry {
+    lat: number;
+    lng: number;
+    emotion: 'joy' | 'depressed' | 'angry';
+    message: string;
+}
 
-const getEmotionIcon = (emotion: string) => {
-    switch (emotion) {
-        case "joy":
-            return L.icon({
-                iconUrl: FaceSmileSVG.src,
-                iconSize: [25, 41], 
-                iconAnchor: [12, 41], 
-                popupAnchor: [0, -41],
-            });
-        case "depressed":
-            return L.icon({
-                iconUrl: FaceSadSVG.src,
-                iconSize: [25, 41],
-                iconAnchor: [12, 41],
-                popupAnchor: [0, -41],
-            });
-        case "angry":
-            return L.icon({
-                iconUrl: FaceAngrySVG.src,
-                iconSize: [25, 41],
-                iconAnchor: [12, 41],
-                popupAnchor: [0, -41],
-            });
-        default:
-            return L.icon({
-                iconUrl: FaceSmileSVG.src, 
-                iconSize: [25, 41],
-                iconAnchor: [12, 41],
-                popupAnchor: [0, -41],
-            });
-    }
-};
-
-
-const mockJournalData = [
+const mockJournalData: JournalEntry[] = [
     { lat: 51.505, lng: -0.09, emotion: "joy", message: "Feeling great today!" },
     { lat: 40.7128, lng: -74.006, emotion: "depressed", message: "Feeling down..." },
     { lat: 35.6895, lng: 139.6917, emotion: "angry", message: "Had a rough day!" },
@@ -71,23 +38,46 @@ const mockJournalData = [
 
 
 const WorldMap = () => {
+    const mapRef = useRef(null);
     const latitude = 51.505;
     const longitude = -0.09;
-    console.log(FaceAngrySVG, FaceSadSVG, FaceSmileSVG);
 
+    const getEmotionIcon = (emotion: 'joy' | 'depressed' | 'angry') => {
+        const iconOptions = {
+            joy: FaceSmileSVG.src,
+            depressed: FaceSadSVG.src,
+            angry: FaceAngrySVG.src,
+        };
+
+        return L.icon({
+            iconUrl: iconOptions[emotion] || FaceSmileSVG.src,
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [0, -41],
+        });
+    };
+
+    if (typeof window === "undefined") {
+        return null; // Render nothing during SSR
+    }
 
     return (
         <div className="flex justify-center items-center mt-3">
-            <MapContainer center={[latitude, longitude]} zoom={2}  className="h-[80vh] w-[80vw]">
+            <MapContainer center={[latitude, longitude]} zoom={2} className="h-[80vh] w-[80vw]" ref={mapRef}>
                 <TileLayer
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
-                {mockJournalData.map((entry, index) => (
-                    <Marker key={index} position={[entry.lat, entry.lng]} icon={getEmotionIcon(entry.emotion)}>
-                        <Popup>{entry.message}</Popup>
-                    </Marker>
-                ))}
+                {mockJournalData
+                    .map((entry, index) => (
+                        <Marker
+                            key={index}
+                            position={[entry.lat, entry.lng]}
+                            icon={getEmotionIcon(entry.emotion)}
+                        >
+                            <Popup>{entry.message}</Popup>
+                        </Marker>
+                    ))}
             </MapContainer>
         </div>
     );
