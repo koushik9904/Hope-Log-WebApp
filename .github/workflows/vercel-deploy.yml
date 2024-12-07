@@ -19,7 +19,7 @@ jobs:
         npm install leaflet react-leaflet --legacy-peer-deps
 
     - name: Add TypeScript definitions for Leaflet
-      run: npm install @types/leaflet --save-dev
+      run: npm install @types/leaflet --save-dev --legacy-peer-deps
 
     - name: Install Node.js
       uses: actions/setup-node@v4
