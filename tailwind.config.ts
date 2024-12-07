@@ -8,9 +8,18 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        poppins: ['Poppins', 'sans-serif'],
+      },
+      fontWeight: {
+        medium: '500',
+        semibold: '600',
+      },
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        white: '#FFFFFF',
+        dark: '#2E2E40',
+        muted: '#59596E',
+        ascent: '#4F92FF'
       },
     },
   },
