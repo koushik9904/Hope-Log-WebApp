@@ -95,8 +95,8 @@ export default function Home() {
             ))}
           </div>
           <div className="mt-20">
-            <p className="text-2xl">Discover the World&apos;s Emotional Pulse</p>
-            <p className="mt-2">See what&apos;s on Everyone&apos;s Mind Today</p>
+            <p className="text-2xl">Discover the World's Emotional Pulse</p>
+            <p className="mt-2">See what's on Everyone's Mind Today</p>
           </div>
           <WorldMap />
         </div>
