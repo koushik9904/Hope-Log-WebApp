@@ -6,7 +6,7 @@ import "leaflet/dist/leaflet.css";
 
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 
-const getEmotionIcon = (emotion) => {
+const getEmotionIcon = (emotion: string) => {
     switch (emotion) {
         case "joy":
             return L.icon({
