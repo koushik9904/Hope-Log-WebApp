@@ -21,7 +21,9 @@ export default {
         muted: '#59596E',
         ascent: '#4F92FF',
         buttons: '#7A7A92',
-        message: '#59596E'
+        message: '#59596E',
+        mutedHover: '#6E6E84',
+        edit: '#FFB347'
       },
     },
   },

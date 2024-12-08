@@ -9,9 +9,8 @@ import Link from 'next/link'
 
 
 const navigation = [
-    { name: 'Explore', href: '#' },
-    { name: 'Entries', href: '#' },
-    { name: 'Journal', href: '#' },
+    { name: 'Entries', href: '/entries' },
+    { name: 'Feelings AI', href: '/chatbot' },
 ]
 
 export default function Header() {
