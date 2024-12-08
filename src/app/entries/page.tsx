@@ -85,7 +85,10 @@ const Entries = () => {
                                 onClick={() => setSelectedEntry(entry)}
                             >
                                 <div className="block md:hidden">
-                                    <Link href={`/entryDetails?title=${entry.title}&date=${entry.date}&content=${entry.content}&analysis=${entry.analysis}`}>
+                                    <Link href={{
+                                        pathname: '/entryDetails',
+                                        query: { title: entry.title, date: entry.date, content: entry.content, analysis: entry.analysis }
+                                    }}>
                                         {entry.title}
                                     </Link>
                                 </div>

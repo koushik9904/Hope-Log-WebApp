@@ -4,15 +4,12 @@ import { ChevronLeftSVG } from "../assets/assets";
 import Image from "next/image";
 import { Suspense } from "react";
 
-
 const EntryDetailsContent = () => {
     const searchParams = useSearchParams();
     const title = searchParams.get('title') || 'Untitled';
     const date = searchParams.get('date') || 'No date provided';
     const content = searchParams.get('content') || 'No content available';
     const analysis = searchParams.get('analysis') || 'No analysis provided';
-
-
 
     return (
         <div className="min-h-screen bg-dark px-4 py-6">
@@ -43,6 +40,5 @@ const EntryDetails = () => {
         </Suspense>
     );
 };
-
 
 export default EntryDetails;
