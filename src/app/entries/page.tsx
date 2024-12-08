@@ -211,7 +211,9 @@ const Entries = () => {
                                     className="p-4 border-b hover:bg-mutedHover cursor-pointer relative group"
                                     onClick={() => {
                                         setSelectedEntry(entry);
-                                        onOpenDetailsModal();
+                                        if (window.innerWidth < 768) {
+                                            onOpenDetailsModal();
+                                        }
                                     }}
                                 >
                                     <div className="block md:hidden">
@@ -224,7 +226,7 @@ const Entries = () => {
                                         className="absolute right-4 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100"
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            setPopoverVisible(index); //
+                                            setPopoverVisible(index); 
                                         }}
                                     >
                                         <Image src={TrashSVG} width={24} alt="delete" />
