@@ -19,7 +19,9 @@ export default {
         white: '#FFFFFF',
         dark: '#2E2E40',
         muted: '#59596E',
-        ascent: '#4F92FF'
+        ascent: '#4F92FF',
+        buttons: '#7A7A92',
+        message: '#59596E'
       },
     },
   },

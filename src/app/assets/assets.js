@@ -6,6 +6,7 @@ import Seedling from './icons/seedling-solid.svg';
 import faceAngry from './icons/face-angry-regular.svg'
 import faceSad from './icons/face-sad-tear-regular.svg'
 import faceSmile from './icons/face-smile-solid.svg'
+import loginCircle from './icons/login-circle.svg'
 
 export const BookIconSVG = BookIcon
 export const FaceIconSVG = FaceIcon
@@ -15,3 +16,4 @@ export const SeedlingIconSVG = Seedling
 export const FaceAngrySVG = faceAngry
 export const FaceSadSVG = faceSad
 export const FaceSmileSVG = faceSmile
+export const LoginCircleSVG = loginCircle
