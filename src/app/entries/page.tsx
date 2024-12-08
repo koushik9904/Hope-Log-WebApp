@@ -3,7 +3,6 @@ import { useState } from "react";
 import moment from "moment";
 import { EditIconSVG, SearchIconSVG, WriteIconSVG, TrashSVG } from "../assets/assets";
 import Image from "next/image";
-import Link from "next/link";
 import { Modal } from 'react-responsive-modal';
 import 'react-responsive-modal/styles.css';
 
@@ -33,7 +32,6 @@ const mockEntries = [
     },
 ];
 
-
 const Entries = () => {
     const [entries, setEntries] = useState<Array<Entry>>(mockEntries);
     const [selectedEntry, setSelectedEntry] = useState<Entry | null>(null);
@@ -42,11 +40,19 @@ const Entries = () => {
         content: "",
     });
     const [open, setOpen] = useState(false);
+    const [detailsOpen, setDetailsOpen] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
     const onOpenModal = () => setOpen(true);
-    const onCloseModal = () => setOpen(false);
+    const onCloseModal = () => {
+        setOpen(false);
+        setIsEditing(false);
+        setNewEntryContent({ title: "", content: "" });
+    };
+    const onOpenDetailsModal = () => setDetailsOpen(true);
+    const onCloseDetailsModal = () => setDetailsOpen(false);
     const [popoverVisible, setPopoverVisible] = useState<number | null>(null);
 
-    const handlecAddEntry = () => {
+    const handleAddEntry = () => {
         if (newEntryContent.title.trim() === "" || newEntryContent.content.trim() === "") {
             alert("Both title and content are required.");
             return;
@@ -67,18 +73,36 @@ const Entries = () => {
         setOpen(false);
     };
 
+    const handleEditEntry = () => {
+        if (newEntryContent.title.trim() === "" || newEntryContent.content.trim() === "") {
+            alert("Both title and content are required.");
+            return;
+        }
+
+        const updatedEntries = entries.map((entry) =>
+            entry.title === selectedEntry?.title ? { ...entry, ...newEntryContent } : entry
+        );
+
+        setEntries(updatedEntries);
+        setNewEntryContent({
+            title: "",
+            content: "",
+        });
+        setOpen(false);
+        setIsEditing(false);
+    };
 
     return (
         <>
             <Modal
                 open={open}
                 styles={{ modal: { background: "#59596E", borderRadius: '1rem' }, closeIcon: { fill: "#fff" } }}
-                onClose={() => setOpen(false)}
+                onClose={onCloseModal}
                 center
                 classNames={{ modal: "w-full h-full bg-message flex justify-center items-center" }}
             >
-                <div className="w-full h-full  bg-message rounded-lg shadow-lg flex flex-col p-6">
-                    <h2 className="text-white text-xl mb-4">New Entry</h2>
+                <div className="w-full h-full bg-message rounded-lg shadow-lg flex flex-col p-6">
+                    <h2 className="text-white text-xl mb-4">{isEditing ? "Edit Entry" : "New Entry"}</h2>
                     <input
                         type="text"
                         value={newEntryContent.title}
@@ -100,12 +124,47 @@ const Entries = () => {
                             Cancel
                         </button>
                         <button
-                            onClick={handlecAddEntry}
+                            onClick={isEditing ? handleEditEntry : handleAddEntry}
                             className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
                         >
-                            Add Entry
+                            {isEditing ? "Edit Entry" : "Add Entry"}
                         </button>
                     </div>
+                </div>
+            </Modal>
+            <Modal
+                open={detailsOpen}
+                styles={{ modal: { background: "#59596E", borderRadius: '1rem' }, closeIcon: { fill: "#fff" } }}
+                onClose={onCloseDetailsModal}
+                center
+                classNames={{ modal: "w-full h-full bg-message flex justify-center items-center" }}
+            >
+                <div className="w-full h-full bg-message rounded-lg shadow-lg flex flex-col p-6">
+                    {selectedEntry && (
+                        <div className="text-white">
+                            <h2 className="text-2xl mb-4">{selectedEntry.title}</h2>
+                            <p className="text-sm">{selectedEntry.date}</p>
+                            <div className="mt-4">
+                                <h3 className="font-medium">Content</h3>
+                                <p>{selectedEntry.content}</p>
+                            </div>
+                            <div className="mt-4">
+                                <h3 className="font-medium">Analysis</h3>
+                                <p>{selectedEntry.analysis}</p>
+                            </div>
+                            <button
+                                className="mt-4 px-4 py-2 bg-edit text-white rounded ml-auto w-1/4 flex items-center"
+                                onClick={() => {
+                                    setNewEntryContent({ title: selectedEntry.title, content: selectedEntry.content });
+                                    setIsEditing(true);
+                                    onOpenModal();
+                                    onCloseDetailsModal();
+                                }}
+                            >
+                                <Image src={EditIconSVG} alt="edit" className="mr-2" />Edit
+                            </button>
+                        </div>
+                    )}
                 </div>
             </Modal>
             <div className="container mx-auto p-4 text-white">
@@ -150,15 +209,13 @@ const Entries = () => {
                                 <div
                                     key={index}
                                     className="p-4 border-b hover:bg-mutedHover cursor-pointer relative group"
-                                    onClick={() => setSelectedEntry(entry)}
+                                    onClick={() => {
+                                        setSelectedEntry(entry);
+                                        onOpenDetailsModal();
+                                    }}
                                 >
                                     <div className="block md:hidden">
-                                        <Link href={{
-                                            pathname: '/entryDetails',
-                                            query: { title: entry.title, date: entry.date, content: entry.content, analysis: entry.analysis }
-                                        }}>
-                                            {entry.title}
-                                        </Link>
+                                        {entry.title}
                                     </div>
                                     <div className="hidden md:block">
                                         {entry.title}
@@ -214,7 +271,14 @@ const Entries = () => {
                                     <h3 className="font-medium">Analysis</h3>
                                     <p>{selectedEntry.analysis}</p>
                                 </div>
-                                <button className="mt-4 px-4 py-2 bg-edit text-white rounded flex items-center">
+                                <button
+                                    className="mt-4 px-4 py-2 bg-edit text-white rounded flex items-center"
+                                    onClick={() => {
+                                        setNewEntryContent({ title: selectedEntry.title, content: selectedEntry.content });
+                                        setIsEditing(true);
+                                        onOpenModal();
+                                    }}
+                                >
                                     <Image src={EditIconSVG} alt="edit" className="mr-2" />Edit
                                 </button>
                             </div>
@@ -237,4 +301,4 @@ const Entries = () => {
     );
 };
 
-export default Entries;
+export default Entries
