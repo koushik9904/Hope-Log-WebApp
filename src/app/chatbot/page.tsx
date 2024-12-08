@@ -19,10 +19,7 @@ const defaultMockMessages: Array<Message> = [
     }
 ];
 
-
-
 export default function ChatComponent() {
-
     const [messages, setMessages] = useState<Array<Message>>(defaultMockMessages);
     const [input, setInput] = useState("");
 
