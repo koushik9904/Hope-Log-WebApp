@@ -5,11 +5,12 @@ import { Dialog, DialogPanel } from '@headlessui/react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import { HopeIconSVG } from "../../assets/assets"
 import Image from "next/image";
+import Link from 'next/link'
 
 
 const navigation = [
-    { name: 'Product', href: '#' },
-    { name: 'Features', href: '#' },
+    { name: 'Explore', href: '#' },
+    { name: 'Entries', href: '#' },
     { name: 'Journal', href: '#' },
 ]
 
@@ -20,14 +21,14 @@ export default function Header() {
         <header className="text-white bg-dark">
             <nav aria-label="Global" className="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8">
                 <div className="flex lg:flex-1">
-                    <a href="#" className="-m-1.5 p-1.5 flex justify-center items-center ">
+                    <Link href="/" className="-m-1.5 p-1.5 flex justify-center items-center ">
                         <span className="sr-only">Your Company</span>
                         <Image 
                             src={HopeIconSVG}
                             alt="icon"
                         />
                         <h1 className="ml-3 text-xl fontWeight-semibold">HopeLog</h1>
-                    </a>
+                    </Link>
                 </div>
                 <div className="flex lg:hidden">
                     <button
@@ -46,9 +47,9 @@ export default function Header() {
                     ))}
                 </div>
                 <div className="hidden lg:flex lg:flex-1 lg:justify-end">
-                    <a href="#" className="text-sm/6 font-semibold">
+                    <Link href="/login" className="text-sm/6 font-semibold">
                         Log in <span aria-hidden="true">&rarr;</span>
-                    </a>
+                    </Link>
                 </div>
             </nav>
             <Dialog open={mobileMenuOpen} onClose={setMobileMenuOpen} className="lg:hidden">
@@ -85,12 +86,12 @@ export default function Header() {
                                 ))}
                             </div>
                             <div className="py-6">
-                                <a
-                                    href="#"
+                                <Link
+                                    href="/login"
                                     className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold hover:bg-gray-50"
                                 >
                                     Log in
-                                </a>
+                                </Link>
                             </div>
                         </div>
                     </div>
