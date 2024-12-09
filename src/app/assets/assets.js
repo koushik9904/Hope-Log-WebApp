@@ -12,6 +12,9 @@ import EditIcon from './icons/edit.svg'
 import WriteIcon from './icons/write.svg'
 import ChevronLeft from './icons/chevron-left-solid.svg'
 import trash from './icons/trash-solid.svg'
+import CircleCheck from './icons/circle-check-solid.svg'
+import Exclamation from './icons/exclamation-solid.svg'
+
 
 export const BookIconSVG = BookIcon
 export const FaceIconSVG = FaceIcon
@@ -27,3 +30,5 @@ export const EditIconSVG = EditIcon
 export const WriteIconSVG = WriteIcon
 export const ChevronLeftSVG = ChevronLeft
 export const TrashSVG = trash
+export const CircleCheckSVG = CircleCheck
+export const ExclamationSVG = Exclamation
