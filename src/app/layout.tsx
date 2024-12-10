@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import Header from "./layout/Header/Header";
+import ClientRootLayout from "./ClientRootLayout";
+
 import "./globals.css";
 
 
@@ -16,8 +17,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="bg-dark">
       <body>
-      <Header />
-        {children}
+        <ClientRootLayout>
+          {children}
+        </ClientRootLayout>
       </body>
     </html>
   );

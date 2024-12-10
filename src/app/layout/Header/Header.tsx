@@ -4,9 +4,11 @@ import { useState } from 'react'
 import { Dialog, DialogPanel } from '@headlessui/react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import { HopeIconSVG } from "../../assets/assets"
+import {fetchUser} from '../../apis'
+import { useAuth } from '@/app/hooks/useAuth'
 import Image from "next/image";
 import Link from 'next/link'
-
+import { useQuery } from 'react-query'
 
 const navigation = [
     { name: 'Entries', href: '/entries' },
@@ -15,17 +17,29 @@ const navigation = [
 
 export default function Header() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+    const [isLoggedIn, setIsLoggedIn] = useState(false)
+    const {handleLogout} = useAuth()
+    
+    useQuery('verifySession', fetchUser, {
+        onSuccess: (data) => {
+            setIsLoggedIn(data)
+        },
+        onError: (error) => {
+            setIsLoggedIn(false)
+        }
+    })
 
+
+   
     return (
         <header className="text-white bg-dark">
             <nav aria-label="Global" className="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8">
                 <div className="flex lg:flex-1">
                     <Link href="/" className="-m-1.5 p-1.5 flex justify-center items-center ">
                         <span className="sr-only">Your Company</span>
-                        <Image 
+                        <Image
                             src={HopeIconSVG}
-                            alt="icon"
-                        />
+                            alt="icon" />
                         <h1 className="ml-3 text-xl fontWeight-semibold">HopeLog</h1>
                     </Link>
                 </div>
@@ -46,22 +60,28 @@ export default function Header() {
                     ))}
                 </div>
                 <div className="hidden lg:flex lg:flex-1 lg:justify-end">
-                    <Link href="/login" className="text-sm/6 font-semibold">
-                        Log in <span aria-hidden="true">&rarr;</span>
-                    </Link>
+                    {isLoggedIn ? (
+                        <Link href="/" onClick={handleLogout} className="text-sm/6 font-semibold">
+                            Log out <span aria-hidden="true">&rarr;</span>
+                        </Link>
+                    ) : (
+                        <Link href="/login" className="text-sm/6 font-semibold">
+                            Log in <span aria-hidden="true">&rarr;</span>
+                        </Link>
+                    )}
                 </div>
             </nav>
             <Dialog open={mobileMenuOpen} onClose={setMobileMenuOpen} className="lg:hidden">
                 <div className="fixed inset-0 z-10" />
                 <DialogPanel className="fixed inset-y-0 right-0 z-10 w-full overflow-y-auto bg-dark text-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-white-900/10">
                     <div className="flex items-center justify-between">
-                        <a href="#" className="-m-1.5 p-1.5">
+                        <Link href="/" className="-m-1.5 p-1.5 flex justify-center items-center">
                             <span className="sr-only">Your Company</span>
-                            <Image 
-                            src={HopeIconSVG}
-                            alt="icon"
-                        />
-                        </a>
+                            <Image
+                                src={HopeIconSVG}
+                                alt="icon"
+                            />
+                        </Link>
                         <button
                             type="button"
                             onClick={() => setMobileMenuOpen(false)}
@@ -85,12 +105,22 @@ export default function Header() {
                                 ))}
                             </div>
                             <div className="py-6">
-                                <Link
-                                    href="/login"
-                                    className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold hover:bg-gray-50"
-                                >
-                                    Log in
-                                </Link>
+                                {isLoggedIn ? (
+                                    <Link
+                                        onClick={handleLogout}
+                                        href="/"
+                                        className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold hover:bg-gray-50"
+                                    >
+                                        Log out
+                                    </Link>
+                                ) : (
+                                    <Link
+                                        href="/login"
+                                        className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold hover:bg-gray-50"
+                                    >
+                                        Log in
+                                    </Link>
+                                )}
                             </div>
                         </div>
                     </div>

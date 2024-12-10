@@ -1,13 +1,30 @@
+'use client'
 import * as React from 'react';
-import Link from 'next/link'
+import Link from 'next/link';
+import { useAuth } from '../hooks/useAuth';
+import { useRouter } from 'next/navigation'
 
 export default function Login() {
+    const { handleLogin } = useAuth();
+    const router = useRouter();
+
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        const formData = new FormData(event.currentTarget);
+        const email = formData.get('email') as string;
+        const password = formData.get('password') as string;
+        const result =  await handleLogin(email, password);
+        if(result === 'success'){
+            router.push('/');
+        }
+    };
+
     return (
         <>
             <div className="flex min-h-full flex-1 flex-col justify-center py-12 sm:px-6 lg:px-8">
                 <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-[480px]">
                     <div className="bg-white px-6 py-12 shadow sm:rounded-lg sm:px-12">
-                        <form action="#" method="POST" className="space-y-6">
+                        <form onSubmit={handleSubmit} className="space-y-6">
                             <div>
                                 <h1 className="text-2xl mb-5">Sign In</h1>
                                 <label htmlFor="email" className="block text-sm/6 font-medium text-gray-900">
@@ -61,8 +78,7 @@ export default function Login() {
                             </div>
 
                             <div className="mt-5 grid gap-4">
-                                <a
-                                    href="#"
+                                <button
                                     className="flex w-full items-center justify-center gap-3 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:ring-transparent"
                                 >
                                     <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5">
@@ -84,7 +100,7 @@ export default function Login() {
                                         />
                                     </svg>
                                     <span className="text-sm/6 font-semibold">Sign In With Google</span>
-                                </a>
+                                </button>
                             </div>
                             <div className="mt-5">
                                 <p className="text-center text-sm/6 font-medium text-gray-900">
@@ -99,5 +115,5 @@ export default function Login() {
                 </div>
             </div>
         </>
-    )
+    );
 }
