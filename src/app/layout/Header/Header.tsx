@@ -1,14 +1,12 @@
 'use client'
 
-import { use, useState } from 'react'
+import { useState } from 'react'
 import { Dialog, DialogPanel } from '@headlessui/react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import { HopeIconSVG } from "../../assets/assets"
-import {fetchUser} from '../../apis'
 import { useAuth } from '@/app/hooks/useAuth'
 import Image from "next/image";
 import Link from 'next/link'
-import { useQuery } from 'react-query'
 import { BounceLoader } from 'react-spinners';
 
 const navigation = [
