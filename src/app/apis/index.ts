@@ -17,20 +17,20 @@ export const signInUser = async (email: string, password: string) => {
         return "success";
     } catch (error) {
         if (axios.isAxiosError(error) && error.response) {
-            return error.response.data;
+            throw new Error(error.response.data.detail || "An error occurred during login");
         } else {
             throw error;
         }
     }
 }
 
-export const signUpUser = async (email: string, password: string) => {
+export const signUpUser = async (email: string, password: string, age: number , name: string) => {
     try {
-        const response = await api.post(`/auth/signup`, { email, password });
+        const response = await api.post(`/auth/signup`, { email, password , age , name});
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error) && error.response) {
-            return error.response.data;
+            throw new Error(error.response.data.detail || "An error occurred during signup");
         } else {
             throw error;
         }
@@ -43,7 +43,7 @@ export const signOutUser = async () => {
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error) && error.response) {
-            return error.response.data;
+            throw new Error(error.response.data.detail || "An error occurred during sign out");
         } else {
             throw error;
         }
@@ -56,7 +56,7 @@ export const signOAuthUser = async () => {
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error) && error.response) {
-            return error.response.data;
+            throw new Error(error.response.data?.detail || "An error occurred during sign out");
         } else {
             throw error;
         }
@@ -65,8 +65,12 @@ export const signOAuthUser = async () => {
 export const fetchUser = async () => {
     const token = localStorage.getItem('authToken');
     try {
+        if(!token) {
+            return {isLoggedIn: false}
+        }
         const response = await api.get(`/auth/verify/?token=${token}`);
-        return response.data.is_logged_in;
+        const {age, name , email} = response.data.user.user.user_metadata
+        return {isLoggedIn: response.data.is_logged_in , age, name , email};
     } catch (error) {
         if (axios.isAxiosError(error) && error.response) {
             throw new Error('Session not valid');
