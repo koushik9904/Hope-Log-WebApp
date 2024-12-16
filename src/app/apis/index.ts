@@ -65,12 +65,16 @@ export const signOAuthUser = async () => {
 export const fetchUser = async () => {
     const token = localStorage.getItem('authToken');
     try {
-        if(!token) {
-            return {isLoggedIn: false}
+        if (!token) {
+            return { isLoggedIn: false };
         }
-        const response = await api.get(`/auth/verify/?token=${token}`);
-        const {age, name , email} = response.data.user.user.user_metadata
-        return {isLoggedIn: response.data.is_logged_in , age, name , email};
+        const response = await api.get(`/auth/verify`, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        const { age, name, email } = response.data.user.user.user_metadata;
+        return { isLoggedIn: response.data.is_logged_in, age, name, email };
     } catch (error) {
         if (axios.isAxiosError(error) && error.response) {
             throw new Error('Session not valid');
@@ -79,3 +83,4 @@ export const fetchUser = async () => {
         }
     }
 };
+
