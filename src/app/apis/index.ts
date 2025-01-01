@@ -1,4 +1,6 @@
 import axios from "axios";
+import {DailyPromptRequestPayload, CollectiveRequestPayload, SubmitAIPromptPayload , SaveConvoEntryPayload, ConvoEntriesPayload} from "../types/types";
+import { toast } from 'react-toastify';
 
 const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL
 
@@ -17,8 +19,11 @@ export const signInUser = async (email: string, password: string) => {
         return "success";
     } catch (error) {
         if (axios.isAxiosError(error) && error.response) {
-            throw new Error(error.response.data.detail || "An error occurred during login");
+            const response = error.response.data.detail || "An error occurred during login";
+            toast.error(response)
+            throw new Error(response);
         } else {
+            toast.error(error)
             throw error;
         }
     }
@@ -30,8 +35,11 @@ export const signUpUser = async (email: string, password: string, age: number , 
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error) && error.response) {
-            throw new Error(error.response.data.detail || "An error occurred during signup");
+            const response = error.response.data.detail || "An error occurred during signup";
+            toast.error(response)
+            throw new Error(response);
         } else {
+            toast.error(error)
             throw error;
         }
     }
@@ -43,8 +51,11 @@ export const signOutUser = async () => {
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error) && error.response) {
-            throw new Error(error.response.data.detail || "An error occurred during sign out");
+            const response = error.response.data.detail || "An error occurred during sign out";
+            toast.error(response)
+            throw new Error(response);
         } else {
+            toast.error(error)
             throw error;
         }
     }
@@ -56,8 +67,11 @@ export const signOAuthUser = async () => {
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error) && error.response) {
-            throw new Error(error.response.data?.detail || "An error occurred during sign out");
+            const response = error.response.data.detail || "An error occurred during sign out";
+            toast.error(response)
+            throw new Error(response);
         } else {
+            toast.error(error)
             throw error;
         }
     }
@@ -77,10 +91,128 @@ export const fetchUser = async () => {
         return { isLoggedIn: response.data.is_logged_in, age, name, email };
     } catch (error) {
         if (axios.isAxiosError(error) && error.response) {
+            toast.error('Session not valid')
             throw new Error('Session not valid');
         } else {
+            toast.error(error)
             throw error;
         }
     }
 };
 
+export const getDailyPrompt = async () => {
+    try {
+        const response = await api.get(`/api/daily-prompt`);
+        return response.data as DailyPromptRequestPayload;
+    } catch (error) {
+        if (axios.isAxiosError(error) && error.response) {
+            toast.error('An error occurred while fetching the daily prompt')
+            throw new Error('An error occurred while fetching the daily prompt');
+        } else {
+            toast.error(error)
+            throw error;
+        }
+    }
+}
+
+export const submitCollectivePrompt = async (request: CollectiveRequestPayload) => {
+    try {
+        const response = await api.post(`/api/collective-prompt`, request);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error) && error.response) {
+            toast.error('An error occurred while submitting the prompt')
+            throw new Error('An error occurred while submitting the prompt');
+        } else {
+            toast.error(error)
+            throw error;
+        }
+    }
+}
+
+export const submitAiPromptPayload = async (request: SubmitAIPromptPayload) => {
+    try {
+        const response = await api.post(`/api/stream-ai-prompt`, request);
+        return response.data;
+    }catch (error) {
+        if (axios.isAxiosError(error) && error.response) {
+            toast.error('An error occurred while submitting the AI prompt')
+            throw new Error('An error occurred while submitting the AI prompt');
+        } else {
+            toast.error(error)
+            throw error;
+        }
+    }
+
+}
+
+
+export const saveConvoEntry = async (request: SaveConvoEntryPayload) => {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+        throw new Error('User not authenticated');
+    }
+    try {
+        const response = await api.post(`/api/save-convo-entry`, request, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error) && error.response) {
+            toast.error('An error occurred while saving the conversation entry')
+            throw new Error('An error occurred while saving the conversation entry');
+        } else {
+            toast.error(error)
+            throw error;
+        }
+    }
+}
+
+export const getConvoEntries = async () => {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+        throw new Error('User not authenticated');
+    }
+    try {
+        const response = await api.get(`/api/convo-entries`, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        return response.data as ConvoEntriesPayload;
+    } catch (error) {
+        if (axios.isAxiosError(error) && error.response) {
+            toast.error('An error occurred while fetching the conversation entries')
+            throw new Error('An error occurred while fetching the conversation entries');
+        } else {
+            toast.error(error)
+            throw error;
+        }
+    }
+}
+
+export const deleteConvoEntry = async (id: string) => {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+        throw new Error('User not authenticated');
+    }
+    try {
+        const response = await api.delete(`/api/delete-convo-entry/${id}`, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        return response.data as ConvoEntriesPayload;
+    } catch (error) {
+        if (axios.isAxiosError(error) && error.response) {
+            toast.error('An error occurred while deleting the conversation entry')
+            throw new Error('An error occurred while deleting the conversation entry');
+        } else {
+            toast.error(error)
+            throw error;
+        }
+    }
+
+}
