@@ -1,6 +1,7 @@
 import FeatureSession from "./components/FeatureSession";
 import { BookIconSVG, FaceIconSVG, GlobeIconSVG, SeedlingIconSVG } from "./assets/assets";
 import DynamicWorldMap from "./components/DynamicWorldMap";
+import CollectivePrompt from "./components/CollectivePrompt";
 
 const sections = [
   {
@@ -37,18 +38,7 @@ export default function Home() {
           <button className="rounded-2xl bg-ascent text-white py-2 px-4 mt-4">
             Start Journaling | No Sign Up Required
           </button>
-          <div className="bg-white rounded-2xl p-4 mt-6">
-            <h2 className="text-ascent text-2xl">Today's Collective Prompt</h2>
-            <p className="text-black text-lg">What brought you joy today?</p>
-            <textarea
-              rows={5}
-              className="w-full text-black mt-4 p-2 border border-gray-300 rounded"
-              placeholder="Type your thoughts here..."
-            ></textarea>
-            <button className="rounded-2xl bg-ascent text-white py-2 px-4 mt-4">
-              Join the Global Conversation
-            </button>
-          </div>
+          <CollectivePrompt />
           {sections.map((section, index) => (
             <FeatureSession
               key={index}
@@ -63,7 +53,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-
       <div className="hidden md:block lg:hidden">
         <div className="text-center mt-3 p-4">
           <p className="text-lg">A Simple Daily Practice to Find Clarity Calm, and Self-understanding</p>
@@ -72,18 +61,8 @@ export default function Home() {
           <button className="rounded-2xl bg-ascent text-white py-2 px-4 mt-4">
             Start Journaling | No Sign Up Required
           </button>
-          <div className="bg-white rounded-2xl p-4 mt-6 shadow-md">
-            <h2 className="text-ascent text-2xl">Today's Collective Prompt</h2>
-            <p className="text-black text-lg">What brought you joy today?</p>
-            <textarea
-              className="w-full mt-4 p-2 border border-gray-300 rounded text-black"
-              placeholder="Type your thoughts here..."
-              rows={5}
-            ></textarea>
-            <button className="rounded-2xl bg-ascent text-white py-2 px-4 mt-4">
-              Join the Global Conversation
-            </button>
-          </div>
+          <CollectivePrompt />
+
           <div className="grid grid-cols-2 gap-4">
             {sections.map((section, index) => (
               <FeatureSession
@@ -108,18 +87,7 @@ export default function Home() {
           <button className="rounded-2xl bg-ascent text-white py-2 px-4 mt-4">
             Start Journaling | No Sign Up Required
           </button>
-          <div className="bg-white rounded-2xl p-4 mt-6">
-            <h2 className="text-ascent text-2xl">Today's Collective Prompt</h2>
-            <p className="text-black text-lg">What brought you joy today?</p>
-            <textarea
-              className="w-full mt-4 p-2 border border-gray-300 text-black rounded"
-              placeholder="Type your thoughts here..."
-              rows={5}
-            ></textarea>
-            <button className="rounded-2xl bg-ascent text-white py-2 px-4 mt-4">
-              Join the Global Conversation
-            </button>
-          </div>
+          <CollectivePrompt />
           <div className="grid grid-cols-2 gap-4">
             {sections.map((section, index) => (
               <FeatureSession
