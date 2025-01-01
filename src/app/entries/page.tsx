@@ -1,10 +1,12 @@
 'use client'
 import { useState } from "react";
+import { useRouter } from 'next/navigation'
 import moment from "moment";
-import { EditIconSVG, SearchIconSVG, WriteIconSVG, TrashSVG } from "../assets/assets";
+import { SearchIconSVG, WriteIconSVG, TrashSVG } from "../assets/assets";
 import Image from "next/image";
-import { Modal } from 'react-responsive-modal';
+import {Modal} from 'react-responsive-modal';
 import 'react-responsive-modal/styles.css';
+
 
 type Entry = {
     title: string;
@@ -35,103 +37,15 @@ const mockEntries = [
 const Entries = () => {
     const [entries, setEntries] = useState<Array<Entry>>(mockEntries);
     const [selectedEntry, setSelectedEntry] = useState<Entry | null>(null);
-    const [newEntryContent, setNewEntryContent] = useState({
-        title: "",
-        content: "",
-    });
-    const [open, setOpen] = useState(false);
+    const [popoverVisible, setPopoverVisible] = useState<number | null>(null);
     const [detailsOpen, setDetailsOpen] = useState(false);
-    const [isEditing, setIsEditing] = useState(false);
-    const onOpenModal = () => setOpen(true);
-    const onCloseModal = () => {
-        setOpen(false);
-        setIsEditing(false);
-        setNewEntryContent({ title: "", content: "" });
-    };
     const onOpenDetailsModal = () => setDetailsOpen(true);
     const onCloseDetailsModal = () => setDetailsOpen(false);
-    const [popoverVisible, setPopoverVisible] = useState<number | null>(null);
 
-    const handleAddEntry = () => {
-        if (newEntryContent.title.trim() === "" || newEntryContent.content.trim() === "") {
-            alert("Both title and content are required.");
-            return;
-        }
-
-        const newEntry = {
-            title: newEntryContent.title,
-            date: moment().format("dddd, MMMM Do @ h:mm a"),
-            content: newEntryContent.content,
-            analysis: "Reflecting on this can help you grow and understand yourself better.",
-        };
-
-        setEntries([newEntry, ...entries]);
-        setNewEntryContent({
-            title: "",
-            content: "",
-        });
-        setOpen(false);
-    };
-
-    const handleEditEntry = () => {
-        if (newEntryContent.title.trim() === "" || newEntryContent.content.trim() === "") {
-            alert("Both title and content are required.");
-            return;
-        }
-
-        const updatedEntries = entries.map((entry) =>
-            entry.title === selectedEntry?.title ? { ...entry, ...newEntryContent } : entry
-        );
-
-        setEntries(updatedEntries);
-        setNewEntryContent({
-            title: "",
-            content: "",
-        });
-        setOpen(false);
-        setIsEditing(false);
-    };
+    const router = useRouter();
 
     return (
         <>
-            <Modal
-                open={open}
-                styles={{ modal: { background: "#59596E", borderRadius: '1rem' }, closeIcon: { fill: "#fff" } }}
-                onClose={onCloseModal}
-                center
-                classNames={{ modal: "w-full h-full bg-message flex justify-center items-center" }}
-            >
-                <div className="w-full h-full bg-message rounded-lg shadow-lg flex flex-col p-6">
-                    <h2 className="text-white text-xl mb-4">{isEditing ? "Edit Entry" : "New Entry"}</h2>
-                    <input
-                        type="text"
-                        value={newEntryContent.title}
-                        onChange={(e) => setNewEntryContent({ ...newEntryContent, title: e.target.value })}
-                        placeholder="Title"
-                        className="w-full bg-message border border-white text-white rounded-lg p-4 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <textarea
-                        value={newEntryContent.content}
-                        onChange={(e) => setNewEntryContent({ ...newEntryContent, content: e.target.value })}
-                        placeholder="What's on your mind?"
-                        className="w-full h-full bg-message border border-white text-white rounded-lg p-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <div className="mt-4 flex justify-end space-x-4">
-                        <button
-                            onClick={onCloseModal}
-                            className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            onClick={isEditing ? handleEditEntry : handleAddEntry}
-                            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
-                        >
-                            {isEditing ? "Edit Entry" : "Add Entry"}
-                        </button>
-                    </div>
-                </div>
-            </Modal>
             <Modal
                 open={detailsOpen}
                 styles={{ modal: { background: "#59596E", borderRadius: '1rem' }, closeIcon: { fill: "#fff" } }}
@@ -145,24 +59,13 @@ const Entries = () => {
                             <h2 className="text-2xl mb-4">{selectedEntry.title}</h2>
                             <p className="text-sm">{selectedEntry.date}</p>
                             <div className="mt-4">
-                                <h3 className="font-medium">Content</h3>
+                                <h3 className="font-medium">Summary</h3>
                                 <p>{selectedEntry.content}</p>
                             </div>
                             <div className="mt-4">
                                 <h3 className="font-medium">Analysis</h3>
                                 <p>{selectedEntry.analysis}</p>
                             </div>
-                            <button
-                                className="mt-4 px-4 py-2 bg-edit text-white rounded ml-auto w-1/4 flex items-center"
-                                onClick={() => {
-                                    setNewEntryContent({ title: selectedEntry.title, content: selectedEntry.content });
-                                    setIsEditing(true);
-                                    onOpenModal();
-                                    onCloseDetailsModal();
-                                }}
-                            >
-                                <Image src={EditIconSVG} alt="edit" className="mr-2" />Edit
-                            </button>
                         </div>
                     )}
                 </div>
@@ -190,7 +93,7 @@ const Entries = () => {
                             />
                         </button>
                     </div>
-                    <button onClick={onOpenModal} className="bg-ascent hidden md:flex p-4 rounded flex items-center mb-4">
+                    <button onClick={() => router.push("/chatbot")} className="bg-ascent hidden md:flex p-4 rounded flex items-center mb-4">
                         <Image
                             src={WriteIconSVG}
                             width={15}
@@ -266,30 +169,20 @@ const Entries = () => {
                                 <h2 className="text-2xl font-bold">{selectedEntry.title}</h2>
                                 <p className="text-sm text-white">{selectedEntry.date}</p>
                                 <div className="mt-4">
-                                    <h3 className="font-medium">Content</h3>
+                                    <h3 className="font-medium">Summary</h3>
                                     <p>{selectedEntry.content}</p>
                                 </div>
                                 <div className="mt-4">
                                     <h3 className="font-medium">Analysis</h3>
                                     <p>{selectedEntry.analysis}</p>
                                 </div>
-                                <button
-                                    className="mt-4 px-4 py-2 bg-edit text-white rounded flex items-center"
-                                    onClick={() => {
-                                        setNewEntryContent({ title: selectedEntry.title, content: selectedEntry.content });
-                                        setIsEditing(true);
-                                        onOpenModal();
-                                    }}
-                                >
-                                    <Image src={EditIconSVG} alt="edit" className="mr-2" />Edit
-                                </button>
                             </div>
                         ) : (
                             <p className="text-white">Select an entry to view details</p>
                         )}
                     </div>
                     <div className="fixed bottom-5 left-1/2 transform -translate-x-1/2 md:hidden mb-5">
-                        <button className="bg-ascent p-4 rounded-full flex items-center justify-center w-12 h-12" onClick={onOpenModal} >
+                        <button className="bg-ascent p-4 rounded-full flex items-center justify-center w-12 h-12" onClick={() => router.push("/chatbot")} >
                             <Image
                                 src={WriteIconSVG}
                                 width={15}
