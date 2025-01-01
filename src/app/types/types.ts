@@ -12,6 +12,18 @@ type ConvoEntry = {
     analysis: string
 }
 
+export type DailyAnnoymousUserPrompt = {
+    user_text: string,
+    emotion: string 
+    latitude: number, 
+    longitude: number, 
+    prompt: string
+}
+
+export type AnnoymousUserPrompts = {
+    prompts: Array<DailyAnnoymousUserPrompt>
+}
+
 
 export type CollectiveRequestPayload = {
     user_text: string,
