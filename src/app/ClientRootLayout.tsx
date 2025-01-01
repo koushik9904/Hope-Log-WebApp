@@ -1,9 +1,8 @@
-// ClientRootLayout.tsx
 'use client';
-
 import { QueryClient, QueryClientProvider } from "react-query";
 import { useState } from "react";
 import Header from "./layout/Header/Header";
+import { ToastContainer } from 'react-toastify';
 
 export default function ClientRootLayout({
   children,
@@ -16,6 +15,17 @@ export default function ClientRootLayout({
     <QueryClientProvider client={queryClient}>
       <Header />
       {children}
+      <ToastContainer position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick={false}
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </QueryClientProvider>
   );
 }
