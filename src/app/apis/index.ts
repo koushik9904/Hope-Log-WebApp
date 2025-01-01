@@ -1,5 +1,5 @@
 import axios from "axios";
-import {DailyPromptRequestPayload, CollectiveRequestPayload, SubmitAIPromptPayload , SaveConvoEntryPayload, ConvoEntriesPayload} from "../types/types";
+import {DailyPromptRequestPayload, CollectiveRequestPayload, SubmitAIPromptPayload , SaveConvoEntryPayload, ConvoEntriesPayload, AnnoymousUserPrompts } from "../types/types";
 import { toast } from 'react-toastify';
 
 const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL
@@ -23,7 +23,7 @@ export const signInUser = async (email: string, password: string) => {
             toast.error(response)
             throw new Error(response);
         } else {
-            toast.error(error)
+            toast.error(String(error))
             throw error;
         }
     }
@@ -39,7 +39,7 @@ export const signUpUser = async (email: string, password: string, age: number , 
             toast.error(response)
             throw new Error(response);
         } else {
-            toast.error(error)
+            toast.error(String(error))
             throw error;
         }
     }
@@ -55,7 +55,7 @@ export const signOutUser = async () => {
             toast.error(response)
             throw new Error(response);
         } else {
-            toast.error(error)
+            toast.error(String(error))
             throw error;
         }
     }
@@ -71,7 +71,7 @@ export const signOAuthUser = async () => {
             toast.error(response)
             throw new Error(response);
         } else {
-            toast.error(error)
+            toast.error(String(error))
             throw error;
         }
     }
@@ -94,7 +94,7 @@ export const fetchUser = async () => {
             toast.error('Session not valid')
             throw new Error('Session not valid');
         } else {
-            toast.error(error)
+            toast.error(String(error))
             throw error;
         }
     }
@@ -109,7 +109,7 @@ export const getDailyPrompt = async () => {
             toast.error('An error occurred while fetching the daily prompt')
             throw new Error('An error occurred while fetching the daily prompt');
         } else {
-            toast.error(error)
+            toast.error(String(error))
             throw error;
         }
     }
@@ -124,7 +124,22 @@ export const submitCollectivePrompt = async (request: CollectiveRequestPayload) 
             toast.error('An error occurred while submitting the prompt')
             throw new Error('An error occurred while submitting the prompt');
         } else {
-            toast.error(error)
+            toast.error(String(error))
+            throw error;
+        }
+    }
+}
+
+export const getAnnoymousUserPrompts = async() => {
+    try {
+        const response = await api.get(`/api/user-prompts`);
+        return response.data as AnnoymousUserPrompts;
+    }catch (error){
+        if (axios.isAxiosError(error) && error.response) {
+            toast.error('An error occurred while fetching the user prompts')
+            throw new Error('An error occurred while fetching the user prompts');
+        } else {
+            toast.error(String(error))
             throw error;
         }
     }
@@ -139,7 +154,7 @@ export const submitAiPromptPayload = async (request: SubmitAIPromptPayload) => {
             toast.error('An error occurred while submitting the AI prompt')
             throw new Error('An error occurred while submitting the AI prompt');
         } else {
-            toast.error(error)
+            toast.error(String(error))
             throw error;
         }
     }
@@ -164,7 +179,7 @@ export const saveConvoEntry = async (request: SaveConvoEntryPayload) => {
             toast.error('An error occurred while saving the conversation entry')
             throw new Error('An error occurred while saving the conversation entry');
         } else {
-            toast.error(error)
+            toast.error(String(error))
             throw error;
         }
     }
@@ -187,7 +202,7 @@ export const getConvoEntries = async () => {
             toast.error('An error occurred while fetching the conversation entries')
             throw new Error('An error occurred while fetching the conversation entries');
         } else {
-            toast.error(error)
+            toast.error(String(error))
             throw error;
         }
     }
@@ -210,7 +225,7 @@ export const deleteConvoEntry = async (id: string) => {
             toast.error('An error occurred while deleting the conversation entry')
             throw new Error('An error occurred while deleting the conversation entry');
         } else {
-            toast.error(error)
+            toast.error(String(error))
             throw error;
         }
     }
