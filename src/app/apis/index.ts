@@ -16,6 +16,7 @@ export const signInUser = async (email: string, password: string) => {
         const response = await api.post(`/auth/signin`, { email, password });
         const { session } = response.data.data
         localStorage.setItem('authToken', session.access_token);
+        localStorage.setItem('expiryDate', (Date.now() + 3600000).toString());
         return "success";
     } catch (error) {
         if (axios.isAxiosError(error) && error.response) {

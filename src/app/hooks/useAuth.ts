@@ -75,7 +75,14 @@ export const useAuth = () => {
 
     useEffect(() => {
         const token = localStorage.getItem('authToken');
-        if (token) {
+        const expiryDateString = localStorage.getItem('expiryDate');
+        const expiryDate = expiryDateString ? JSON.parse(expiryDateString) : null;
+        if(expiryDate && Date.now() > expiryDate){
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('expiryDate');
+            return
+        }
+        if (token && expiryDate && new Date(expiryDate) > new Date()) {
             verifySession();
         }
     }, [verifySession]);
