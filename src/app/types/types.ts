@@ -1,15 +1,16 @@
-type ConvoPayload = {
+export type ConvoPayload = {
     conversation_history: Array<{
         user: string
         therapist: string
     }>
 }
 
-type ConvoEntry = {
+export type ConvoEntry = {
     id: string,
     title: string 
     summary: string 
     analysis: string
+    created_at: string
 }
 
 export type DailyAnnoymousUserPrompt = {
@@ -38,7 +39,7 @@ export type DailyPromptRequestPayload = {
 
 export type SubmitAIPromptPayload = {
     user_message: string
-    conversation_history: ConvoPayload
+    conversation_history: Array<{user: string, therapist: string}>
 }
 
 export type SaveConvoEntryPayload = {
@@ -49,3 +50,11 @@ export type SaveConvoEntryPayload = {
 export type ConvoEntriesPayload = {
     entries: Array<ConvoEntry>
 }
+
+export type ConvoHistory = {
+    conversation_history: Array<{user: string, therapist: string}>
+}
+
+export type StreamAiPromptOptions = {
+    onChunk?: (chunk: string) => void;
+  };
