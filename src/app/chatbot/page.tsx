@@ -4,7 +4,6 @@ import { LoginCircleSVG, HopeIconSVG } from "../assets/assets";
 import Image from "next/image";
 import WithAuth from "../HOC/WithAuth";
 import { useChatBot } from "../hooks/useChatBot";
-import { BounceLoader } from 'react-spinners';
 
 type Message = {
     sender: string,

@@ -10,12 +10,9 @@ import 'react-responsive-modal/styles.css';
 import useEntries from "../hooks/useEntries";
 
 
-
-
-
 const Entries = () => {
 
-    const {isLoading, data: entries, handleDeleteEntry} = useEntries()
+    const {data: entries, handleDeleteEntry} = useEntries()
     const [selectedEntry, setSelectedEntry] = useState<ConvoEntry | null>(null);
     const [popoverVisible, setPopoverVisible] = useState<number | null>(null);
     const [detailsOpen, setDetailsOpen] = useState(false);

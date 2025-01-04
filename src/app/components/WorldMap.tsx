@@ -2,7 +2,6 @@ import React, { useRef, useMemo } from "react";
 import { FaceAngrySVG, FaceSadSVG, FaceSmileSVG } from "../assets/assets";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import { useWorldMap } from "../hooks/useWorldMap";
-import { CircleLoader } from 'react-spinners';
 import {DailyAnnoymousUserPrompt} from '../types/types'
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
