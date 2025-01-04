@@ -4,7 +4,6 @@ import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useDailyPrompts } from '../hooks/useDailyPrompts';
-import { CircleLoader } from 'react-spinners';
 import { toast } from 'react-toastify';
 
 const schema = z.object({
@@ -30,11 +29,6 @@ const CollectivePrompt: React.FC = () => {
 
     return (
         <>
-            {isLoading && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <CircleLoader color="#ffffff" />
-                </div>
-            )}
             <div className={`bg-white rounded-2xl p-4 mt-6 max-w-md mx-auto sm:max-w-lg md:max-w-3xl ${isLoading ? 'opacity-50' : ''}`}>
                 <h2 className="text-ascent text-2xl">Today's Collective Prompt</h2>
                 <p className="text-black text-lg">{data?.prompt}</p>
