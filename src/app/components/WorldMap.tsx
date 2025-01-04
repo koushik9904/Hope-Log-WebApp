@@ -34,7 +34,7 @@ const mockJournalData: DailyAnnoymousUserPrompt[] = [
 
 
 const WorldMap = () => {
-    const { isLoading, data } = useWorldMap()
+    const { data } = useWorldMap()
     const mapRef = useRef(null);
     const latitude = 51.505;
     const longitude = -0.09;
@@ -76,28 +76,22 @@ const WorldMap = () => {
 
     return (
         <div className="flex justify-center items-center mt-3">
-            {isLoading ? (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <CircleLoader color="#36d7b7" />
-                </div>
-            ) : (
-                <MapContainer center={[latitude, longitude]} zoom={2} className="h-[80vh] w-[80vw]" ref={mapRef}>
-                    <TileLayer
-                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    />
-                    {annoymousPrompts
-                        .map((entry, index) => (
-                            <Marker
-                                key={index}
-                                position={[entry.latitude, entry.longitude]}
-                                icon={getEmotionIcon(entry.emotion)}
-                            >
-                                <Popup>{entry.user_text}</Popup>
-                            </Marker>
-                        ))}
-                </MapContainer>
-            )}
+            <MapContainer center={[latitude, longitude]} zoom={2} className="h-[80vh] w-[80vw]" ref={mapRef}>
+            <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            {annoymousPrompts
+                .map((entry, index) => (
+                <Marker
+                    key={index}
+                    position={[entry.latitude, entry.longitude]}
+                    icon={getEmotionIcon(entry.emotion)}
+                >
+                    <Popup>{entry.user_text}</Popup>
+                </Marker>
+                ))}
+            </MapContainer>
         </div>
     );
 };
