@@ -1,34 +1,92 @@
 'use client'
-import { useState } from "react";
-import { LoginCircleSVG ,HopeIconSVG} from "../assets/assets";
+import { useState, useMemo } from "react";
+import { LoginCircleSVG, HopeIconSVG } from "../assets/assets";
 import Image from "next/image";
+import WithAuth from "../HOC/WithAuth";
+import { useChatBot } from "../hooks/useChatBot";
+import { BounceLoader } from 'react-spinners';
 
 type Message = {
     sender: string,
     text: string
 }
 
-const defaultMockMessages: Array<Message> = [
-    {
-        sender: "You:",
-        text: "Hey… I’m just feeling really overwhelmed lately. Everything feels like too much, and I don’t know where to start fixing it."
-    },
-    {
-        sender: "Bot",
-        text: "I’m really sorry to hear that. 💛 Feeling overwhelmed can be so heavy. You’re not alone in this—I’m here with you. Want to tell me a bit more about what’s been weighing on you?"
-    }
-];
 
-export default function ChatComponent() {
-    const [messages, setMessages] = useState<Array<Message>>(defaultMockMessages);
+const ChatComponent = () => {
+    const [messages, setMessages] = useState<Array<Message>>([]);
     const [input, setInput] = useState("");
+    const { handleStreamAiPrompt,
+        handleResetConvoSession,
+        handleUpdateConvoSession,
+        historyTexts,
+        saveConvoEntires } = useChatBot()
 
-    const sendMessage = () => {
+
+    useMemo(() => {
+        const newHistoryTexts: Array<Message> = []
+        historyTexts?.conversation_history.forEach((history: { user: string, therapist: string }) => {
+            newHistoryTexts.push({ sender: "user:", text: history.user }, { sender: "therapist", text: history.therapist })
+        });
+        setMessages(newHistoryTexts)
+    }, [historyTexts])
+
+
+    const transformMessages = (messages: Array<Message>): Array<{
+        user: string;
+        therapist: string;
+    }> => {
+        const result: Array<{
+            user: string;
+            therapist: string;
+        }> = [];
+        let currentMessage: { user: string, therapist: string } = { user: "", therapist: "" };
+
+        messages.forEach(({ sender, text }: Message) => {
+            if (sender === "user:") {
+                currentMessage["user"] = text || "";
+            } else if (sender === "therapist") {
+                currentMessage["therapist"] = text;
+                result.push({ ...currentMessage });
+                currentMessage = { user: "", therapist: "" };
+            }
+        });
+
+        return result;
+    }
+
+    const sendMessage = async () => {
         if (input.trim()) {
-            setMessages([...messages, { sender: "You:", text: input }]);
-            setInput("");
+            const newMessages = [...messages, { sender: 'user:', text: input }];
+
+            newMessages.push({ sender: 'therapist', text: '' });
+            setMessages(newMessages);
+
+            const conversationHistory = transformMessages(newMessages);
+
+            const response = await handleStreamAiPrompt(input, conversationHistory, (chunk) => {
+                setMessages((prev) => {
+                    const copy = [...prev];
+                    const lastIndex = copy.length - 1;
+                    if (lastIndex >= 0 && copy[lastIndex].sender === 'therapist') {
+                        copy[lastIndex] = {
+                            ...copy[lastIndex],
+                            text: copy[lastIndex].text + chunk,
+                        };
+                    }
+                    return copy;
+                });
+            })
+
+            const updatedMessage = [...messages, { sender: 'user:', text: input }, { sender: 'therapist', text: response }];
+            await handleUpdateConvoSession(transformMessages(updatedMessage));
+            setInput('');
         }
     };
+
+    const handleConvoEntries = () => {
+        const conversationHistory = transformMessages(messages)
+        saveConvoEntires(conversationHistory)
+    }
 
     return (
         <div className="bg-dark text-white min-h-screen flex justify-center px-4 sm:px-6 lg:px-8 mt-20">
@@ -49,22 +107,21 @@ export default function ChatComponent() {
                 ) : (
                     <div className="space-y-4">
                         {messages.map((message, index) => (
-                            <div key={index} className={`flex ${message.sender === 'You:' ? 'justify-end' : 'justify-start'}`}>
+                            <div key={index} className={`flex ${message.sender === 'user:' ? 'justify-end' : 'justify-start'}`}>
                                 <div>
                                     <div className="flex justify-end">
-                                        <strong className="text-sm text-gray-400">{message.sender === 'You:' && message.sender}</strong>
+                                        <strong className="text-sm text-gray-400">{message.sender === 'user:' && 'You:'}</strong>
                                     </div>
-                                    {message.sender === 'Bot' && (
-                                    <div className="flex justify-start mt-3 ml-3">
-                                        <strong className="text-sm text-gray-400">
-                                            <Image
-                                                src={HopeIconSVG}
-                                                alt="icon"
-                                            
-                                            />
-                                        </strong>
-                                    </div>)}
-                                    <div className={`${message.sender === "You:" ? "bg-message bg-opacity-50" : ""} text-white p-4 mt-2 rounded-lg`}>
+                                    {message.sender === 'therapist' && (
+                                        <div className="flex justify-start mt-3 ml-3">
+                                            <strong className="text-sm text-gray-400">
+                                                <Image
+                                                    src={HopeIconSVG}
+                                                    alt="icon"
+                                                />
+                                            </strong>
+                                        </div>)}
+                                    <div className={`${message.sender === "user:" ? "bg-message bg-opacity-50" : ""} text-white p-4 mt-2 rounded-lg`}>
                                         <div>{message.text}</div>
                                     </div>
                                 </div>
@@ -72,7 +129,7 @@ export default function ChatComponent() {
                         ))}
                     </div>
                 )}
-                <div className="flex justify-center w-full p-4 bg-dark pt-[20rem]">
+                <div className="w-full p-4 bg-dark pt-[20rem]">
                     <div className="flex w-full relative">
                         <textarea
                             value={input}
@@ -97,8 +154,27 @@ export default function ChatComponent() {
                             />
                         </button>
                     </div>
+                    <div className="mt-4 w-full">
+                        <button
+                            onClick={handleResetConvoSession}
+                            className="bg-yellow-500 text-white px-6 py-2 rounded-lg w-full"
+                        >
+                            Refresh Convo
+                        </button>
+                    </div>
+                    <div className="mt-4 w-full">
+                        <button
+                            onClick={handleConvoEntries}
+                            className="bg-blue-500 text-white px-6 py-2 rounded-lg w-full"
+                        >
+                            Finish Entry
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     );
 }
+
+
+export default WithAuth(ChatComponent) 
