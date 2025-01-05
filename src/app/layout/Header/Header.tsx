@@ -51,7 +51,7 @@ export default function Header() {
                         </button>
                     </div>
                     <div className="hidden lg:flex lg:gap-x-12">
-                        {isLoggedIn && navigation.map((item) => (
+                        {navigation.map((item) => (
                             <a key={item.name} href={item.href} className="text-sm/6 font-semibold">
                                 {item.name}
                             </a>
@@ -95,7 +95,7 @@ export default function Header() {
                         <div className="mt-6 flow-root">
                             <div className="-my-6 divide-y divide-white-500/10">
                                 <div className="space-y-2 py-6">
-                                    {isLoggedIn && navigation.map((item) => (
+                                    {navigation.map((item) => (
                                         <a
                                             key={item.name}
                                             href={item.href}

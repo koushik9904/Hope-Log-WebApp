@@ -11,8 +11,8 @@ const withAuth = (WrappedComponent: ComponentType) => {
         useEffect(() => {
             const authToken = localStorage.getItem('authToken');
             if (!authToken) {
-                router.push('/');
-                toast.error('You need to login to access this page');
+                router.push('/login');
+                toast.info('You need to login to access this page');
             } else {
                 setIsLoading(false);
             }
