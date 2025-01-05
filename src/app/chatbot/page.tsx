@@ -4,6 +4,7 @@ import { LoginCircleSVG, HopeIconSVG } from "../assets/assets";
 import Image from "next/image";
 import WithAuth from "../HOC/WithAuth";
 import { useChatBot } from "../hooks/useChatBot";
+import { BounceLoader } from 'react-spinners';
 
 type Message = {
     sender: string,
@@ -18,6 +19,7 @@ const ChatComponent = () => {
         handleResetConvoSession,
         handleUpdateConvoSession,
         historyTexts,
+        saveEntryLoading,
         saveConvoEntires } = useChatBot()
 
 
@@ -88,9 +90,14 @@ const ChatComponent = () => {
     }
 
     return (
-        <div className="bg-dark text-white min-h-screen flex justify-center px-4 sm:px-6 lg:px-8 mt-20">
+        <div className="bg-dark text-white min-h-screen flex justify-center px-4 sm:px-6 lg:px-8 mt-20 relative">
+            {saveEntryLoading && (
+                <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center z-50">
+                    <BounceLoader color="#ffffff" />
+                    <p className="text-white mt-4">Saving entry...</p>
+                </div>
+            )}
             <div className="md:w-9/12 w-full bg-dark rounded-lg p-6 space-y-4">
-
                 {messages.length === 0 ? (
                     <div className="text-center">
                         <h1 className="text-5xl font-bold">Hey there! 👋</h1>

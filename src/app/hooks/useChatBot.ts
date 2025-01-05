@@ -34,7 +34,7 @@ export const useChatBot = () => {
     const {mutateAsync: mutateAsyncUpdateConvoSession } = useMutation("updateConvoSession", updateConvoSession)
 
 
-    const { mutateAsync: mutateAsyncConvoHistory } = useMutation(saveConvoEntry, {
+    const { mutateAsync: mutateAsyncSaveConvo, isLoading: saveEntryLoading } = useMutation(saveConvoEntry, {
         onSuccess: () => {
             toast.success("Conversation saved successfully")
             router.push("/entries")
@@ -65,7 +65,7 @@ export const useChatBot = () => {
     };
 
     const saveConvoEntires = async (conversationHistory: Array<{ user: string, therapist: string }>) => {
-        return await mutateAsyncConvoHistory({ conversation_history: conversationHistory });
+        return await mutateAsyncSaveConvo({ conversation_history: conversationHistory });
     }
 
     return {
@@ -74,7 +74,8 @@ export const useChatBot = () => {
         chatHistoryLoading,
         historyTexts,
         saveConvoEntires,
-        handleUpdateConvoSession
+        handleUpdateConvoSession,
+        saveEntryLoading
     };
 
 }
