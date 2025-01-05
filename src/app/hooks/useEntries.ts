@@ -6,7 +6,7 @@ import { AxiosError } from "axios";
 const useEntries = () => {
     const { isLoading, data , refetch } = useQuery('convoEntries', getConvoEntries);
 
-    const deleteEntryMutation = useMutation((variables: { id: string }) => deleteConvoEntry(variables.id), {
+    const {mutateAsync} = useMutation((variables: { id: string }) => deleteConvoEntry(variables.id), {
         onSuccess: () => {
             refetch()
         },
@@ -16,7 +16,7 @@ const useEntries = () => {
     })
 
     const handleDeleteEntry = async (id: string) => {
-        return await deleteEntryMutation.mutateAsync({ id });
+        return await mutateAsync({ id });
     }
 
 
