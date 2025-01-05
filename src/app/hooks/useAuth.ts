@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { signInUser, signOutUser, signUpUser, fetchUser } from '../apis';
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { AxiosError } from "axios";
 
-type userMetaData ={
-    name: string ,
-    email: string ,
+type userMetaData = {
+    name: string,
+    email: string,
     age: number
 }
 
@@ -14,18 +14,23 @@ export const useAuth = () => {
     const [userMetaData, setUserMetaData] = useState<userMetaData | null>(null)
     const [isLoggedIn, setIsLoggedIn] = useState(false)
     const [loginErrorMessage, setLoginErrorMessage] = useState<string | null>(null);
+    const [redirectUrl, setRedirectUrl] = useState('/');
     const router = useRouter();
-    const searchParams = useSearchParams(); 
+
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const redirect = params.get('redirect');
+        if (redirect) setRedirectUrl(redirect);
+    }, []);
+
     const queryClient = useQueryClient();
 
     const { mutateAsync: loginMutateAsync, isLoading: loginIsLoading, error: loginError } = useMutation(
         (variables: { email: string, password: string }) => signInUser(variables.email, variables.password),
         {
             onSuccess: () => {
-                verifySession(); 
-                
-                const redirectUrl = searchParams.get('redirect') || '/';
-                router.push(redirectUrl); 
+                verifySession();
+                router.push(redirectUrl);
             },
             onError: (error: AxiosError) => {
                 setLoginErrorMessage(error.message);
@@ -33,12 +38,12 @@ export const useAuth = () => {
         }
     );
 
-    const {mutateAsync: logOutMutateAsync , isLoading: logOutIsLoading } = useMutation(signOutUser, {
+    const { mutateAsync: logOutMutateAsync, isLoading: logOutIsLoading } = useMutation(signOutUser, {
         onSuccess: () => {
             localStorage.removeItem('authToken');
             setIsLoggedIn(false);
             setUserMetaData(null);
-            queryClient.clear(); 
+            queryClient.clear();
             router.push("/")
         },
     });
@@ -53,7 +58,7 @@ export const useAuth = () => {
         'verifySession',
         fetchUser,
         {
-            enabled: false, 
+            enabled: false,
             onSuccess: (data) => {
                 setIsLoggedIn(data.isLoggedIn);
                 setUserMetaData({ name: data.name, email: data.email, age: data.age });
@@ -83,7 +88,7 @@ export const useAuth = () => {
         const token = localStorage.getItem('authToken');
         const expiryDateString = localStorage.getItem('expiryDate');
         const expiryDate = expiryDateString ? JSON.parse(expiryDateString) : null;
-        if(expiryDate && Date.now() > expiryDate){
+        if (expiryDate && Date.now() > expiryDate) {
             localStorage.removeItem('authToken');
             localStorage.removeItem('expiryDate');
             return
