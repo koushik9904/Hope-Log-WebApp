@@ -119,10 +119,29 @@ const ChatComponent = () => {
                                                     alt="icon"
                                                 />
                                             </strong>
-                                        </div>)}
+                                        </div>
+                                    )}
                                     <div className={`${message.sender === "user:" ? "bg-message bg-opacity-50" : ""} text-white p-4 mt-2 rounded-lg`}>
                                         <div>{message.text}</div>
                                     </div>
+                                    {message.sender === 'therapist' && index === messages.length - 1 && (
+                                        <div className="flex justify-center mt-4 w-full">
+                                            <div className="flex space-x-4 w-1/3">
+                                                <button
+                                                    onClick={handleResetConvoSession}
+                                                    className="bg-yellow-500 text-white px-6 py-2 rounded-lg w-full"
+                                                >
+                                                    Refresh Convo
+                                                </button>
+                                                <button
+                                                    onClick={handleConvoEntries}
+                                                    className="bg-blue-500 text-white px-6 py-2 rounded-lg w-full"
+                                                >
+                                                    Finish Entry
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         ))}
@@ -151,22 +170,6 @@ const ChatComponent = () => {
                                 src={LoginCircleSVG}
                                 alt="icon"
                             />
-                        </button>
-                    </div>
-                    <div className="mt-4 w-full">
-                        <button
-                            onClick={handleResetConvoSession}
-                            className="bg-yellow-500 text-white px-6 py-2 rounded-lg w-full"
-                        >
-                            Refresh Convo
-                        </button>
-                    </div>
-                    <div className="mt-4 w-full">
-                        <button
-                            onClick={handleConvoEntries}
-                            className="bg-blue-500 text-white px-6 py-2 rounded-lg w-full"
-                        >
-                            Finish Entry
                         </button>
                     </div>
                 </div>
