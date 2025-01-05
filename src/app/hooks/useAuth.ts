@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { signInUser, signOutUser, signUpUser, fetchUser } from '../apis';
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { AxiosError } from "axios";
 
 type userMetaData ={
@@ -15,17 +15,23 @@ export const useAuth = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false)
     const [loginErrorMessage, setLoginErrorMessage] = useState<string | null>(null);
     const router = useRouter();
+    const searchParams = useSearchParams(); 
     const queryClient = useQueryClient();
 
-    const { mutateAsync: loginMutateAsync, isLoading: loginIsLoading, error: loginError } = useMutation((variables: { email: string, password: string }) => signInUser(variables.email, variables.password), {
-        onSuccess: () => {
-            verifySession(); 
-            router.push("/")
-        },
-        onError: (error: AxiosError) => {
-            setLoginErrorMessage(error.message)
+    const { mutateAsync: loginMutateAsync, isLoading: loginIsLoading, error: loginError } = useMutation(
+        (variables: { email: string, password: string }) => signInUser(variables.email, variables.password),
+        {
+            onSuccess: () => {
+                verifySession(); 
+                
+                const redirectUrl = searchParams.get('redirect') || '/';
+                router.push(redirectUrl); 
+            },
+            onError: (error: AxiosError) => {
+                setLoginErrorMessage(error.message);
+            }
         }
-    });
+    );
 
     const {mutateAsync: logOutMutateAsync , isLoading: logOutIsLoading } = useMutation(signOutUser, {
         onSuccess: () => {

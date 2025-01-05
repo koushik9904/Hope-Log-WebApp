@@ -1,22 +1,23 @@
 import React, { ComponentType, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter , usePathname} from 'next/navigation';
 import { BounceLoader } from 'react-spinners';
 import { toast } from 'react-toastify';
 
 const withAuth = (WrappedComponent: ComponentType) => {
     const ProtectedRoute: React.FC = (props) => {
         const router = useRouter();
+        const pathname = usePathname(); 
         const [isLoading, setIsLoading] = useState(true);
 
         useEffect(() => {
             const authToken = localStorage.getItem('authToken');
             if (!authToken) {
-                router.push('/login');
+                router.push(`/login?redirect=${pathname}`);
                 toast.info('You need to login to access this page');
             } else {
                 setIsLoading(false);
             }
-        }, [router]);
+        }, [router, pathname]);
 
         if (isLoading) {
             return (
