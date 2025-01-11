@@ -14,11 +14,13 @@ const navigation = [
     { name: 'Feelings AI', href: '/chatbot' },
 ]
 
-
 export default function Header() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-    const {handleLogout, logOutIsLoading, userMetaData, isLoggedIn} = useAuth()
-    
+    const { handleLogout, logOutIsLoading, userMetaData, isLoggedIn, handleLogin } = useAuth()
+
+    const handleTestUserLogin = async () => {
+        await handleLogin("fbqpluyagxtruvmavn@hthlm.com", "testuser")
+    }
 
     return (
         <>
@@ -66,9 +68,16 @@ export default function Header() {
                                 </Link>
                             </>
                         ) : (
-                            <Link href="/login" className="text-sm/6 font-semibold">
-                                Log in <span aria-hidden="true">&rarr;</span>
-                            </Link>
+                            <>
+                                {!isLoggedIn &&
+                                    <button onClick={handleTestUserLogin} className="text-sm/6 font-semibold bg-ascent px-3 py-2 rounded-md mr-4">
+                                        Sign In With Test User
+                                    </button>
+                                }
+                                <Link href="/login" className="text-sm/6 font-semibold">
+                                    Log in <span aria-hidden="true">&rarr;</span>
+                                </Link>
+                            </>
                         )}
                     </div>
                 </nav>
@@ -118,12 +127,17 @@ export default function Header() {
                                             Log out
                                         </Link>
                                     ) : (
-                                        <Link
-                                            href="/login"
-                                            className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold hover:bg-gray-50"
-                                        >
-                                            Log in
-                                        </Link>
+                                        !isLoggedIn && <>
+                                            <button onClick={handleTestUserLogin} className="text-base/7 font-semibold bg-ascent px-3 py-2.5 rounded-md mb-4">
+                                                Sign In With Test User
+                                            </button>
+                                            <Link
+                                                href="/login"
+                                                className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold hover:bg-gray-50"
+                                            >
+                                                Log in
+                                            </Link>
+                                        </>
                                     )}
                                 </div>
                             </div>
