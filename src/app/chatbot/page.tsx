@@ -5,6 +5,7 @@ import Image from "next/image";
 import WithAuth from "../HOC/WithAuth";
 import { useChatBot } from "../hooks/useChatBot";
 import { BounceLoader } from 'react-spinners';
+import DisclaimerModal from "../components/DisclaimerModal";
 
 type Message = {
     sender: string,
@@ -19,6 +20,7 @@ const ChatComponent = () => {
         handleResetConvoSession,
         handleUpdateConvoSession,
         historyTexts,
+        chatHistoryLoading,
         saveEntryLoading,
         saveConvoEntires } = useChatBot()
 
@@ -91,6 +93,13 @@ const ChatComponent = () => {
 
     return (
         <div className="bg-dark text-white min-h-screen flex justify-center px-4 sm:px-6 lg:px-8 mt-20 relative">
+            <DisclaimerModal />
+            {chatHistoryLoading && (
+                <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center z-50">
+                    <BounceLoader color="#ffffff" />
+                    <p className="text-white mt-4">Loading Convo Session...</p>
+                </div>
+            )}
             {saveEntryLoading && (
                 <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center z-50">
                     <BounceLoader color="#ffffff" />
