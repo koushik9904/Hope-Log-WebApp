@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Feelings AI Bot
+# Feelings AI Bot
 
-## Getting Started
+The Feelings AI Bot is a supportive tool designed to help users reflect on their emotions by facilitating conversations with an AI-driven bot. It allows users to engage in thoughtful conversations, save and view their entries, and receive collective prompts for deeper introspection.
 
-First, run the development server:
+## Development Link
+[Feelings AI Bot (Dev Link)](#https://build-with-ai-hackaton-fe.vercel.app/)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Version History
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Patch Version 1.1 – Launched on 11 Jan 2025
+**Improved Bot Responses:**
+- Enhanced handling of greetings, short responses, and gibberish text inputs such as "hello", "bye", and "rwarw".
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**New Feature:**
+- Added a disclaimer for bot users to clarify the tool’s purpose, privacy policy, and limitations.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### MVP Version 1.0 – Launched on 5 Jan 2025
+**Core Features:**
+- Enabled AI-driven conversations with a virtual therapist.
+- Introduced functionality to save and view past entries, allowing users to track their emotional journey.
+- Added a collective prompt feature to guide users in self-reflection.
 
-## Learn More
+## Privacy Policy
+Since the bot may involve sharing personal information, feelings, or emotions that could be linked to mental health or medical conditions, we prioritize transparency and user privacy:
 
-To learn more about Next.js, take a look at the following resources:
+- Data is tied to user accounts and securely stored.
+- The collected data is only used to enhance the bot’s responses and improve user experience.
+- We do not share data with external parties, and only authorized personnel have access to it.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+For more details, please refer to our full Privacy Policy.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Usage Instructions
 
-## Deploy on Vercel
+### Start a Conversation:
+Open the Feelings AI Bot and begin a conversation with the virtual therapist.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Save Your Entries:
+After each session, you can save your entries for future reference.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### View Past Entries:
+Access and review your saved entries through the provided interface.
+
+### Use Collective Prompts:
+Utilize collective prompts to explore different aspects of your thoughts and emotions.
+
+## Future Enhancements
+
+- **Mood Tracking:** We plan to introduce a feature where users can log their mood over time.
+- **Sentiment Analysis:** Adding sentiment analysis to further refine the bot’s responses based on the user's emotional tone.
+- **Conversation Summarization:** Summarizing key points after each session to help users reflect more effectively.
+
+## Contributing
+We welcome contributions! Please feel free to submit a pull request or open an issue for any suggestions or bug reports.
