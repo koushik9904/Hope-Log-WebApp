@@ -5,19 +5,26 @@ export type ConvoPayload = {
     }>
 }
 
+interface Emotion {
+    emotion: string;
+    evidence: string;
+    intensity: number;
+}
+
 export type ConvoEntry = {
     id: string,
-    title: string 
-    summary: string 
+    title: string
+    summary: string
     analysis: string
     created_at: string
+    emotions: Emotion[]
 }
 
 export type DailyAnnoymousUserPrompt = {
     user_text: string,
-    emotion: string 
-    latitude: number, 
-    longitude: number, 
+    emotion: string
+    latitude: number,
+    longitude: number,
     prompt: string
 }
 
@@ -39,7 +46,7 @@ export type DailyPromptRequestPayload = {
 
 export type SubmitAIPromptPayload = {
     user_message: string
-    conversation_history: Array<{user: string, therapist: string}>
+    conversation_history: Array<{ user: string, therapist: string }>
 }
 
 export type SaveConvoEntryPayload = {
@@ -52,9 +59,9 @@ export type ConvoEntriesPayload = {
 }
 
 export type ConvoHistory = {
-    conversation_history: Array<{user: string, therapist: string}>
+    conversation_history: Array<{ user: string, therapist: string }>
 }
 
 export type StreamAiPromptOptions = {
     onChunk?: (chunk: string) => void;
-  };
+};
