@@ -59,8 +59,8 @@ const Entries = () => {
                                     <>
                                         <h3 className="font-medium">Emotions Identified</h3><div className="mt-2">
                                             <div className="mb-3 flex items-center">
-                                                {selectedEntry.emotions?.map((emotion, index) => (
-                                                    renderEmotionPill(emotion.emotion, index)
+                                                {selectedEntry.emotions?.map((emotion) => (
+                                                    renderEmotionPill(emotion.emotion)
                                                 ))}
                                             </div>
                                         </div>
@@ -163,8 +163,8 @@ const Entries = () => {
                                             <>
                                                 <h3 className="font-medium">Emotions Identified</h3><div className="mt-2">
                                                     <div className="mb-3 flex items-center">
-                                                        {selectedEntry.emotions?.map((emotion, index) => (
-                                                            renderEmotionPill(emotion.emotion, index)
+                                                        {selectedEntry.emotions?.map((emotion) => (
+                                                            renderEmotionPill(emotion.emotion)
                                                         ))}
                                                     </div>
                                                 </div>
