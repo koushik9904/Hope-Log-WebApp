@@ -9,6 +9,9 @@ import { ConvoEntry } from "../types/types";
 import 'react-responsive-modal/styles.css';
 import useEntries from "../hooks/useEntries";
 import { BounceLoader } from 'react-spinners';
+import { EMOTION_TO_EMOTICON } from "../constants/constants";
+import uniqid from 'uniqid';
+
 
 const Entries = () => {
     const { data: entries, handleDeleteEntry, isLoading } = useEntries();
@@ -19,6 +22,15 @@ const Entries = () => {
     const onOpenDetailsModal = () => setDetailsOpen(true);
     const onCloseDetailsModal = () => setDetailsOpen(false);
     const router = useRouter();
+
+    const renderEmotionPill = (emotion: string) => {
+        const emoticon = EMOTION_TO_EMOTICON[emotion as keyof typeof EMOTION_TO_EMOTICON] || '';
+        return (
+            <span key={`emotion-${uniqid()}`} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-700 text-white mr-2 mb-2">
+                {emoticon} {emotion}
+            </span>
+        );
+    };
 
     return (
         <>
@@ -41,6 +53,20 @@ const Entries = () => {
                             <div className="mt-4">
                                 <h3 className="font-medium">Analysis</h3>
                                 <p>{selectedEntry.analysis}</p>
+                            </div>
+                            <div className="mt-4">
+                                {selectedEntry.emotions &&
+                                    <>
+                                        <h3 className="font-medium">Emotions Identified</h3><div className="mt-2">
+                                            <div className="mb-3 flex items-center">
+                                                {selectedEntry.emotions?.map((emotion, index) => (
+                                                    renderEmotionPill(emotion.emotion, index)
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </>
+                                }
+
                             </div>
                         </div>
                     )}
@@ -131,6 +157,19 @@ const Entries = () => {
                                     <div className="mt-4">
                                         <h3 className="font-medium">Analysis</h3>
                                         <p>{selectedEntry.analysis}</p>
+                                    </div>
+                                    <div className="mt-4">
+                                        {selectedEntry.emotions &&
+                                            <>
+                                                <h3 className="font-medium">Emotions Identified</h3><div className="mt-2">
+                                                    <div className="mb-3 flex items-center">
+                                                        {selectedEntry.emotions?.map((emotion, index) => (
+                                                            renderEmotionPill(emotion.emotion, index)
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </>
+                                        }
                                     </div>
                                 </div>
                             ) : (
