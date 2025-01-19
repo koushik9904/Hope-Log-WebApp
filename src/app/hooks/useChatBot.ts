@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 import { AxiosError } from 'axios';
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 import { useState, useMemo } from 'react';
+import moment from 'moment-timezone';
 
 
 type Message = {
@@ -14,6 +15,7 @@ type Message = {
 
 export const useChatBot = () => {
     const router = useRouter();
+    const timezone = moment.tz.guess(); // Get user's timezone
     const [messages, setMessages] = useState<Array<Message>>([]);
     const [input, setInput] = useState("");
     const [isListening, setIsListening] = useState(false);
@@ -29,12 +31,14 @@ export const useChatBot = () => {
         (args: {
             user_message: string;
             conversation_history: Array<{ user: string; therapist: string }>;
+            timezone: string;
             onChunk?: (chunk: string) => void;
         }) => {
             return streamAiPrompt(
                 {
                     user_message: args.user_message,
                     conversation_history: args.conversation_history,
+                    timezone: args.timezone,
                 },
                 { onChunk: args.onChunk }
             );
@@ -140,12 +144,16 @@ export const useChatBot = () => {
         return await mutateAsyncStream({
             user_message: userText,
             conversation_history: conversationHistory,
+            timezone,
             onChunk,
         });
     };
 
     const saveConvoEntires = async (conversationHistory: Array<{ user: string, therapist: string }>) => {
-        return await mutateAsyncSaveConvo({ conversation_history: conversationHistory });
+        return await mutateAsyncSaveConvo({ 
+            conversation_history: conversationHistory,
+            timezone 
+        });
     }
 
     const handleVoiceInput = (setInput: (value: string) => void) => {

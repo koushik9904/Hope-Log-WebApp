@@ -19,6 +19,7 @@ const EMOTION_TO_EMOTICON = {
     "Envy": "😒",
     "Pride": "🏆",
     "Hope": "🌈",
+    "Uncertainty": "🤷",
     "Anxiety": "😰"
 }
 

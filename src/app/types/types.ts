@@ -2,7 +2,8 @@ export type ConvoPayload = {
     conversation_history: Array<{
         user: string
         therapist: string
-    }>
+    }>,
+    timezone?: string
 }
 
 interface Emotion {

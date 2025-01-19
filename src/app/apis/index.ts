@@ -1,6 +1,7 @@
 import axios from "axios";
 import { DailyPromptRequestPayload, CollectiveRequestPayload, SubmitAIPromptPayload, ConvoPayload, ConvoEntriesPayload, AnnoymousUserPrompts, ConvoHistory, StreamAiPromptOptions } from "../types/types";
 import { toast } from 'react-toastify';
+import moment from 'moment-timezone';
 
 const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL
 
@@ -159,28 +160,6 @@ export const getConvoHistory = async () => {
     }
 }
 
-// export const streamAiPrompt = async (request: SubmitAIPromptPayload) => {
-//     try {
-//         const authToken = localStorage.getItem('authToken');
-
-//         const response = await api.post('/api/stream-ai-prompt', request, {
-//             responseType: 'stream',
-//             headers: {
-//                 Authorization: `Bearer ${authToken}`,
-//                 'Content-Type': 'application/json',
-//             },
-//         });
-
-//         return response
-//     } catch (error) {
-//         if (axios.isAxiosError(error) && error.response) {
-//             toast.error('An error occurred while submitting the AI prompt');
-//             throw new Error('An error occurred while submitting the AI prompt');
-//         } else {
-//             throw error;
-//         }
-//     }
-// };
 
 export async function* streamAiPromptGenerator(request: SubmitAIPromptPayload) {
     const authToken = localStorage.getItem('authToken');
@@ -217,68 +196,23 @@ export async function* streamAiPromptGenerator(request: SubmitAIPromptPayload) {
     }
 }
 
-
-export async function streamAiPrompt(
-    request: SubmitAIPromptPayload,
-    options?: StreamAiPromptOptions
-): Promise<string> {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const authToken = localStorage.getItem('authToken');
-            const response = await fetch(`${baseUrl}/api/stream-ai-prompt`, {
-                method: 'POST',
-                headers: {
-                    Authorization: `Bearer ${authToken}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(request),
-            });
-
-            if (!response.ok) {
-                return reject(
-                    new Error(`Request failed: ${response.status} ${response.statusText}`)
-                );
-            }
-
-            const reader = response.body?.getReader();
-            if (!reader) {
-                return reject(
-                    new Error('ReadableStream not supported or body is null')
-                );
-            }
-
-            const decoder = new TextDecoder();
-            let done = false;
-            let accumulatedText = '';
-
-            while (!done) {
-                const { value, done: doneReading } = await reader.read();
-                done = doneReading;
-                if (value) {
-                    const chunkText = decoder.decode(value, { stream: true });
-                    options?.onChunk?.(chunkText);
-                    accumulatedText += chunkText;
-                }
-            }
-            resolve(accumulatedText);
-        } catch (error) {
-            reject(error);
-        }
-    });
-}
-
-
 export const saveConvoEntry = async (request: ConvoPayload) => {
     const token = localStorage.getItem('authToken');
     if (!token) {
         throw new Error('User not authenticated');
     }
     try {
-        const response = await api.post(`/api/save-convo-entry`, request, {
-            headers: {
-                Authorization: `Bearer ${token}`
+        const timezone = moment.tz.guess();
+        const updatedRequest = { ...request, timezone }
+        console.log(updatedRequest)
+        const response = await api.post(`/api/save-convo-entry`,
+            updatedRequest,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
             }
-        });
+        );
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error) && error.response) {
@@ -379,5 +313,58 @@ export const deleteConvoEntry = async (id: string) => {
         }
     }
 
+}
+
+export const streamAiPrompt = async (
+    request: {
+        user_message: string;
+        conversation_history: Array<{ user: string; therapist: string }>;
+        timezone: string;
+    },
+    options?: StreamAiPromptOptions
+) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const authToken = localStorage.getItem('authToken');
+            const response = await fetch(`${baseUrl}/api/stream-ai-prompt`, {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${authToken}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(request),
+            });
+
+            if (!response.ok) {
+                return reject(
+                    new Error(`Request failed: ${response.status} ${response.statusText}`)
+                );
+            }
+
+            const reader = response.body?.getReader();
+            if (!reader) {
+                return reject(
+                    new Error('ReadableStream not supported or body is null')
+                );
+            }
+
+            const decoder = new TextDecoder();
+            let done = false;
+            let accumulatedText = '';
+
+            while (!done) {
+                const { value, done: doneReading } = await reader.read();
+                done = doneReading;
+                if (value) {
+                    const chunkText = decoder.decode(value, { stream: true });
+                    options?.onChunk?.(chunkText);
+                    accumulatedText += chunkText;
+                }
+            }
+            resolve(accumulatedText);
+        } catch (error) {
+            reject(error);
+        }
+    });
 }
 

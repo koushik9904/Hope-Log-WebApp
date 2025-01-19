@@ -18,6 +18,13 @@ The Feelings AI Bot is a supportive tool designed to help users reflect on their
 - Supports natural conversation flow through voice commands
 - Visual indicator shows active recording status
 
+**Bug Fix - Timezone Handling:**
+- Fixed timestamp synchronization for conversation entries
+- Now accurately records entry times based on user's local timezone
+- Automatically detects user timezone using moment-timezone
+- Ensures consistent timestamp display across different regions
+- Preserves chronological accuracy in conversation history
+
 
 ### Version 1.2 – Launched on 18 Jan 2025
 
