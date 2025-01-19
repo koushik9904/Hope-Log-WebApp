@@ -8,6 +8,17 @@ The Feelings AI Bot is a supportive tool designed to help users reflect on their
 
 ## Version History
 
+### Version 1.3 - Launched on 19 Jan 2025
+
+**New Feature - Voice Input:**
+- Added voice-to-text functionality for message input
+- Implemented microphone toggle button that changes icon state during recording
+- Voice input automatically converts to text in the message field
+- Seamlessly integrates with existing chat interface
+- Supports natural conversation flow through voice commands
+- Visual indicator shows active recording status
+
+
 ### Version 1.2 – Launched on 18 Jan 2025
 
 **Bug Fixes:**

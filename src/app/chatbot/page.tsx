@@ -1,95 +1,26 @@
 'use client'
-import { useState, useMemo } from "react";
-import { LoginCircleSVG, HopeIconSVG } from "../assets/assets";
+import 'regenerator-runtime/runtime';
+import { LoginCircleSVG, HopeIconSVG, MicrophoneIconSVG, StopIconSVG } from "../assets/assets";
 import Image from "next/image";
 import WithAuth from "../HOC/WithAuth";
 import { useChatBot } from "../hooks/useChatBot";
 import { BounceLoader } from 'react-spinners';
 import DisclaimerModal from "../components/DisclaimerModal";
 
-type Message = {
-    sender: string,
-    text: string
-}
-
-
 const ChatComponent = () => {
-    const [messages, setMessages] = useState<Array<Message>>([]);
-    const [input, setInput] = useState("");
-    const { handleStreamAiPrompt,
+    const {
         handleResetConvoSession,
-        handleUpdateConvoSession,
-        historyTexts,
         chatHistoryLoading,
         saveEntryLoading,
-        saveConvoEntires } = useChatBot()
-
-
-    useMemo(() => {
-        const newHistoryTexts: Array<Message> = []
-        historyTexts?.conversation_history.forEach((history: { user: string, therapist: string }) => {
-            newHistoryTexts.push({ sender: "user:", text: history.user }, { sender: "therapist", text: history.therapist })
-        });
-        setMessages(newHistoryTexts)
-    }, [historyTexts])
-
-
-    const transformMessages = (messages: Array<Message>): Array<{
-        user: string;
-        therapist: string;
-    }> => {
-        const result: Array<{
-            user: string;
-            therapist: string;
-        }> = [];
-        let currentMessage: { user: string, therapist: string } = { user: "", therapist: "" };
-
-        messages.forEach(({ sender, text }: Message) => {
-            if (sender === "user:") {
-                currentMessage["user"] = text || "";
-            } else if (sender === "therapist") {
-                currentMessage["therapist"] = text;
-                result.push({ ...currentMessage });
-                currentMessage = { user: "", therapist: "" };
-            }
-        });
-
-        return result;
-    }
-
-    const sendMessage = async () => {
-        if (input.trim()) {
-            const newMessages = [...messages, { sender: 'user:', text: input }];
-
-            newMessages.push({ sender: 'therapist', text: '' });
-            setMessages(newMessages);
-
-            const conversationHistory = transformMessages(newMessages);
-
-            const response = await handleStreamAiPrompt(input, conversationHistory, (chunk) => {
-                setMessages((prev) => {
-                    const copy = [...prev];
-                    const lastIndex = copy.length - 1;
-                    if (lastIndex >= 0 && copy[lastIndex].sender === 'therapist') {
-                        copy[lastIndex] = {
-                            ...copy[lastIndex],
-                            text: copy[lastIndex].text + chunk,
-                        };
-                    }
-                    return copy;
-                });
-            })
-
-            const updatedMessage = [...messages, { sender: 'user:', text: input }, { sender: 'therapist', text: response }];
-            await handleUpdateConvoSession(transformMessages(updatedMessage));
-            setInput('');
-        }
-    };
-
-    const handleConvoEntries = () => {
-        const conversationHistory = transformMessages(messages)
-        saveConvoEntires(conversationHistory)
-    }
+        handleVoiceInput,
+        isListening,
+        browserSupportsSpeechRecognition,
+        messages,
+        input,
+        setInput,
+        sendMessage,
+        handleConvoEntries
+    } = useChatBot();
 
     return (
         <div className="bg-dark text-white min-h-screen flex justify-center px-4 sm:px-6 lg:px-8 mt-20 relative">
@@ -115,7 +46,7 @@ const ChatComponent = () => {
                             questions, solving problems, or chatting about your ideas.
                         </p>
                         <p className="mt-5 text-gray-300">
-                            Think of me as your smart, supportive sidekick. Let’s dive in
+                            Think of me as your smart, supportive sidekick. Let's dive in
                             together!
                         </p>
                     </div>
@@ -176,17 +107,32 @@ const ChatComponent = () => {
                             }}
                             placeholder="Message HopeLog"
                             rows={5}
-                            className="flex-grow bg-message text-white border-none rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 pr-10"
+                            className="flex-grow bg-message text-white border-none rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 pr-24"
                         />
-                        <button
-                            onClick={sendMessage}
-                            className="absolute bottom-2 right-2 bg-transparent border-none cursor-pointer"
-                        >
-                            <Image
-                                src={LoginCircleSVG}
-                                alt="icon"
-                            />
-                        </button>
+                        <div className="absolute bottom-2 right-2 flex gap-2">
+                            {browserSupportsSpeechRecognition && (
+                                <button
+                                    onClick={() => handleVoiceInput(setInput)}
+                                    className="bg-transparent border-none cursor-pointer"
+                                >
+                                    <Image
+                                        src={isListening ? StopIconSVG : MicrophoneIconSVG}
+                                        alt={isListening ? "Stop Recording" : "Start Recording"}
+                                        width={24}
+                                        height={24}
+                                    />
+                                </button>
+                            )}
+                            <button
+                                onClick={sendMessage}
+                                className="bg-transparent border-none cursor-pointer"
+                            >
+                                <Image
+                                    src={LoginCircleSVG}
+                                    alt="Send"
+                                />
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

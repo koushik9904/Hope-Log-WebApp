@@ -14,6 +14,8 @@ import ChevronLeft from './icons/chevron-left-solid.svg'
 import trash from './icons/trash-solid.svg'
 import CircleCheck from './icons/circle-check-solid.svg'
 import Exclamation from './icons/exclamation-solid.svg'
+import MicrophoneIcon from './icons/microphone-solid.svg'
+import StopIcon from './icons/stop-solid.svg'
 
 
 export const BookIconSVG = BookIcon
@@ -32,3 +34,5 @@ export const ChevronLeftSVG = ChevronLeft
 export const TrashSVG = trash
 export const CircleCheckSVG = CircleCheck
 export const ExclamationSVG = Exclamation
+export const MicrophoneIconSVG = MicrophoneIcon
+export const StopIconSVG = StopIcon
