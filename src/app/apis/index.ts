@@ -204,7 +204,6 @@ export const saveConvoEntry = async (request: ConvoPayload) => {
     try {
         const timezone = moment.tz.guess();
         const updatedRequest = { ...request, timezone }
-        console.log(updatedRequest)
         const response = await api.post(`/api/save-convo-entry`,
             updatedRequest,
             {

@@ -100,7 +100,7 @@ export const useChatBot = () => {
 
             const conversationHistory = transformMessages(newMessages);
 
-            const response = await handleStreamAiPrompt(input, conversationHistory, (chunk) => {
+            await handleStreamAiPrompt(input, conversationHistory, (chunk) => {
                 setMessages((prev) => {
                     if (!prev) return prev;
                     const copy = [...prev];
@@ -114,9 +114,8 @@ export const useChatBot = () => {
                     return copy;
                 });
             })
-
-            const updatedMessage = [...messages, { sender: 'user:', text: input }, { sender: 'therapist', text: response }];
-            await handleUpdateConvoSession(transformMessages(updatedMessage));
+     
+            await handleUpdateConvoSession(transformMessages(messages));
             setInput('');
         }
     };
@@ -150,9 +149,9 @@ export const useChatBot = () => {
     };
 
     const saveConvoEntires = async (conversationHistory: Array<{ user: string, therapist: string }>) => {
-        return await mutateAsyncSaveConvo({ 
+        return await mutateAsyncSaveConvo({
             conversation_history: conversationHistory,
-            timezone 
+            timezone
         });
     }
 
