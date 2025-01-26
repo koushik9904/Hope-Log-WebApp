@@ -3,7 +3,6 @@ import { streamAiPrompt, getConvoHistory, saveConvoEntry, refreshConvoSession, u
 import { useRouter } from 'next/navigation'
 import { toast } from 'react-toastify';
 import { AxiosError } from 'axios';
-import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 import { useState, useMemo } from 'react';
 import moment from 'moment-timezone';
 
@@ -15,16 +14,9 @@ type Message = {
 
 export const useChatBot = () => {
     const router = useRouter();
-    const timezone = moment.tz.guess(); // Get user's timezone
+    const timezone = moment.tz.guess();
     const [messages, setMessages] = useState<Array<Message>>([]);
     const [input, setInput] = useState("");
-    const [isListening, setIsListening] = useState(false);
-    const {
-        transcript,
-        resetTranscript,
-        browserSupportsSpeechRecognition
-    } = useSpeechRecognition();
-
     const { isLoading: chatHistoryLoading, data: historyTexts, refetch: refetchHistory } = useQuery("chatHistory", getConvoHistory)
 
     const { mutateAsync: mutateAsyncStream } = useMutation(
@@ -114,7 +106,7 @@ export const useChatBot = () => {
                     return copy;
                 });
             })
-     
+
             await handleUpdateConvoSession(transformMessages(messages));
             setInput('');
         }
@@ -155,21 +147,7 @@ export const useChatBot = () => {
         });
     }
 
-    const handleVoiceInput = (setInput: (value: string) => void) => {
-        if (isListening) {
-            SpeechRecognition.stopListening();
-            setIsListening(false);
-            if (transcript) {
-                setInput(transcript);
-                resetTranscript();
-            }
-        } else {
-            SpeechRecognition.startListening({ continuous: true });
-            setIsListening(true);
-            setInput('');
-            resetTranscript();
-        }
-    };
+
 
     return {
         handleStreamAiPrompt,
@@ -179,9 +157,6 @@ export const useChatBot = () => {
         saveConvoEntires,
         handleUpdateConvoSession,
         saveEntryLoading,
-        handleVoiceInput,
-        isListening,
-        browserSupportsSpeechRecognition,
         messages,
         input,
         setInput,
