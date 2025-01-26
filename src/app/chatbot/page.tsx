@@ -1,6 +1,6 @@
 'use client'
 import 'regenerator-runtime/runtime';
-import { LoginCircleSVG, HopeIconSVG, MicrophoneIconSVG, StopIconSVG } from "../assets/assets";
+import { LoginCircleSVG } from "../assets/assets";
 import Image from "next/image";
 import WithAuth from "../HOC/WithAuth";
 import { useChatBot } from "../hooks/useChatBot";
@@ -9,12 +9,8 @@ import DisclaimerModal from "../components/DisclaimerModal";
 
 const ChatComponent = () => {
     const {
-        handleResetConvoSession,
         chatHistoryLoading,
         saveEntryLoading,
-        handleVoiceInput,
-        isListening,
-        browserSupportsSpeechRecognition,
         messages,
         input,
         setInput,
@@ -61,34 +57,13 @@ const ChatComponent = () => {
                                     {message.sender === 'therapist' && (
                                         <div className="flex justify-start mt-3 ml-3">
                                             <strong className="text-sm text-gray-400">
-                                                <Image
-                                                    src={HopeIconSVG}
-                                                    alt="icon"
-                                                />
+                                                Hopelog:
                                             </strong>
                                         </div>
                                     )}
                                     <div className={`${message.sender === "user:" ? "bg-message bg-opacity-50" : ""} text-white p-4 mt-2 rounded-lg`}>
                                         <div>{message.text}</div>
                                     </div>
-                                    {message.sender === 'therapist' && index === messages.length - 1 && (
-                                        <div className="flex justify-center mt-4 w-full">
-                                            <div className="flex space-x-4 w-1/3">
-                                                <button
-                                                    onClick={handleResetConvoSession}
-                                                    className="bg-yellow-500 text-white px-6 py-2 rounded-lg w-full"
-                                                >
-                                                    Refresh Convo
-                                                </button>
-                                                <button
-                                                    onClick={handleConvoEntries}
-                                                    className="bg-blue-500 text-white px-6 py-2 rounded-lg w-full"
-                                                >
-                                                    Finish Entry
-                                                </button>
-                                            </div>
-                                        </div>
-                                    )}
                                 </div>
                             </div>
                         ))}
@@ -110,19 +85,6 @@ const ChatComponent = () => {
                             className="flex-grow bg-message text-white border-none rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 pr-24"
                         />
                         <div className="absolute bottom-2 right-2 flex gap-2">
-                            {browserSupportsSpeechRecognition && (
-                                <button
-                                    onClick={() => handleVoiceInput(setInput)}
-                                    className="bg-transparent border-none cursor-pointer"
-                                >
-                                    <Image
-                                        src={isListening ? StopIconSVG : MicrophoneIconSVG}
-                                        alt={isListening ? "Stop Recording" : "Start Recording"}
-                                        width={24}
-                                        height={24}
-                                    />
-                                </button>
-                            )}
                             <button
                                 onClick={sendMessage}
                                 className="bg-transparent border-none cursor-pointer"
@@ -133,6 +95,14 @@ const ChatComponent = () => {
                                 />
                             </button>
                         </div>
+                    </div>
+                    <div className="flex justify-center mt-4 w-full">
+                        <button
+                            onClick={handleConvoEntries}
+                            className="bg-blue-500 text-white px-6 py-2 rounded-lg w-full"
+                        >
+                            Finish Entry
+                        </button>
                     </div>
                 </div>
             </div>
