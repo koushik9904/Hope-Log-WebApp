@@ -14,7 +14,7 @@ export const useAuth = () => {
     const [userMetaData, setUserMetaData] = useState<userMetaData | null>(null)
     const [isLoggedIn, setIsLoggedIn] = useState(false)
     const [loginErrorMessage, setLoginErrorMessage] = useState<string | null>(null);
-    const [redirectUrl, setRedirectUrl] = useState('/');
+    const [redirectUrl, setRedirectUrl] = useState('/chatbot');
     const router = useRouter();
 
     useEffect(() => {
