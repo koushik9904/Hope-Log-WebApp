@@ -58,7 +58,7 @@ const Entries = () => {
                                 {selectedEntry.emotions &&
                                     <>
                                         <h3 className="font-medium">Emotions Identified</h3><div className="mt-2">
-                                            <div className="mb-3 flex items-center">
+                                            <div className="mb-3 flex flex-wrap items-center">
                                                 {selectedEntry.emotions?.map((emotion) => (
                                                     renderEmotionPill(emotion.emotion)
                                                 ))}
