@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { ChevronDownIcon } from '@heroicons/react/24/solid';
+import { Link as ScrollLink } from 'react-scroll';
+
 
 interface FAQItem {
     question: string;
@@ -79,9 +81,14 @@ const FrequentlyAskedQuestions = () => {
                     <p className="text-gray-300 mb-6">
                         We're here to help you get the most out of your journaling practice
                     </p>
-                    <button className="inline-flex items-center px-6 py-3 bg-[#3B3B52] hover:bg-[#2d2d3f] text-white font-medium rounded-lg transition-colors duration-200">
+                    <ScrollLink
+                        to="contact-me"
+                        smooth={true}
+                        duration={500}
+                        className="inline-flex items-center px-6 py-3 bg-[#3B3B52] hover:bg-[#2d2d3f] text-white font-medium rounded-lg transition-colors duration-200 cursor-pointer"
+                    >
                         Contact Support
-                    </button>
+                    </ScrollLink>
                 </div>
             </div>
         </div>
