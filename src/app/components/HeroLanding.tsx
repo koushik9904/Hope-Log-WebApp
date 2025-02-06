@@ -4,6 +4,7 @@ import { ChatHeroPNG, EntriesHeroPNG } from "../assets/assets";
 import { Link as ScrollLink } from 'react-scroll';
 import { useAuth } from '../hooks/useAuth';
 import { BounceLoader } from 'react-spinners';
+import { Tooltip } from 'react-tooltip';
 
 export default function HeroLanding() {
     const { handleLogin, loginIsLoading } = useAuth();
@@ -40,9 +41,11 @@ export default function HeroLanding() {
                                     <button
                                         onClick={handleAutoLogin}
                                         className="px-8 py-3 bg-[#4285F4] hover:bg-[#3b77db] rounded-lg text-white font-medium transition-colors"
+                                        data-tooltip-id="demo-tooltip"
                                     >
                                         Start Journaling Free
                                     </button>
+                                    <Tooltip id="demo-tooltip" place="top-end" content="Experience our journaling app instantly with a demo account" />
                                     <ScrollLink
                                         to="how-journaling-works"
                                         smooth={true}
@@ -53,9 +56,8 @@ export default function HeroLanding() {
                                     </ScrollLink>
                                 </div>
                             </div>
-
-                            <div className="relative">
-                                <div className="absolute inset-0">
+                            <div className="space-y-4">
+                                <div>
                                     <Image
                                         src={ChatHeroPNG}
                                         alt="AI Chat Interface"
@@ -63,7 +65,7 @@ export default function HeroLanding() {
                                         priority
                                     />
                                 </div>
-                                <div className="absolute inset-0 translate-y-[55%]">
+                                <div>
                                     <Image
                                         src={EntriesHeroPNG}
                                         alt="Journal Entries Interface"
