@@ -7,7 +7,6 @@ import { AxiosError } from "axios";
 type userMetaData = {
     name: string,
     email: string,
-    age: number
 }
 
 export const useAuth = () => {
@@ -48,7 +47,7 @@ export const useAuth = () => {
         },
     });
 
-    const signUpMutation = useMutation((variables: { email: string, password: string, age: number, name: string }) => signUpUser(variables.email, variables.password, variables.age, variables.name), {
+    const signUpMutation = useMutation((variables: { email: string, password: string, name: string }) => signUpUser(variables.email, variables.password, variables.name), {
         onSuccess: () => {
             router.push("/signupVerification")
         },
@@ -61,7 +60,7 @@ export const useAuth = () => {
             enabled: false,
             onSuccess: (data) => {
                 setIsLoggedIn(data.isLoggedIn);
-                setUserMetaData({ name: data.name, email: data.email, age: data.age });
+                setUserMetaData({ name: data.name, email: data.email });
             },
             onError: () => {
                 setIsLoggedIn(false);
@@ -70,8 +69,8 @@ export const useAuth = () => {
         }
     );
 
-    const handleSignUp = async (email: string, password: string, age: number, name: string) => {
-        return await signUpMutation.mutateAsync({ email, password, age, name });
+    const handleSignUp = async (email: string, password: string, name: string) => {
+        return await signUpMutation.mutateAsync({ email, password, name });
     }
 
 
