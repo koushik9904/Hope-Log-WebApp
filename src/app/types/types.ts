@@ -56,7 +56,10 @@ export type SaveConvoEntryPayload = {
 
 
 export type ConvoEntriesPayload = {
-    entries: Array<ConvoEntry>
+    entries: Array<ConvoEntry>,
+    entries_this_month: number,
+    is_subscribed: boolean,
+    user_id?: string
 }
 
 export type ConvoHistory = {
