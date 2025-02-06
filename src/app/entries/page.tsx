@@ -10,6 +10,8 @@ import 'react-responsive-modal/styles.css';
 import useEntries from "../hooks/useEntries";
 import { BounceLoader } from 'react-spinners';
 import { EMOTION_TO_EMOTICON } from "../constants/constants";
+import { Tooltip } from 'react-tooltip';
+
 import uniqid from 'uniqid';
 
 
@@ -31,6 +33,9 @@ const Entries = () => {
             </span>
         );
     };
+
+    console.log(entries)
+
 
     return (
         <>
@@ -77,11 +82,18 @@ const Entries = () => {
                 <div className="flex justify-between items-center">
                     <button
                         onClick={() => router.push("/chatbot")}
-                        className="bg-ascent hidden md:flex p-4 rounded flex items-center mb-4 ml-auto"
+                        disabled={Boolean(!entries?.is_subscribed && entries?.entries_this_month && entries.entries_this_month >= 5)}
+                        className={`bg-ascent hidden md:flex p-4 rounded flex items-center mb-4 ml-auto ${!entries?.is_subscribed && entries?.entries_this_month && entries.entries_this_month >= 5 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        data-tooltip-id="entries-limit-tooltip"
                     >
                         <Image src={WriteIconSVG} width={15} className="mr-2" alt="write" />
                         New
                     </button>
+                    {entries?.user_id !== 'test_user' && !entries?.is_subscribed && entries?.entries_this_month && entries.entries_this_month > 0 && entries.entries_this_month >= 5 && (
+                        <Tooltip id="entries-limit-tooltip" place="top">
+                            You've reached the limit of 5 free entries this month. Upgrade to continue writing.
+                        </Tooltip>
+                    )}
                 </div>
 
                 {isLoading ? (
