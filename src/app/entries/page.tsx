@@ -39,9 +39,9 @@ const Entries = () => {
                 styles={{ modal: { background: "#59596E", borderRadius: '1rem' }, closeIcon: { fill: "#fff" } }}
                 onClose={onCloseDetailsModal}
                 center
-                classNames={{ modal: "w-full h-full bg-message flex justify-center items-center" }}
+                classNames={{ modal: "w-11/12 h-5/6 sm:w-3/4 md:w-2/3 lg:w-1/2  bg-message flex justify-center items-center" }}
             >
-                <div className="w-full h-full bg-message rounded-lg shadow-lg flex flex-col p-6">
+                <div className="w-full h-full bg-message rounded-lg shadow-lg flex flex-col p-6 ">
                     {selectedEntry && (
                         <div className="text-white">
                             <h2 className="text-2xl mb-4">{selectedEntry.title}</h2>
