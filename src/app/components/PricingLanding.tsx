@@ -2,6 +2,9 @@
 
 import React from 'react';
 import { CheckIcon } from '@heroicons/react/24/solid';
+import Link from 'next/link';
+import { Link as ScrollLink } from 'react-scroll';
+
 
 interface PricingFeature {
     text: string;
@@ -14,6 +17,7 @@ interface PricingTier {
     features: PricingFeature[];
     buttonText: string;
     isPopular?: boolean;
+    redirect?: string;
 }
 
 const pricingTiers: PricingTier[] = [
@@ -39,8 +43,9 @@ const pricingTiers: PricingTier[] = [
             { text: 'Mood tracking' },
             { text: 'Priority Support' },
         ],
-        buttonText: 'Get Started',
+        buttonText: 'Subscribe Now',
         isPopular: true,
+        redirect: '/checkout'
     },
     {
         name: 'Enterprise',
@@ -117,14 +122,44 @@ export default function PricingLanding() {
                                 ))}
                             </ul>
 
-                            <button
-                                className={`mt-8 w-full rounded-md px-3 py-2 text-center text-sm font-semibold shadow-sm ${tier.isPopular
-                                    ? 'bg-[#3B3B52] text-white hover:bg-[#2d2d3f]'
-                                    : 'bg-white text-[#3B3B52] ring-1 ring-inset ring-[#3B3B52] hover:bg-gray-50'
-                                    }`}
-                            >
-                                {tier.buttonText}
-                            </button>
+                            {tier.name === 'Basic' ? (
+                                <button
+                                    className={`mt-8 w-full rounded-md px-3 py-2 text-center text-sm font-semibold shadow-sm bg-white text-[#3B3B52] ring-1 ring-inset ring-[#3B3B52] hover:bg-gray-50`}
+                                >
+                                    <ScrollLink
+                                        to="hero-landing"
+                                        smooth={true}
+                                        duration={500}
+                                        className="w-full h-full block"
+                                    >
+                                        {tier.buttonText}
+                                    </ScrollLink>
+                                </button>
+                            ) : tier.name === 'Enterprise' ? (
+                                <button
+                                    className={`mt-8 w-full rounded-md px-3 py-2 text-center text-sm font-semibold shadow-sm bg-white text-[#3B3B52] ring-1 ring-inset ring-[#3B3B52] hover:bg-gray-50`}
+                                >
+                                    <ScrollLink
+                                        to="contact-me"
+                                        smooth={true}
+                                        duration={500}
+                                        className="w-full h-full block"
+                                    >
+                                        {tier.buttonText}
+                                    </ScrollLink>
+                                </button>
+                            ) : (
+                                <Link href={tier.redirect || '/'}>
+                                    <button
+                                        className={`mt-8 w-full rounded-md px-3 py-2 text-center text-sm font-semibold shadow-sm ${tier.isPopular
+                                                ? 'bg-[#3B3B52] text-white hover:bg-[#2d2d3f]'
+                                                : 'bg-white text-[#3B3B52] ring-1 ring-inset ring-[#3B3B52] hover:bg-gray-50'
+                                            }`}
+                                    >
+                                        {tier.buttonText}
+                                    </button>
+                                </Link>
+                            )}
                         </div>
                     ))}
                 </div>
