@@ -12,6 +12,7 @@ const api = axios.create({
     },
 });
 
+
 export const signInUser = async (email: string, password: string) => {
     try {
         const response = await api.post(`/auth/signin`, { email, password });
@@ -30,9 +31,9 @@ export const signInUser = async (email: string, password: string) => {
     }
 }
 
-export const signUpUser = async (email: string, password: string, age: number, name: string) => {
+export const signUpUser = async (email: string, password: string, name: string) => {
     try {
-        const response = await api.post(`/auth/signup`, { email, password, age, name });
+        const response = await api.post(`/auth/signup`, { email, password, name });
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error) && error.response) {
@@ -85,8 +86,8 @@ export const fetchUser = async () => {
                 Authorization: `Bearer ${token}`
             }
         });
-        const { age, name, email } = response.data.user.user.user_metadata;
-        return { isLoggedIn: response.data.is_logged_in, age, name, email };
+        const { name, email } = response.data.user.user.user_metadata;
+        return { isLoggedIn: response.data.is_logged_in, name, email };
     } catch (error) {
         if (axios.isAxiosError(error) && error.response) {
             throw new Error('Session not valid');
@@ -366,4 +367,80 @@ export const streamAiPrompt = async (
         }
     });
 }
+export const createSubscription = async (paymentMethodId: string) => {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+        throw new Error('User not authenticated');
+    }
+    const response = await axios.post(
+        `${baseUrl}/api/create-subscription`,
+        { payment_method_id: paymentMethodId },
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+    return response.data;
+};
+
+export const cancelSubscription = async (subscription_id: string) => {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+        throw new Error('User not authenticated');
+    }
+    const response = await axios.post(
+        `${baseUrl}/api/cancel-subscription`,
+        { subscription_id },
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+    return response.data;
+};
+
+
+export const getAccountDetails = async () => {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+        throw new Error('User not authenticated');
+    }
+    const response = await axios.get(
+        `${baseUrl}/api/get-user-account-details`,
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+    return response.data;
+};
+
+export const getPaymentIntent = async () => {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+        throw new Error('User not authenticated');
+    }
+    const response = await axios.get(
+        `${baseUrl}/api/create-payment-intent`,
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+    return response.data;
+};
+
+
+
+export const sendEmail = async (title: string, message: string) => {
+    const response = await axios.post(
+        `${baseUrl}/api/send-email`,
+        { title, message }
+    );
+    return response.data;
+};
 
