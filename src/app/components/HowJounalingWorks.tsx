@@ -44,14 +44,15 @@ const HowJournalingWorks = () => {
                     <div className="mb-6 md:mb-0 md:mr-8 text-center md:text-left">
                         <h3 className="text-2xl text-black font-bold mb-2">See it in Action</h3>
                         <p className="text-gray-600 mb-4">Watch how JournalAI helps transform your daily journaling practice into meaningful insights.</p>
-                        <div className="flex justify-center md:justify-start">
-                            <button className="bg-[#333333] text-white px-6 py-2 rounded-lg flex items-center">
-                                Watch Demo
-                                <span className="ml-2">→</span>
-                            </button>
-                        </div>
                     </div>
-                    <div className="bg-gray-200 w-full md:w-1/2 aspect-video rounded-lg"></div>
+                    <div style={{ position: 'relative', paddingBottom: '26.70623145400594%', height: 0 }} className="w-full md:w-1/2">
+                        <iframe
+                            src="https://www.loom.com/embed/672550f68ea44b4ba8fdd5730b8706f1?sid=d1bca3d3-dcd3-4909-99ef-947d86084b6e"
+                            allow="fullscreen"
+                            allowFullScreen={true}
+                            className="absolute top-0 left-0 w-full h-full rounded-lg"
+                        ></iframe>
+                    </div>
                 </div>
             </div>
         </div>
