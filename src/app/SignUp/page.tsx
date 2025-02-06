@@ -3,14 +3,13 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import Link from 'next/link'
-import {useAuth} from '../hooks/useAuth'
+import { useAuth } from '../hooks/useAuth'
 
 const schema = z.object({
     name: z.string().nonempty('Name is required').trim(),
     email: z.string().email('Invalid email').nonempty('Email is required').trim(),
     password: z.string().nonempty('Password is required').min(8, 'Password must be at least 8 characters'),
     confirmPassword: z.string().nonempty('Confirm password is required').min(8, 'Password must be at least 8 characters'),
-    age: z.number().int('Invalid age').min(18, 'You must be at least 18 years old'),
 }).refine(data => data.password === data.confirmPassword, {
     path: ['confirmPassword'],
     message: 'Passwords must match'
@@ -20,13 +19,13 @@ type FormData = z.infer<typeof schema>;
 
 
 export default function SignUp() {
-    const {handleSignUp} = useAuth();
+    const { handleSignUp } = useAuth();
     const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
         resolver: zodResolver(schema)
     });
 
     const onSubmit = (data: FormData) => {
-        handleSignUp(data.email, data.password, data.age, data.name);
+        handleSignUp(data.email, data.password, data.name);
     };
 
     return (
@@ -95,21 +94,6 @@ export default function SignUp() {
                             </div>
 
                             <div>
-                                <label htmlFor="age" className="block text-sm/6 font-medium text-gray-900">
-                                    Age
-                                </label>
-                                <div className="mt-2">
-                                    <input
-                                        id="age"
-                                        type="number"
-                                        {...register('age', { valueAsNumber: true })}
-                                        className={`block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 ${errors.age ? 'outline-red-500' : 'outline-gray-300'} placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6`}
-                                    />
-                                    {errors.age && <p className="text-red-500 text-sm">{errors.age.message}</p>}
-                                </div>
-                            </div>
-
-                            <div>
                                 <button
                                     type="submit"
                                     className="flex w-full bg-ascent justify-center rounded-md px-3 py-1.5 text-sm/6 font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
@@ -122,9 +106,7 @@ export default function SignUp() {
                                 <div aria-hidden="true" className="absolute inset-0 flex items-center">
                                     <div className="w-full border-t border-gray-200" />
                                 </div>
-                                <div className="relative flex justify-center text-sm/6 font-medium">
-                                    <span className="bg-white px-6 text-gray-900">Or continue with</span>
-                                </div>
+
                             </div>
                             <div className="flex justify-center items-center">
                                 <p className="text-sm text-gray-600">
