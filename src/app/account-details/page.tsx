@@ -19,6 +19,7 @@ function AccountDetailsPage() {
             setShowCancelModal(false);
         } catch (error) {
             toast.error('Failed to cancel subscription');
+            console.error(error);
         }
     };
 
