@@ -62,28 +62,34 @@ export default function Header() {
                     </div>
                     <div className="hidden lg:flex lg:gap-x-12">
                         {pathname === '/' ? (
-                            navigation.map((item) => (
-                                <ScrollLink
-                                    key={item.name}
-                                    to={item.scrollTo}
-                                    style={{ cursor: 'pointer' }}
-                                    smooth={true}
-                                    duration={500}
-                                    className="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold hover:bg-white-50"
-                                >
-                                    {item.name}
-                                </ScrollLink>
-                            ))
+                            navigation.map((item) => {
+                                const homeItem = item as { name: string; scrollTo: string };
+                                return (
+                                    <ScrollLink
+                                        key={homeItem.name}
+                                        to={homeItem.scrollTo}
+                                        style={{ cursor: 'pointer' }}
+                                        smooth={true}
+                                        duration={500}
+                                        className="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold hover:bg-white-50"
+                                    >
+                                        {homeItem.name}
+                                    </ScrollLink>
+                                );
+                            })
                         ) : (
-                            navigation.map((item) => (
-                                <Link
-                                    key={item.name}
-                                    href={item.href}
-                                    className="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold hover:bg-white-50"
-                                >
-                                    {item.name}
-                                </Link>
-                            ))
+                            navigation.map((item) => {
+                                const appItem = item as { name: string; href: string };
+                                return (
+                                    <Link
+                                        key={appItem.name}
+                                        href={appItem.href}
+                                        className="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold hover:bg-white-50"
+                                    >
+                                        {appItem.name}
+                                    </Link>
+                                );
+                            })
                         )}
                     </div>
                     <div className="hidden lg:flex lg:flex-1 lg:justify-end">
@@ -158,28 +164,34 @@ export default function Header() {
                             <div className="-my-6 divide-y divide-white-500/10">
                                 <div className="space-y-2 py-6">
                                     {pathname === '/' ? (
-                                        navigation.map((item) => (
-                                            <ScrollLink
-                                                key={item.name}
-                                                style={{ cursor: 'pointer' }}
-                                                to={item.scrollTo}
-                                                smooth={true}
-                                                duration={500}
-                                                className="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold hover:bg-white-50"
-                                            >
-                                                {item.name}
-                                            </ScrollLink>
-                                        ))
+                                        navigation.map((item) => {
+                                            const homeItem = item as { name: string; scrollTo: string };
+                                            return (
+                                                <ScrollLink
+                                                    key={homeItem.name}
+                                                    style={{ cursor: 'pointer' }}
+                                                    to={homeItem.scrollTo}
+                                                    smooth={true}
+                                                    duration={500}
+                                                    className="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold hover:bg-white-50"
+                                                >
+                                                    {homeItem.name}
+                                                </ScrollLink>
+                                            );
+                                        })
                                     ) : (
-                                        navigation.map((item) => (
-                                            <Link
-                                                key={item.name}
-                                                href={item.href}
-                                                className="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold hover:bg-white-50"
-                                            >
-                                                {item.name}
-                                            </Link>
-                                        ))
+                                        navigation.map((item) => {
+                                            const appItem = item as { name: string; href: string };
+                                            return (
+                                                <Link
+                                                    key={appItem.name}
+                                                    href={appItem.href}
+                                                    className="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold hover:bg-white-50"
+                                                >
+                                                    {appItem.name}
+                                                </Link>
+                                            );
+                                        })
                                     )}
                                     {isLoggedIn && userMetaData ? (
                                         <div className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-white">
