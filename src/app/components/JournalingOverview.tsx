@@ -74,14 +74,6 @@ const JournalingOverview = () => {
                     </div>
                 ))}
             </div>
-
-            <div className="text-center mt-12">
-                <button
-                    className="bg-[#3B3B52] text-white px-8 py-3 rounded-lg font-semibold hover:bg-opacity-90 transition-all"
-                >
-                    Explore All Features →
-                </button>
-            </div>
         </div>
     );
 };
