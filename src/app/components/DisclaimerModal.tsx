@@ -2,15 +2,33 @@ import React, { useState } from 'react';
 import { Modal } from 'react-responsive-modal';
 import 'react-responsive-modal/styles.css';
 
-const DisclaimerModal = () => {
-    const [open, setOpen] = useState(true);
+interface DisclaimerModalProps {
+    open?: boolean;
+    onClose?: () => void;
+}
+
+const DisclaimerModal = ({ open: propOpen, onClose }: DisclaimerModalProps) => {
+    const [localOpen, setLocalOpen] = useState(true);
+    const isOpen = propOpen !== undefined ? propOpen : localOpen;
 
     const handleAgree = () => {
-        setOpen(false);
+        if (onClose) {
+            onClose();
+        } else {
+            setLocalOpen(false);
+        }
+    };
+
+    const handleClose = () => {
+        if (onClose) {
+            onClose();
+        } else {
+            setLocalOpen(false);
+        }
     };
 
     return (
-        <Modal open={open} onClose={() => setOpen(false)} center>
+        <Modal open={isOpen} onClose={handleClose} center>
             <div className="p-6 bg-white rounded-lg max-w-2xl mx-auto text-gray-800">
                 <h2 className="text-xl font-bold mb-4">Important Disclaimer</h2>
                 <p className="mb-4">
@@ -29,7 +47,7 @@ const DisclaimerModal = () => {
                     <li>Your data is tied to your user account to provide personalized support.</li>
                     <li>We do not share your data with external parties without your consent.</li>
                     <li>The data is stored securely, and only authorized personnel have access to it.</li>
-                    <li>We use your data to enhance the bot’s capabilities and improve user experience.</li>
+                    <li>We use your data to enhance the bot's capabilities and improve user experience.</li>
                 </ul>
                 <p className="mb-6">By using this tool, you acknowledge that you understand and accept these terms.</p>
                 <button
