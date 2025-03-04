@@ -1,9 +1,9 @@
-import { useMutation} from 'react-query';
-import { streamAiPrompt, saveConvoEntry, refreshConvoSession, updateConvoSession } from '../apis';
+import { useMutation } from 'react-query';
+import { streamAiPrompt, saveConvoEntry, updateConvoSession } from '../apis';
 import { useRouter } from 'next/navigation'
 import { toast } from 'react-toastify';
 import { AxiosError } from 'axios';
-import { useState} from 'react';
+import { useState } from 'react';
 import moment from 'moment-timezone';
 
 
@@ -36,11 +36,6 @@ export const useChatBot = () => {
         }
     );
 
-    const { mutateAsync: mutateAsnycResetConvoSession } = useMutation("resetConvoSession", refreshConvoSession, {
-        onSuccess: () => {
-            refetchHistory()
-        }
-    });
 
     const { mutateAsync: mutateAsyncUpdateConvoSession } = useMutation("updateConvoSession", updateConvoSession)
 
@@ -111,10 +106,6 @@ export const useChatBot = () => {
         }
     }
 
-    const handleResetConvoSession = async () => {
-        return await mutateAsnycResetConvoSession();
-    }
-
     const handleUpdateConvoSession = async (conversationHistory: Array<{ user: string, therapist: string }>) => {
         return await mutateAsyncUpdateConvoSession({ conversation_history: conversationHistory })
     }
@@ -143,7 +134,6 @@ export const useChatBot = () => {
 
     return {
         handleStreamAiPrompt,
-        handleResetConvoSession,
         saveConvoEntires,
         handleUpdateConvoSession,
         saveEntryLoading,

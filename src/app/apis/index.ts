@@ -1,5 +1,5 @@
 import axios from "axios";
-import { DailyPromptRequestPayload, CollectiveRequestPayload, SubmitAIPromptPayload, ConvoPayload, ConvoEntriesPayload, AnnoymousUserPrompts, ConvoHistory, StreamAiPromptOptions } from "../types/types";
+import { DailyPromptRequestPayload, CollectiveRequestPayload, SubmitAIPromptPayload, ConvoPayload, ConvoEntriesPayload, AnnoymousUserPrompts, StreamAiPromptOptions } from "../types/types";
 import { toast } from 'react-toastify';
 import moment from 'moment-timezone';
 
