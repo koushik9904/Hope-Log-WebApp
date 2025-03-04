@@ -139,29 +139,6 @@ export const getAnnoymousUserPrompts = async () => {
     }
 }
 
-export const getConvoHistory = async () => {
-    try {
-        const token = localStorage.getItem('authToken');
-        if (!token) {
-            throw new Error('User not authenticated');
-        }
-        const response = await api.get(`/api/get-cached-convo-history`, {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        });
-        return response.data as ConvoHistory;
-    } catch (error) {
-        if (axios.isAxiosError(error) && error.response) {
-            toast.error('An error occurred while fetching the user prompts')
-            throw new Error('An error occurred while fetching the user prompts');
-        } else {
-            throw error;
-        }
-    }
-}
-
-
 export async function* streamAiPromptGenerator(request: SubmitAIPromptPayload) {
     const authToken = localStorage.getItem('authToken');
 

@@ -1,9 +1,9 @@
-import { useMutation, useQuery } from 'react-query';
-import { streamAiPrompt, getConvoHistory, saveConvoEntry, refreshConvoSession, updateConvoSession } from '../apis';
+import { useMutation} from 'react-query';
+import { streamAiPrompt, saveConvoEntry, refreshConvoSession, updateConvoSession } from '../apis';
 import { useRouter } from 'next/navigation'
 import { toast } from 'react-toastify';
 import { AxiosError } from 'axios';
-import { useState, useMemo } from 'react';
+import { useState} from 'react';
 import moment from 'moment-timezone';
 
 
@@ -17,7 +17,6 @@ export const useChatBot = () => {
     const timezone = moment.tz.guess();
     const [messages, setMessages] = useState<Array<Message>>([]);
     const [input, setInput] = useState("");
-    const { isLoading: chatHistoryLoading, data: historyTexts, refetch: refetchHistory } = useQuery("chatHistory", getConvoHistory)
 
     const { mutateAsync: mutateAsyncStream } = useMutation(
         (args: {
@@ -56,13 +55,6 @@ export const useChatBot = () => {
         }
     });
 
-    useMemo(() => {
-        const newHistoryTexts: Array<Message> = []
-        historyTexts?.conversation_history.forEach((history: { user: string, therapist: string }) => {
-            newHistoryTexts.push({ sender: "user:", text: history.user }, { sender: "therapist", text: history.therapist })
-        });
-        setMessages(newHistoryTexts)
-    }, [historyTexts])
 
     const transformMessages = (messages: Array<Message>): Array<{
         user: string;
@@ -152,8 +144,6 @@ export const useChatBot = () => {
     return {
         handleStreamAiPrompt,
         handleResetConvoSession,
-        chatHistoryLoading,
-        historyTexts,
         saveConvoEntires,
         handleUpdateConvoSession,
         saveEntryLoading,

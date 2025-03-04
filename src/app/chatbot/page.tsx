@@ -9,7 +9,6 @@ import DisclaimerModal from "../components/DisclaimerModal";
 
 const ChatComponent = () => {
   const {
-    chatHistoryLoading,
     saveEntryLoading,
     messages,
     input,
@@ -21,12 +20,6 @@ const ChatComponent = () => {
   return (
     <div className="bg-dark text-white max-h-screen flex justify-center px-4 sm:px-6 lg:px-8 mt-10 relative">
       <DisclaimerModal />
-      {chatHistoryLoading && (
-        <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center z-50">
-          <BounceLoader color="#ffffff" />
-          <p className="text-white mt-4">Loading Convo Session...</p>
-        </div>
-      )}
       {saveEntryLoading && (
         <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center z-50">
           <BounceLoader color="#ffffff" />
