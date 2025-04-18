@@ -99,7 +99,7 @@ export default function LandingPage() {
                 AI-powered mental wellness journaling
               </div>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6 text-gray-900">
-                Your Companion for <span className="text-blue-600">Mental Wellness</span>
+                Your Companion for <span className="text-[#9AAB63]">Mental Wellness</span>
               </h1>
               <p className="text-xl text-gray-600 mb-8 max-w-lg">
                 Journal with an AI that understands, track your mood patterns, and gain insights to improve your mental wellbeing.
@@ -119,11 +119,11 @@ export default function LandingPage() {
               
               <div className="grid grid-cols-3 gap-4 max-w-md">
                 <div className="flex flex-col items-center bg-gray-50 p-3 rounded-lg">
-                  <span className="text-2xl font-bold text-blue-600">98%</span>
+                  <span className="text-2xl font-bold text-[#9AAB63]">98%</span>
                   <span className="text-xs text-gray-500 text-center">User satisfaction rate</span>
                 </div>
                 <div className="flex flex-col items-center bg-gray-50 p-3 rounded-lg">
-                  <span className="text-2xl font-bold text-blue-600">25k+</span>
+                  <span className="text-2xl font-bold text-[#F5B8DB]">25k+</span>
                   <span className="text-xs text-gray-500 text-center">Active users</span>
                 </div>
                 <div className="flex flex-col items-center bg-gray-50 p-3 rounded-lg">
@@ -235,7 +235,7 @@ export default function LandingPage() {
       <section id="features" className="py-20">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <div className="inline-flex items-center justify-center p-2 bg-blue-50 rounded-full text-blue-600 mb-4">
+            <div className="inline-flex items-center justify-center p-2 bg-[#F5D867]/20 rounded-full text-[#9AAB63] mb-4">
               <Sparkles className="h-5 w-5" />
             </div>
             <h2 className="text-3xl font-bold mb-4">Features That Transform Your Mental Wellness</h2>
@@ -270,7 +270,7 @@ export default function LandingPage() {
             </div>
             
             <div className="md:w-1/2">
-              <div className="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-sm font-medium mb-2">
+              <div className="inline-flex items-center px-3 py-1 rounded-full bg-[#B6CAEB]/20 text-[#B6CAEB] text-sm font-medium mb-2">
                 CORE FEATURE
               </div>
               <h3 className="text-2xl font-bold mb-4">AI-Powered Compassionate Journaling</h3>
@@ -353,7 +353,7 @@ export default function LandingPage() {
             </div>
             
             <div className="md:w-1/2">
-              <div className="inline-flex items-center px-3 py-1 rounded-full bg-rose-50 text-rose-600 text-sm font-medium mb-2">
+              <div className="inline-flex items-center px-3 py-1 rounded-full bg-[#F5B8DB]/20 text-[#F5B8DB] text-sm font-medium mb-2">
                 VISUAL TRACKING
               </div>
               <h3 className="text-2xl font-bold mb-4">Track Your Emotional Journey</h3>
@@ -438,7 +438,7 @@ export default function LandingPage() {
             </div>
             
             <div className="md:w-1/2">
-              <div className="inline-flex items-center px-3 py-1 rounded-full bg-purple-50 text-purple-600 text-sm font-medium mb-2">
+              <div className="inline-flex items-center px-3 py-1 rounded-full bg-[#F5D867]/20 text-[#9AAB63] text-sm font-medium mb-2">
                 AI ANALYSIS
               </div>
               <h3 className="text-2xl font-bold mb-4">Personalized Mental Wellness Insights</h3>
@@ -515,7 +515,7 @@ export default function LandingPage() {
       <section id="demo-video" className="py-20 bg-gray-50">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <div className="inline-flex items-center justify-center p-2 bg-blue-50 rounded-full text-blue-600 mb-4">
+            <div className="inline-flex items-center justify-center p-2 bg-[#B6CAEB]/20 rounded-full text-[#B6CAEB] mb-4">
               <Play className="h-5 w-5" />
             </div>
             <h2 className="text-3xl font-bold mb-4">See Hope Log in Action</h2>
@@ -527,11 +527,11 @@ export default function LandingPage() {
           <div className="relative max-w-4xl mx-auto">
             <div className="aspect-w-16 aspect-h-9 bg-gray-100 rounded-2xl flex items-center justify-center shadow-xl">
               <div className="relative">
-                <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center border-4 border-white shadow-lg">
-                  <Play className="h-8 w-8 text-blue-600" />
+                <div className="w-20 h-20 rounded-full bg-[#B6CAEB]/20 flex items-center justify-center border-4 border-white shadow-lg">
+                  <Play className="h-8 w-8 text-[#B6CAEB]" />
                 </div>
                 <div className="absolute inset-0 flex items-center justify-center animate-ping opacity-30">
-                  <div className="w-20 h-20 rounded-full bg-blue-100"></div>
+                  <div className="w-20 h-20 rounded-full bg-[#B6CAEB]/20"></div>
                 </div>
               </div>
             </div>
@@ -579,7 +579,7 @@ export default function LandingPage() {
       <section id="pricing" className="py-20">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <div className="inline-flex items-center justify-center p-2 bg-blue-50 rounded-full text-blue-600 mb-4">
+            <div className="inline-flex items-center justify-center p-2 bg-[#F5D867]/20 rounded-full text-[#9AAB63] mb-4">
               <Check className="h-5 w-5" />
             </div>
             <h2 className="text-3xl font-bold mb-4">Simple, Transparent Pricing</h2>
