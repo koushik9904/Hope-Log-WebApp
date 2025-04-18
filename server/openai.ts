@@ -65,7 +65,8 @@ export async function analyzeSentiment(text: string): Promise<{
       response_format: { type: "json_object" },
     });
 
-    const result = JSON.parse(response.choices[0].message.content);
+    const content = response.choices[0].message.content || '{"score":3,"emotions":[],"themes":[]}';
+    const result = JSON.parse(content);
 
     return {
       score: Math.max(1, Math.min(5, Math.round(result.score))),
@@ -117,7 +118,8 @@ export async function generateWeeklySummary(
       response_format: { type: "json_object" },
     });
 
-    const result = JSON.parse(response.choices[0].message.content);
+    const content = response.choices[0].message.content || '{"topEmotions":["Calm","Reflective","Hopeful"],"commonThemes":["Self-care","Productivity","Relationships"],"insight":"Consider setting aside time each day for intentional relaxation."}';
+    const result = JSON.parse(content);
 
     return {
       topEmotions: result.topEmotions || ["Calm", "Reflective", "Hopeful"],
@@ -166,7 +168,8 @@ export async function generateCustomPrompts(
       response_format: { type: "json_object" },
     });
 
-    const result = JSON.parse(response.choices[0].message.content);
+    const content = response.choices[0].message.content || '{"prompts":["What are three things that went well today, and why?","When did you feel most at peace this week?","What\'s one small step you can take tomorrow to feel better?"]}';
+    const result = JSON.parse(content);
     return result.prompts || [
       "What are three things that went well today, and why?",
       "When did you feel most at peace this week?",
