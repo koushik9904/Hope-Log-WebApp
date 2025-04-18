@@ -178,10 +178,10 @@ export function JournalChat({ userId }: JournalChatProps) {
   const displayEntries = getReversedEntries();
 
   return (
-    <div className="pi-card">
+    <div className="pi-card bg-gray-900 border-gray-800">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <div className="pi-card-header flex justify-between">
-          <HopeLogLogo size="md" withText />
+        <div className="pi-card-header flex justify-between bg-black rounded-t-xl border-b border-gray-800 -mx-6 -mt-6 p-4 mb-6">
+          <HopeLogLogo size="md" withText className="w-auto" />
           
           <TabsList className="px-1">
             <TabsTrigger value="chat" className="px-3 py-1.5">Chat</TabsTrigger>
@@ -270,11 +270,11 @@ export function JournalChat({ userId }: JournalChatProps) {
               </div>
             ) : entries.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center p-4">
-                <div className="w-20 h-20 rounded-full bg-blue-50 flex items-center justify-center mb-4">
-                  <Sparkle className="h-8 w-8 text-primary" />
+                <div className="w-20 h-20 rounded-full bg-gray-800 flex items-center justify-center mb-4">
+                  <Sparkle className="h-8 w-8 text-[#F5B8DB]" />
                 </div>
-                <h3 className="text-xl font-bold mb-2">Start Journaling</h3>
-                <p className="text-gray-600 max-w-md mb-6">
+                <h3 className="text-xl font-bold mb-2 text-white">Start Journaling</h3>
+                <p className="text-gray-400 max-w-md mb-6">
                   Your AI companion is here to listen. Share your thoughts or choose a suggestion below.
                 </p>
                 
@@ -333,12 +333,12 @@ export function JournalChat({ userId }: JournalChatProps) {
             )}
           </div>
           
-          <div className="flex justify-between items-center text-xs text-gray-500 px-1">
+          <div className="flex justify-between items-center text-xs text-gray-400 px-1">
             <Button
               variant="outline"
               size="sm"
               onClick={handleSaveChat}
-              className="text-xs"
+              className="text-xs text-white bg-gray-800 border-gray-700 hover:bg-gray-700"
               disabled={saveChatMutation.isPending}
             >
               {saveChatMutation.isPending ? (
@@ -349,7 +349,7 @@ export function JournalChat({ userId }: JournalChatProps) {
               Save Chat
             </Button>
             
-            <button className="hover:text-blue-600 flex items-center">
+            <button className="hover:text-[#F5B8DB] flex items-center">
               <Plus className="h-3.5 w-3.5 mr-1" />
               <span>New Chat</span>
             </button>
@@ -383,12 +383,12 @@ export function JournalChat({ userId }: JournalChatProps) {
         </TabsContent>
         
         <TabsContent value="journal" className="mt-0 space-y-4">
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-100">
-            <h3 className="font-semibold text-gray-800 flex items-center mb-2">
-              <PenLine className="h-4 w-4 mr-1.5 text-blue-600" />
+          <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+            <h3 className="font-semibold text-white flex items-center mb-2">
+              <PenLine className="h-4 w-4 mr-1.5 text-[#F5B8DB]" />
               Daily Journal
             </h3>
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-sm text-gray-400 mb-4">
               Write a reflective entry about your day, thoughts, or feelings. Your entry will be saved with AI-generated insights.
             </p>
             
@@ -421,14 +421,14 @@ export function JournalChat({ userId }: JournalChatProps) {
             </form>
           </div>
           
-          <div className="bg-white rounded-lg border border-gray-200 p-4">
-            <h3 className="font-semibold text-gray-800 mb-3">Recent Journal Entries</h3>
+          <div className="bg-gray-800 rounded-lg border border-gray-700 p-4">
+            <h3 className="font-semibold text-white mb-3">Recent Journal Entries</h3>
             
-            <div className="divide-y divide-gray-100 max-h-48 overflow-y-auto pr-2">
+            <div className="divide-y divide-gray-700 max-h-48 overflow-y-auto pr-2">
               {/* Check if we have any journal entries - either isJournal flag is true or it's a long-form entry */}
               {entries.filter(entry => (entry as any).isJournal === true || (!entry.isAiResponse && entry.content.length > 200)).length === 0 ? (
-                <div className="py-8 text-center text-gray-500">
-                  <FileText className="h-10 w-10 mx-auto mb-3 text-gray-300" />
+                <div className="py-8 text-center text-gray-400">
+                  <FileText className="h-10 w-10 mx-auto mb-3 text-gray-600" />
                   <p>No journal entries yet</p>
                 </div>
               ) : (
@@ -437,14 +437,14 @@ export function JournalChat({ userId }: JournalChatProps) {
                   .map((entry) => (
                     <div key={entry.id} className="py-3">
                       <div className="flex justify-between items-start mb-1">
-                        <div className="text-xs font-medium text-blue-600">
+                        <div className="text-xs font-medium text-[#F5B8DB]">
                           Journal Entry
                         </div>
                         <div className="text-xs text-gray-400">
                           {new Date(entry.date).toLocaleDateString()}
                         </div>
                       </div>
-                      <p className="text-sm text-gray-700 line-clamp-2">{entry.content}</p>
+                      <p className="text-sm text-gray-300 line-clamp-2">{entry.content}</p>
                     </div>
                   ))
               )}
