@@ -6,7 +6,7 @@ import { MoodEmoji } from "@/components/ui/mood-emoji";
 import { format, subDays } from "date-fns";
 import { User, Mood } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LineChart, Heart } from "lucide-react";
+import { LineChart, Heart, Smile, BarChart2, ChevronRight, Info } from "lucide-react";
 
 type MoodTrackerProps = {
   userId: number;
@@ -82,29 +82,52 @@ export function MoodTracker({ userId }: MoodTrackerProps) {
   }
   
   return (
-    <div className="rosebud-card">
-      <div className="rosebud-card-header">
-        <div>
-          <h2 className="rosebud-card-title">Mood Tracker</h2>
-          <p className="rosebud-card-subtitle">How are you feeling over time?</p>
+    <div className="pi-card">
+      <div className="pi-card-header">
+        <div className="flex items-center">
+          <div className="rounded-md bg-blue-100 p-1.5 mr-2">
+            <Smile className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h2 className="pi-card-title">Mood Insights</h2>
+            <p className="pi-card-subtitle">Track your emotional patterns</p>
+          </div>
         </div>
-        <div className="bg-pink-100 p-2 rounded-full">
-          <Heart className="h-5 w-5 text-primary" />
-        </div>
+        <button className="text-blue-500 flex items-center text-sm font-medium">
+          <BarChart2 className="h-4 w-4 mr-1" /> More stats
+        </button>
       </div>
       
-      {/* Mood Chart */}
-      <div className="mb-8">
+      {/* Mood Chart with insights */}
+      <div className="mb-6">
         {isLoading ? (
           <Skeleton className="w-full h-[180px]" />
         ) : (
-          <MoodChart data={chartData} height={180} />
+          <>
+            <MoodChart data={chartData} height={180} />
+            
+            {/* Pi.ai style insight card */}
+            {moods && moods.length > 0 && (
+              <div className="mt-4 border border-blue-100 rounded-lg p-3 bg-blue-50 flex items-start">
+                <Info className="h-5 w-5 text-primary mr-2 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm text-gray-700">
+                    Your mood has been mostly positive this week. Your happiness levels tend to peak on weekends.
+                  </p>
+                  <button className="text-sm text-primary font-medium mt-1 flex items-center">
+                    See pattern analysis <ChevronRight className="h-3 w-3 ml-1" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
       
       {/* Today's Mood */}
-      <div className="bg-pink-50 p-4 rounded-2xl">
-        <h3 className="text-md font-semibold mb-4 text-gray-800">
+      <div className="border border-gray-200 p-4 rounded-lg bg-gray-50">
+        <h3 className="text-md font-semibold mb-4 text-gray-800 flex items-center">
+          <Heart className="h-5 w-5 mr-2 text-rose-500" />
           How are you feeling today?
         </h3>
         <div className="flex justify-between px-4">

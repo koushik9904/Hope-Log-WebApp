@@ -7,44 +7,62 @@
     @apply border-border;
   }
 
+  :root {
+    --pi-gradient: linear-gradient(120deg, #3482F6, #5E17EB);
+    --pi-gradient-hover: linear-gradient(120deg, #2A6ED0, #4A13CA);
+  }
+
   body {
-    @apply font-sans antialiased bg-pink-50/30 text-foreground;
+    @apply font-['Plus_Jakarta_Sans_Variable'] antialiased bg-gray-50 text-gray-800;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-['Nunito_Variable'] font-semibold;
   }
 }
 
 @layer components {
+  /* Logo */
+  .app-logo {
+    @apply text-2xl font-bold text-primary flex items-center;
+  }
+
+  .app-logo-icon {
+    @apply mr-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-1 rounded-md;
+  }
+
   /* Card styles */
-  .rosebud-card {
-    @apply rounded-3xl bg-white shadow-sm p-5 border-none;
+  .pi-card {
+    @apply rounded-xl bg-white shadow-sm p-6 border border-gray-100;
   }
   
-  .rosebud-card-header {
+  .pi-card-header {
     @apply flex items-center justify-between mb-5;
   }
   
-  .rosebud-card-title {
-    @apply text-xl font-bold text-gray-800;
+  .pi-card-title {
+    @apply text-xl font-semibold text-gray-800;
   }
   
-  .rosebud-card-subtitle {
+  .pi-card-subtitle {
     @apply text-sm text-gray-500 mt-1;
   }
   
   /* Journal entries */
   .journal-container {
-    @apply rounded-3xl bg-white shadow-sm p-5 border-none;
+    @apply rounded-xl bg-white shadow-sm p-6 border border-gray-100;
   }
   
   .journal-entry {
-    @apply p-4 rounded-2xl my-3;
+    @apply p-4 rounded-xl my-2;
   }
   
   .journal-entry-user {
-    @apply bg-pink-100 text-gray-800;
+    @apply bg-blue-50 text-gray-800 border border-blue-100;
   }
   
   .journal-entry-ai {
-    @apply bg-blue-50 text-gray-800;
+    @apply bg-white text-gray-800 border border-gray-200;
   }
   
   /* Mood tracking */
@@ -53,34 +71,75 @@
   }
   
   .mood-emoji-selected {
-    @apply text-3xl scale-110 text-primary drop-shadow-md;
+    @apply text-3xl scale-110 text-primary drop-shadow-sm;
   }
   
   /* Progress bars */
   .goal-progress-bar {
-    @apply h-3 rounded-full bg-gray-100 overflow-hidden;
+    @apply h-2 rounded-full bg-gray-100 overflow-hidden;
   }
   
   .goal-progress-fill {
-    @apply h-full transition-all duration-300;
+    @apply h-full transition-all duration-300 bg-gradient-to-r from-blue-500 to-indigo-600;
   }
   
   /* Buttons */
-  .rosebud-button {
-    @apply rounded-full py-3 px-6 font-medium text-white bg-primary hover:bg-primary/90 transition-colors;
+  .pi-button {
+    @apply rounded-lg py-2.5 px-5 font-medium text-white transition-all;
+    background: var(--pi-gradient);
   }
   
-  .rosebud-button-outline {
-    @apply rounded-full py-3 px-6 font-medium text-primary bg-transparent border border-primary hover:bg-primary/10 transition-colors;
+  .pi-button:hover {
+    background: var(--pi-gradient-hover);
+  }
+  
+  .pi-button-outline {
+    @apply rounded-lg py-2.5 px-5 font-medium text-primary bg-transparent border border-primary/40 hover:bg-primary/5 transition-colors;
   }
   
   /* Inputs */
-  .rosebud-input {
-    @apply rounded-full px-5 py-3 bg-pink-50 border-0 focus:ring-2 focus:ring-primary/50 focus:bg-white transition-all;
+  .pi-input {
+    @apply rounded-lg px-4 py-2.5 bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-primary/20 focus:border-primary/30 focus:bg-white transition-all;
   }
   
   /* Prompt cards */
   .prompt-card {
-    @apply p-4 rounded-2xl bg-amber-50 cursor-pointer hover:bg-amber-100/70 transition-colors border border-amber-100/50;
+    @apply p-4 rounded-xl cursor-pointer hover:bg-blue-50 transition-colors border border-gray-200 hover:border-blue-200;
+  }
+
+  /* Pi AI specific components */
+  .pi-thinking-dots {
+    @apply flex gap-1.5 items-center justify-center;
+  }
+
+  .pi-thinking-dot {
+    @apply bg-blue-500 rounded-full h-2 w-2 animate-pulse;
+  }
+
+  .pi-thinking-dot:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  .pi-thinking-dot:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+
+  /* Voice message button */
+  .voice-button {
+    @apply rounded-full w-10 h-10 flex items-center justify-center;
+    background: var(--pi-gradient);
+  }
+
+  .voice-button:hover {
+    background: var(--pi-gradient-hover);
+  }
+
+  /* Pi suggestions */
+  .pi-suggestions {
+    @apply flex flex-wrap gap-2 my-3;
+  }
+
+  .pi-suggestion-chip {
+    @apply px-3 py-1.5 rounded-lg bg-gray-100 text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-200 transition-colors;
   }
 }
