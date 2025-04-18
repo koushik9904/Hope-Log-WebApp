@@ -503,7 +503,7 @@ export default function LandingPage() {
               <p className="text-gray-600 mb-4">
                 Never face writer's block with our 300+ journaling prompts designed by mental health experts.
               </p>
-              <a href="#" className="mt-auto text-blue-600 text-sm font-medium flex items-center">
+              <a href="#" className="mt-auto text-[#F5B8DB] text-sm font-medium flex items-center">
                 View examples <ArrowUpRight className="h-3 w-3 ml-1" />
               </a>
             </div>
