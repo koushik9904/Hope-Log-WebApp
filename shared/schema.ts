@@ -22,7 +22,7 @@ export const journalEntries = pgTable("journal_entries", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
   content: text("content").notNull(),
-  date: timestamp("date").notNull(),
+  date: timestamp("date", { mode: 'string' }).notNull(),
   isAiResponse: boolean("is_ai_response").notNull().default(false),
   sentiment: jsonb("sentiment").$type<{
     score: number;
@@ -52,7 +52,7 @@ export const moods = pgTable("moods", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
   rating: integer("rating").notNull(),
-  date: timestamp("date").notNull(),
+  date: timestamp("date", { mode: 'string' }).notNull(),
 });
 
 export const insertMoodSchema = createInsertSchema(moods)
@@ -98,7 +98,7 @@ export const summaries = pgTable("summaries", {
   topEmotions: jsonb("top_emotions").$type<string[]>().notNull(),
   commonThemes: jsonb("common_themes").$type<string[]>().notNull(),
   insights: text("insights").notNull(),
-  updatedAt: timestamp("updated_at").notNull(),
+  updatedAt: timestamp("updated_at", { mode: 'string' }).notNull(),
 });
 
 export const insertSummarySchema = createInsertSchema(summaries);
