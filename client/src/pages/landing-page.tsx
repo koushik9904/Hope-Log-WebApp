@@ -305,8 +305,8 @@ export default function LandingPage() {
               <div className="absolute inset-0 bg-[#F5B8DB]/20 rounded-3xl transform -rotate-3 translate-x-1 translate-y-1"></div>
               <div className="relative bg-white p-6 rounded-3xl shadow-sm border border-gray-200">
                 <div className="flex items-center mb-4">
-                  <div className="w-10 h-10 rounded-lg bg-rose-100 flex items-center justify-center mr-3">
-                    <Heart className="h-5 w-5 text-rose-500" />
+                  <div className="w-10 h-10 rounded-lg bg-[#F5B8DB]/20 flex items-center justify-center mr-3">
+                    <Heart className="h-5 w-5 text-[#F5B8DB]" />
                   </div>
                   <div>
                     <h3 className="font-bold">Mood Tracker</h3>
@@ -388,8 +388,8 @@ export default function LandingPage() {
               <div className="absolute inset-0 bg-[#F5D867]/20 rounded-3xl transform rotate-2 translate-x-1 translate-y-1"></div>
               <div className="relative bg-white p-6 rounded-3xl shadow-sm border border-gray-200">
                 <div className="flex items-center mb-4">
-                  <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center mr-3">
-                    <BrainCircuit className="h-5 w-5 text-purple-500" />
+                  <div className="w-10 h-10 rounded-lg bg-[#F5D867]/20 flex items-center justify-center mr-3">
+                    <BrainCircuit className="h-5 w-5 text-[#9AAB63]" />
                   </div>
                   <div>
                     <h3 className="font-bold">Weekly Insights</h3>
@@ -397,8 +397,8 @@ export default function LandingPage() {
                   </div>
                 </div>
                 
-                <div className="bg-purple-50 p-4 rounded-lg border border-purple-100 mb-4">
-                  <h4 className="font-medium text-purple-800 mb-2">This Week's Emotional Patterns</h4>
+                <div className="bg-[#F5D867]/10 p-4 rounded-lg border border-[#F5D867]/20 mb-4">
+                  <h4 className="font-medium text-[#9AAB63] mb-2">This Week's Emotional Patterns</h4>
                   <p className="text-sm text-gray-700 mb-3">
                     You experienced more positive emotions when spending time outdoors and with friends. Work-related stress appears to peak on Wednesdays.
                   </p>
@@ -470,34 +470,34 @@ export default function LandingPage() {
           {/* More Features */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col items-start">
-              <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center mb-4">
-                <CalendarClock className="h-6 w-6 text-amber-600" />
+              <div className="w-12 h-12 bg-[#F5D867]/20 rounded-lg flex items-center justify-center mb-4">
+                <CalendarClock className="h-6 w-6 text-[#9AAB63]" />
               </div>
               <h3 className="text-xl font-bold mb-2">Habit Tracking</h3>
               <p className="text-gray-600 mb-4">
                 Build positive habits and track your progress with daily streaks and gentle reminders.
               </p>
-              <a href="#" className="mt-auto text-blue-600 text-sm font-medium flex items-center">
+              <a href="#" className="mt-auto text-[#9AAB63] text-sm font-medium flex items-center">
                 Learn more <ArrowUpRight className="h-3 w-3 ml-1" />
               </a>
             </div>
             
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col items-start">
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
-                <Shield className="h-6 w-6 text-green-600" />
+              <div className="w-12 h-12 bg-[#B6CAEB]/20 rounded-lg flex items-center justify-center mb-4">
+                <Shield className="h-6 w-6 text-[#B6CAEB]" />
               </div>
               <h3 className="text-xl font-bold mb-2">Privacy First</h3>
               <p className="text-gray-600 mb-4">
                 Your journal is private and secured with end-to-end encryption. We never share your data.
               </p>
-              <a href="#" className="mt-auto text-blue-600 text-sm font-medium flex items-center">
+              <a href="#" className="mt-auto text-[#B6CAEB] text-sm font-medium flex items-center">
                 Our privacy policy <ArrowUpRight className="h-3 w-3 ml-1" />
               </a>
             </div>
             
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col items-start">
-              <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4">
-                <FileText className="h-6 w-6 text-indigo-600" />
+              <div className="w-12 h-12 bg-[#F5B8DB]/20 rounded-lg flex items-center justify-center mb-4">
+                <FileText className="h-6 w-6 text-[#F5B8DB]" />
               </div>
               <h3 className="text-xl font-bold mb-2">Guided Prompts</h3>
               <p className="text-gray-600 mb-4">
