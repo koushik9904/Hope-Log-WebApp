@@ -36,7 +36,7 @@
   }
 
   .app-logo-icon {
-    @apply mr-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-1 rounded-md;
+    @apply mr-2 bg-gradient-to-r from-[#F5B8DB] to-[#B6CAEB] text-white p-1 rounded-lg;
   }
 
   /* Card styles */
@@ -75,25 +75,25 @@
   
   /* Mood tracking */
   .mood-emoji {
-    @apply text-3xl cursor-pointer transition-transform hover:scale-110;
+    @apply text-3xl cursor-pointer transition-all hover:scale-110 hover:drop-shadow-md;
   }
   
   .mood-emoji-selected {
-    @apply text-3xl scale-110 text-primary drop-shadow-sm;
+    @apply text-3xl scale-110 drop-shadow-md bg-[#F5B8DB]/10 p-1.5 rounded-full border-2 border-[#F5B8DB]/30;
   }
   
   /* Progress bars */
   .goal-progress-bar {
-    @apply h-2 rounded-full bg-gray-100 overflow-hidden;
+    @apply h-2.5 rounded-full bg-[#F5B8DB]/10 overflow-hidden;
   }
   
   .goal-progress-fill {
-    @apply h-full transition-all duration-300 bg-gradient-to-r from-blue-500 to-indigo-600;
+    @apply h-full transition-all duration-300 bg-gradient-to-r from-[#F5B8DB] to-[#B6CAEB];
   }
   
   /* Buttons */
   .pi-button {
-    @apply rounded-lg py-2.5 px-5 font-medium text-white transition-all;
+    @apply rounded-xl py-2.5 px-5 font-medium text-white transition-all;
     background: var(--pi-gradient);
   }
   
@@ -102,17 +102,17 @@
   }
   
   .pi-button-outline {
-    @apply rounded-lg py-2.5 px-5 font-medium text-primary bg-transparent border border-primary/40 hover:bg-primary/5 transition-colors;
+    @apply rounded-xl py-2.5 px-5 font-medium text-[#9AAB63] bg-transparent border border-[#9AAB63]/40 hover:bg-[#9AAB63]/5 transition-colors;
   }
   
   /* Inputs */
   .pi-input {
-    @apply rounded-lg px-4 py-2.5 bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-primary/20 focus:border-primary/30 focus:bg-white transition-all;
+    @apply rounded-xl px-4 py-2.5 bg-white border border-[#F5B8DB]/20 focus:ring-2 focus:ring-[#F5B8DB]/20 focus:border-[#F5B8DB]/30 focus:bg-white transition-all;
   }
   
   /* Prompt cards */
   .prompt-card {
-    @apply p-4 rounded-xl cursor-pointer hover:bg-blue-50 transition-colors border border-gray-200 hover:border-blue-200;
+    @apply p-4 rounded-xl cursor-pointer hover:bg-[#F5D867]/10 transition-colors border border-[#F5D867]/20 hover:border-[#F5D867]/30;
   }
 
   /* Pi AI specific components */
@@ -121,14 +121,16 @@
   }
 
   .pi-thinking-dot {
-    @apply bg-blue-500 rounded-full h-2 w-2 animate-pulse;
+    @apply bg-[#F5B8DB] rounded-full h-2 w-2 animate-pulse;
   }
 
   .pi-thinking-dot:nth-child(2) {
+    @apply bg-[#B6CAEB];
     animation-delay: 0.2s;
   }
 
   .pi-thinking-dot:nth-child(3) {
+    @apply bg-[#F5D867];
     animation-delay: 0.4s;
   }
 
@@ -148,6 +150,6 @@
   }
 
   .pi-suggestion-chip {
-    @apply px-3 py-1.5 rounded-lg bg-gray-100 text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-200 transition-colors;
+    @apply px-3 py-1.5 rounded-xl bg-white text-sm font-medium text-[#9AAB63] cursor-pointer hover:bg-[#9AAB63]/5 border border-[#9AAB63]/20 transition-colors;
   }
 }
