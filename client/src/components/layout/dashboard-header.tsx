@@ -17,14 +17,14 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
   };
 
   return (
-    <header className="bg-white shadow-sm p-4 md:p-6 border-b border-gray-100">
+    <header className="bg-[#FFF8E8] shadow-sm p-4 md:p-6 border-b border-[#F5D867]/20">
       <div className="flex justify-between items-center">
         <div className="flex items-center">
-          <div className="w-9 h-9 rounded-md bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center text-white mr-3 hidden md:flex">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-r from-[#F5B8DB] to-[#B6CAEB] flex items-center justify-center text-white mr-3 hidden md:flex">
             <span className="font-bold">H</span>
           </div>
           <div>
-            <h1 className="text-xl font-semibold font-['Nunito_Variable'] text-gray-800">
+            <h1 className="text-xl font-semibold font-['Montserrat_Variable'] text-[#9AAB63]">
               Welcome back, {user?.username}
             </h1>
             <p className="text-gray-500 text-sm">{formattedDate}</p>
@@ -32,7 +32,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
         </div>
         
         <div className="hidden md:flex items-center space-x-4">
-          <button className="text-gray-500 hover:text-gray-700 bg-gray-100 p-2 rounded-full">
+          <button className="text-[#B6CAEB] hover:text-[#B6CAEB]/80 bg-[#B6CAEB]/10 p-2 rounded-full transition-colors">
             <Bell className="h-5 w-5" />
           </button>
           
