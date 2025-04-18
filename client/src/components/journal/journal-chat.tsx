@@ -17,7 +17,7 @@ export function JournalChat({ userId }: JournalChatProps) {
   
   // Fetch journal entries for the current user
   const { data: entries = [], isLoading } = useQuery<JournalEntry[]>({
-    queryKey: ["/api/journal-entries", userId],
+    queryKey: [`/api/journal-entries/${userId}`],
     staleTime: 60000, // 1 minute
   });
 
@@ -31,7 +31,7 @@ export function JournalChat({ userId }: JournalChatProps) {
       return await res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/journal-entries", userId] });
+      queryClient.invalidateQueries({ queryKey: [`/api/journal-entries/${userId}`] });
     },
   });
 

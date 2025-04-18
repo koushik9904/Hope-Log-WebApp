@@ -16,7 +16,7 @@ export function MoodTracker({ userId }: MoodTrackerProps) {
   
   // Fetch mood data for the past week
   const { data: moods, isLoading } = useQuery<Mood[]>({
-    queryKey: ["/api/moods", userId],
+    queryKey: [`/api/moods/${userId}`],
   });
   
   // Record today's mood
@@ -30,7 +30,7 @@ export function MoodTracker({ userId }: MoodTrackerProps) {
       return await res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/moods", userId] });
+      queryClient.invalidateQueries({ queryKey: [`/api/moods/${userId}`] });
     },
   });
   
