@@ -247,7 +247,7 @@ export default function LandingPage() {
           {/* Feature 1 - AI Journaling */}
           <div className="flex flex-col md:flex-row items-center mb-24 gap-12">
             <div className="md:w-1/2 relative">
-              <div className="absolute inset-0 bg-blue-100 rounded-3xl transform rotate-3 translate-x-1 translate-y-1"></div>
+              <div className="absolute inset-0 bg-[#B6CAEB]/20 rounded-3xl transform rotate-3 translate-x-1 translate-y-1"></div>
               <div className="relative bg-white p-6 rounded-3xl shadow-sm border border-gray-200">
                 <div className="flex flex-col space-y-4">
                   <div className="bg-blue-50 p-3 rounded-lg max-w-[80%] border border-blue-100">
@@ -302,7 +302,7 @@ export default function LandingPage() {
           {/* Feature 2 - Mood Tracking */}
           <div className="flex flex-col md:flex-row-reverse items-center mb-24 gap-12">
             <div className="md:w-1/2 relative">
-              <div className="absolute inset-0 bg-rose-100 rounded-3xl transform -rotate-3 translate-x-1 translate-y-1"></div>
+              <div className="absolute inset-0 bg-[#F5B8DB]/20 rounded-3xl transform -rotate-3 translate-x-1 translate-y-1"></div>
               <div className="relative bg-white p-6 rounded-3xl shadow-sm border border-gray-200">
                 <div className="flex items-center mb-4">
                   <div className="w-10 h-10 rounded-lg bg-rose-100 flex items-center justify-center mr-3">
@@ -385,7 +385,7 @@ export default function LandingPage() {
           {/* Feature 3 - Insights */}
           <div className="flex flex-col md:flex-row items-center mb-20 gap-12">
             <div className="md:w-1/2 relative">
-              <div className="absolute inset-0 bg-purple-100 rounded-3xl transform rotate-2 translate-x-1 translate-y-1"></div>
+              <div className="absolute inset-0 bg-[#F5D867]/20 rounded-3xl transform rotate-2 translate-x-1 translate-y-1"></div>
               <div className="relative bg-white p-6 rounded-3xl shadow-sm border border-gray-200">
                 <div className="flex items-center mb-4">
                   <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center mr-3">
@@ -589,7 +589,7 @@ export default function LandingPage() {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            <div className="bg-gradient-to-b from-gray-50 to-white p-8 rounded-xl shadow-sm border border-gray-100 relative">
+            <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 relative">
               <div className="text-center mb-6">
                 <h3 className="text-lg font-bold text-gray-800 mb-2">Free</h3>
                 <div className="text-3xl font-bold">$0<span className="text-gray-500 text-lg font-normal">/month</span></div>
@@ -620,7 +620,7 @@ export default function LandingPage() {
               </Link>
             </div>
             
-            <div className="bg-gradient-to-b from-[#F5B8DB]/10 to-white p-8 rounded-xl shadow-xl border-2 border-[#F5B8DB]/30 relative lg:scale-105 lg:-translate-y-2">
+            <div className="bg-white p-8 rounded-xl shadow-xl border-2 border-[#F5B8DB]/30 relative lg:scale-105 lg:-translate-y-2">
               <div className="absolute top-0 right-0 bg-[#F5B8DB] text-white text-xs font-bold px-3 py-1 rounded-bl-lg rounded-tr-xl">
                 POPULAR
               </div>
@@ -663,7 +663,7 @@ export default function LandingPage() {
               </Link>
             </div>
             
-            <div className="bg-gradient-to-b from-gray-50 to-white p-8 rounded-xl shadow-sm border border-gray-100">
+            <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
               <div className="text-center mb-6">
                 <h3 className="text-lg font-bold text-gray-800 mb-2">Therapist</h3>
                 <div className="text-3xl font-bold">$29.99<span className="text-gray-500 text-lg font-normal">/month</span></div>
