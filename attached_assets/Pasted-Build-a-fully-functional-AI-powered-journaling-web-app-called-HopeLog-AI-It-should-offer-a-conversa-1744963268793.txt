@@ -1,0 +1,99 @@
+Build a fully functional AI-powered journaling web app called HopeLog AI. It should offer a conversational journaling experience focused on mental wellness, self-reflection, and emotional tracking. The design should be clean, calming, and mobile-friendly.
+
+User Roles:
+
+Anonymous guest users (optional trial)
+
+Registered users (OAuth sign-in with Google, Apple, or email/password)
+
+Core Features:
+
+AI Journal Assistant:
+
+Chat-style interface where users write journal entries
+
+AI assistant responds empathetically, offers insights, and asks guided questions
+
+Prompts based on mood, recent entries, or user goals
+
+Sentiment analysis of journal entries
+
+Mood Tracking:
+
+Let users rate their mood daily (emoji or scale 1–10)
+
+Show mood over time in a visual chart (weekly, monthly)
+
+Goals & Habits:
+
+Users can set mental wellness goals (e.g., reduce anxiety, increase gratitude)
+
+Habit tracker with reminders
+
+AI Summarization & Insights:
+
+Weekly summary of emotions, highlights, common themes, and triggers
+
+Personalized tips and self-care suggestions
+
+Security & Privacy:
+
+End-to-end encryption of journal data
+
+Local storage or optional cloud-based secure database (e.g., Bubble DB or integrate MongoDB)
+
+Customizable Prompts:
+
+Users can choose themes like gratitude, anxiety, reflection, productivity, etc.
+
+AI suggests daily prompts based on selected themes
+
+Export & Share:
+
+Allow users to export their journals as PDF or text
+
+Share a summary with a therapist (optional)
+
+Reminders & Notifications:
+
+Smart notifications to encourage journaling at optimal times
+
+Mood check-ins and journaling streaks to motivate users
+
+Bonus Features (if possible):
+
+Audio journaling with transcription
+
+Voice-based interaction with the AI
+
+Integration with Apple Health or Google Fit (for mood + sleep data)
+
+Design Preferences:
+
+Use calming colors (blues, soft purples, or earth tones)
+
+Rounded edges, minimal UI
+
+Mobile-first responsive layout
+
+Dashboard with mood graph, recent entries, and AI insights
+
+Database Structure (suggested):
+
+Users: id, name, email, password, joined date
+
+JournalEntries: id, user_id, text, date, mood, sentiment_score, ai_summary
+
+Goals: id, user_id, goal_name, progress, reminders
+
+Prompts: id, category, text, frequency, linked_user_id (for personalized prompts)
+
+Tech Stack Preferences:
+
+Frontend: Bubble’s visual builder
+
+Backend: Bubble workflows and AI plugin integration (OpenAI or HuggingFace)
+
+AI Integration: Connect to GPT-4 or similar via Bubble API connector
+
+The goal is to build a mental wellness tool that feels like a safe, AI-powered friend. Prioritize user empathy, trust, and emotional continuity.
