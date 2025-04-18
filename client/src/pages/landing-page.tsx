@@ -73,7 +73,7 @@ export default function LandingPage() {
                 </Link>
               ) : (
                 <>
-                  <Link href="/auth" className="px-4 py-2 rounded-lg border border-[#B6CAEB] text-[#B6CAEB] font-medium hover:bg-[#B6CAEB]/10 transition-colors">
+                  <Link href="/auth" className="px-4 py-2 rounded-lg bg-black text-white font-medium hover:bg-gray-800 transition-colors">
                     Login
                   </Link>
                   <Link href="/auth?tab=register" className="pi-button">
@@ -219,14 +219,29 @@ export default function LandingPage() {
       <section className="py-10 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-8">
-            <p className="text-gray-500 text-sm font-medium uppercase tracking-wider">Trusted by mental health professionals from</p>
+            <p className="text-gray-500 text-sm font-medium uppercase tracking-wider">Trusted by professionals from</p>
           </div>
           <div className="flex flex-wrap justify-center items-center gap-12">
-            <div className="text-gray-400 font-semibold text-xl">Stanford University</div>
-            <div className="text-gray-400 font-semibold text-xl">UCLA</div>
-            <div className="text-gray-400 font-semibold text-xl">NYU</div>
-            <div className="text-gray-400 font-semibold text-xl">Mass General</div>
-            <div className="text-gray-400 font-semibold text-xl">Mayo Clinic</div>
+            <div className="flex flex-col items-center">
+              <div className="w-12 h-12 bg-gray-200 rounded-full mb-2"></div>
+              <div className="text-gray-400 font-semibold text-sm">IIIT Hyderabad</div>
+            </div>
+            <div className="flex flex-col items-center">
+              <div className="w-12 h-12 bg-gray-200 rounded-full mb-2"></div>
+              <div className="text-gray-400 font-semibold text-sm">NIMHANS</div>
+            </div>
+            <div className="flex flex-col items-center">
+              <div className="w-12 h-12 bg-gray-200 rounded-full mb-2"></div>
+              <div className="text-gray-400 font-semibold text-sm">IIT Hyderabad</div>
+            </div>
+            <div className="flex flex-col items-center">
+              <div className="w-12 h-12 bg-gray-200 rounded-full mb-2"></div>
+              <div className="text-gray-400 font-semibold text-sm">Hyderabad University</div>
+            </div>
+            <div className="flex flex-col items-center">
+              <div className="w-12 h-12 bg-gray-200 rounded-full mb-2"></div>
+              <div className="text-gray-400 font-semibold text-sm">Tata Memorial Hospital</div>
+            </div>
           </div>
         </div>
       </section>

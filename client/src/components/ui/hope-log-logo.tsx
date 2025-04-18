@@ -16,9 +16,9 @@ export function HopeLogLogo({ size = "md", withText = false, className = "" }: H
 
   // Size for the logo itself needs to be larger since it contains both icon and text
   const logoSizeMap = {
-    sm: "w-24 h-8",
-    md: "w-32 h-10",
-    lg: "w-40 h-12"
+    sm: "w-28 h-10",
+    md: "w-40 h-12",
+    lg: "w-48 h-16"
   };
 
   return (
