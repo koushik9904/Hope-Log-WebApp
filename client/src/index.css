@@ -88,17 +88,12 @@
   }
   
   .goal-progress-fill {
-    @apply h-full transition-all duration-300 bg-gradient-to-r from-[#F5B8DB] to-[#B6CAEB];
+    @apply h-full transition-all duration-300 bg-[#F5B8DB];
   }
   
   /* Buttons */
   .pi-button {
-    @apply rounded-xl py-2.5 px-5 font-medium text-white transition-all;
-    background: var(--pi-gradient);
-  }
-  
-  .pi-button:hover {
-    background: var(--pi-gradient-hover);
+    @apply rounded-xl py-2.5 px-5 font-medium text-white transition-all bg-[#F5B8DB] hover:bg-[#EEA4CF];
   }
   
   .pi-button-outline {
@@ -136,12 +131,7 @@
 
   /* Voice message button */
   .voice-button {
-    @apply rounded-full w-10 h-10 flex items-center justify-center;
-    background: var(--pi-gradient);
-  }
-
-  .voice-button:hover {
-    background: var(--pi-gradient-hover);
+    @apply rounded-full w-10 h-10 flex items-center justify-center bg-[#F5B8DB] hover:bg-[#EEA4CF];
   }
 
   /* Pi suggestions */

@@ -73,7 +73,7 @@ export default function LandingPage() {
                 </Link>
               ) : (
                 <>
-                  <Link href="/auth" className="text-gray-600 hover:text-gray-900">
+                  <Link href="/auth" className="px-4 py-2 rounded-lg border border-[#B6CAEB] text-[#B6CAEB] font-medium hover:bg-[#B6CAEB]/10 transition-colors">
                     Login
                   </Link>
                   <Link href="/auth?tab=register" className="pi-button">
@@ -148,7 +148,7 @@ export default function LandingPage() {
                 
                 {/* Window 3 - Front */}
                 <div className="relative bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-200 z-20">
-                  <div className="bg-gradient-to-r from-[#F5B8DB] to-[#B6CAEB] p-4 text-white flex items-center">
+                  <div className="bg-[#F5B8DB] p-4 text-white flex items-center">
                     <HopeLogLogo size="sm" withText={false} className="mr-2" />
                     <div>
                       <h2 className="font-bold">Hope Log</h2>
