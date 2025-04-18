@@ -25,7 +25,6 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Card,
   CardContent,
@@ -206,57 +205,58 @@ export default function SettingsPage() {
       
       <div className="flex flex-col md:flex-row gap-8">
         <div className="md:w-64 flex-shrink-0">
-          <Tabs
-            orientation="vertical"
-            value={activeTab}
-            onValueChange={setActiveTab}
-            className="w-full"
-          >
-            <TabsList className="flex flex-col items-start h-auto bg-transparent space-y-1 p-0">
-              <TabsTrigger
-                value="profile"
-                className="w-full justify-start px-3 py-2 rounded-md data-[state=active]:bg-blue-50 data-[state=active]:text-blue-600"
+          <div className="w-full">
+            <div className="flex flex-col items-start h-auto bg-transparent space-y-1 p-0">
+              <Button
+                variant={activeTab === "profile" ? "secondary" : "ghost"}
+                className="w-full justify-start px-3 py-2 rounded-md"
+                onClick={() => setActiveTab("profile")}
               >
                 <UserCircle className="h-5 w-5 mr-2" />
                 Profile
-              </TabsTrigger>
-              <TabsTrigger
-                value="password"
-                className="w-full justify-start px-3 py-2 rounded-md data-[state=active]:bg-blue-50 data-[state=active]:text-blue-600"
+              </Button>
+              <Button
+                variant={activeTab === "password" ? "secondary" : "ghost"}
+                className="w-full justify-start px-3 py-2 rounded-md"
+                onClick={() => setActiveTab("password")}
               >
                 <Lock className="h-5 w-5 mr-2" />
                 Password
-              </TabsTrigger>
-              <TabsTrigger
-                value="notifications"
-                className="w-full justify-start px-3 py-2 rounded-md data-[state=active]:bg-blue-50 data-[state=active]:text-blue-600"
+              </Button>
+              <Button
+                variant={activeTab === "notifications" ? "secondary" : "ghost"}
+                className="w-full justify-start px-3 py-2 rounded-md"
+                onClick={() => setActiveTab("notifications")}
               >
                 <Bell className="h-5 w-5 mr-2" />
                 Notifications
-              </TabsTrigger>
-              <TabsTrigger
-                value="privacy"
-                className="w-full justify-start px-3 py-2 rounded-md data-[state=active]:bg-blue-50 data-[state=active]:text-blue-600"
+              </Button>
+              <Button
+                variant={activeTab === "privacy" ? "secondary" : "ghost"}
+                className="w-full justify-start px-3 py-2 rounded-md"
+                onClick={() => setActiveTab("privacy")}
               >
                 <Shield className="h-5 w-5 mr-2" />
                 Privacy
-              </TabsTrigger>
-              <TabsTrigger
-                value="appearance"
-                className="w-full justify-start px-3 py-2 rounded-md data-[state=active]:bg-blue-50 data-[state=active]:text-blue-600"
+              </Button>
+              <Button
+                variant={activeTab === "appearance" ? "secondary" : "ghost"}
+                className="w-full justify-start px-3 py-2 rounded-md"
+                onClick={() => setActiveTab("appearance")}
               >
                 <Sun className="h-5 w-5 mr-2" />
                 Appearance
-              </TabsTrigger>
-              <TabsTrigger
-                value="data"
-                className="w-full justify-start px-3 py-2 rounded-md data-[state=active]:bg-blue-50 data-[state=active]:text-blue-600"
+              </Button>
+              <Button
+                variant={activeTab === "data" ? "secondary" : "ghost"}
+                className="w-full justify-start px-3 py-2 rounded-md"
+                onClick={() => setActiveTab("data")}
               >
                 <Download className="h-5 w-5 mr-2" />
                 Data & Export
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
+              </Button>
+            </div>
+          </div>
           
           <div className="mt-8">
             <Button
@@ -271,7 +271,7 @@ export default function SettingsPage() {
         </div>
         
         <div className="flex-1">
-          <TabsContent value="profile" className="mt-0">
+          {activeTab === "profile" && (
             <Card>
               <CardHeader>
                 <CardTitle>Profile Information</CardTitle>
@@ -387,9 +387,9 @@ export default function SettingsPage() {
                 </Form>
               </CardContent>
             </Card>
-          </TabsContent>
+          )}
           
-          <TabsContent value="password" className="mt-0">
+          {activeTab === "password" && (
             <Card>
               <CardHeader>
                 <CardTitle>Password</CardTitle>
@@ -463,9 +463,9 @@ export default function SettingsPage() {
                 </Form>
               </CardContent>
             </Card>
-          </TabsContent>
+          )}
           
-          <TabsContent value="notifications" className="mt-0">
+          {activeTab === "notifications" && (
             <Card>
               <CardHeader>
                 <CardTitle>Notification Preferences</CardTitle>
@@ -552,9 +552,9 @@ export default function SettingsPage() {
                 </Button>
               </CardContent>
             </Card>
-          </TabsContent>
+          )}
           
-          <TabsContent value="privacy" className="mt-0">
+          {activeTab === "privacy" && (
             <Card>
               <CardHeader>
                 <CardTitle>Privacy Settings</CardTitle>
@@ -667,9 +667,9 @@ export default function SettingsPage() {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
+          )}
           
-          <TabsContent value="appearance" className="mt-0">
+          {activeTab === "appearance" && (
             <Card>
               <CardHeader>
                 <CardTitle>Appearance</CardTitle>
@@ -724,9 +724,9 @@ export default function SettingsPage() {
                 </Button>
               </CardContent>
             </Card>
-          </TabsContent>
+          )}
           
-          <TabsContent value="data" className="mt-0">
+          {activeTab === "data" && (
             <Card>
               <CardHeader>
                 <CardTitle>Data & Export</CardTitle>
@@ -852,7 +852,7 @@ export default function SettingsPage() {
                 </Button>
               </CardFooter>
             </Card>
-          </TabsContent>
+          )}
         </div>
       </div>
     </div>
