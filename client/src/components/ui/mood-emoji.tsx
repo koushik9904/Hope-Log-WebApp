@@ -18,14 +18,20 @@ const emojis: Record<number, string> = {
 export function MoodEmoji({ mood, label, isSelected, onClick }: MoodEmojiProps) {
   return (
     <div
-      className={cn(
-        "flex flex-col items-center transition-transform duration-200 cursor-pointer hover:scale-115",
-        isSelected && "scale-120 ring-2 ring-primary ring-opacity-30 rounded-full p-1"
-      )}
+      className="flex flex-col items-center cursor-pointer gap-1"
       onClick={() => onClick(mood)}
     >
-      <div className="text-2xl mb-1">{emojis[mood]}</div>
-      <span className="text-xs text-muted-foreground">{label}</span>
+      <div className={cn(
+        isSelected ? "mood-emoji-selected" : "mood-emoji",
+        mood === 1 && "hover:text-red-500",
+        mood === 2 && "hover:text-orange-500",
+        mood === 3 && "hover:text-yellow-500",
+        mood === 4 && "hover:text-green-500",
+        mood === 5 && "hover:text-blue-500"
+      )}>
+        {emojis[mood]}
+      </div>
+      <span className="text-xs text-muted-foreground font-medium">{label}</span>
     </div>
   );
 }

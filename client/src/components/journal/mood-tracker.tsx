@@ -6,6 +6,8 @@ import { MoodEmoji } from "@/components/ui/mood-emoji";
 import { format, subDays } from "date-fns";
 import { User, Mood } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
+import { LineChart, Sparkles } from "lucide-react";
 
 type MoodTrackerProps = {
   userId: number;
@@ -59,20 +61,40 @@ export function MoodTracker({ userId }: MoodTrackerProps) {
       
       chartData.push({
         date: dateStr,
-        mood: dayMood ? dayMood.rating : 3, // Default to neutral if no mood recorded
+        mood: dayMood ? dayMood.rating : 0, // 0 means no mood recorded
+        label: dayLabel
+      });
+    }
+  } else if (!isLoading) {
+    // If no moods yet, create empty chart data
+    const today = new Date();
+    
+    for (let i = 6; i >= 0; i--) {
+      const date = subDays(today, i);
+      const dateStr = format(date, "yyyy-MM-dd");
+      const dayLabel = format(date, "EEE");
+      
+      chartData.push({
+        date: dateStr,
+        mood: 0, // 0 means no mood recorded
         label: dayLabel
       });
     }
   }
   
   return (
-    <div className="bg-white rounded-card shadow-sm">
-      <div className="p-4 border-b border-neutral-light">
-        <h2 className="text-lg font-semibold font-nunito">Mood Tracker</h2>
-        <p className="text-neutral-medium text-sm">How are you feeling over time?</p>
-      </div>
+    <Card className="journal-container shadow-sm card-gradient">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-lg font-medium flex items-center">
+          <LineChart className="h-5 w-5 mr-2 text-primary" />
+          Mood Tracker
+        </CardTitle>
+        <CardDescription>
+          Track how you're feeling over time
+        </CardDescription>
+      </CardHeader>
       
-      <div className="p-4">
+      <CardContent className="p-4">
         {/* Mood Chart */}
         <div className="chart-container mb-6">
           {isLoading ? (
@@ -83,8 +105,11 @@ export function MoodTracker({ userId }: MoodTrackerProps) {
         </div>
         
         {/* Today's Mood */}
-        <div>
-          <h3 className="text-md font-medium mb-3">How are you feeling today?</h3>
+        <div className="mt-4">
+          <h3 className="text-md font-medium mb-3 flex items-center">
+            <Sparkles className="h-4 w-4 mr-2 text-primary" />
+            How are you feeling today?
+          </h3>
           <div className="flex justify-between px-4">
             <MoodEmoji 
               mood={1} 
@@ -118,7 +143,7 @@ export function MoodTracker({ userId }: MoodTrackerProps) {
             />
           </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
