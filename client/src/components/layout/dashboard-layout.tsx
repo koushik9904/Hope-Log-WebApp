@@ -14,7 +14,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   if (!user) return null;
   
   return (
-    <div id="app" className="flex flex-col min-h-screen bg-neutral-lightest">
+    <div id="app" className="flex flex-col min-h-screen bg-[#FFF8E8]">
       <Sidebar />
       <MobileNav />
       

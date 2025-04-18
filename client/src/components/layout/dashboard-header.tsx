@@ -38,15 +38,15 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
           
           <div className="relative group">
             <button className="flex items-center space-x-2">
-              <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium">
+              <div className="w-9 h-9 rounded-full bg-[#B6CAEB]/20 flex items-center justify-center text-[#9AAB63] font-medium">
                 {user?.username.charAt(0).toUpperCase()}
               </div>
             </button>
             
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-1 invisible group-hover:visible z-50">
+            <div className="absolute right-0 mt-2 w-48 bg-[#FFF8E8] rounded-xl shadow-lg border border-[#F5D867]/30 py-1 invisible group-hover:visible z-50">
               <button 
                 onClick={handleLogout}
-                className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
+                className="flex items-center px-4 py-2 text-[#F5B8DB] hover:bg-[#F5B8DB]/10 w-full text-left transition-colors"
               >
                 <LogOut className="h-4 w-4 mr-2" />
                 <span>Log out</span>
@@ -55,7 +55,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
           </div>
         </div>
         
-        <button className="md:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-100">
+        <button className="md:hidden p-2 rounded-xl text-[#9AAB63] hover:bg-[#9AAB63]/10 transition-colors">
           <Menu className="h-5 w-5" />
         </button>
       </div>
