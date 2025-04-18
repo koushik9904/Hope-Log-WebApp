@@ -76,12 +76,12 @@ export default function AuthPage() {
       <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-[#F5B8DB] to-[#B6CAEB] p-10 text-white flex-col justify-center">
         <div className="max-w-md mx-auto">
           <div className="flex items-center mb-6">
-            <div className="w-12 h-12 rounded-xl bg-white bg-opacity-20 flex items-center justify-center text-white mr-4">
+            <div className="w-16 h-16 rounded-xl bg-white bg-opacity-20 flex items-center justify-center text-white mr-4">
               <div className="app-logo-icon">
-                <span className="text-lg font-bold">H</span>
+                <span className="text-2xl font-bold">H</span>
               </div>
             </div>
-            <h1 className="text-3xl font-bold font-['Montserrat_Variable']">Hope Log</h1>
+            <h1 className="text-4xl font-bold font-['Montserrat_Variable']">Hope Log</h1>
           </div>
           
           <h2 className="text-3xl font-bold mb-6">Your AI-powered mental wellness companion</h2>
@@ -140,10 +140,10 @@ export default function AuthPage() {
         <Card className="w-full max-w-md shadow-lg border-0 rounded-xl bg-white">
           <CardHeader className="space-y-1">
             <div className="flex items-center justify-center md:hidden mb-4">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-[#F5B8DB] to-[#B6CAEB] flex items-center justify-center text-white mr-2">
-                <span className="text-sm font-bold">H</span>
+              <div className="w-14 h-14 rounded-xl bg-gradient-to-r from-[#F5B8DB] to-[#B6CAEB] flex items-center justify-center text-white mr-2">
+                <span className="text-lg font-bold">H</span>
               </div>
-              <h1 className="text-2xl font-bold font-['Montserrat_Variable'] text-[#9AAB63]">Hope Log</h1>
+              <h1 className="text-3xl font-bold font-['Montserrat_Variable'] text-[#9AAB63]">Hope Log</h1>
             </div>
             <CardTitle className="text-2xl font-bold text-center">Welcome Back</CardTitle>
             <CardDescription className="text-center">
@@ -217,7 +217,7 @@ export default function AuthPage() {
                     />
                     <Button
                       type="submit"
-                      className="w-full pi-button"
+                      className="w-full bg-black hover:bg-black/80 text-white"
                       disabled={loginMutation.isPending}
                     >
                       {loginMutation.isPending ? "Logging in..." : "Login"}
@@ -270,7 +270,7 @@ export default function AuthPage() {
                     />
                     <Button
                       type="submit"
-                      className="w-full pi-button"
+                      className="w-full bg-black hover:bg-black/80 text-white"
                       disabled={registerMutation.isPending}
                     >
                       {registerMutation.isPending ? "Creating account..." : "Create Account"}
