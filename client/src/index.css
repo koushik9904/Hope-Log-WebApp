@@ -11,3 +11,45 @@
     @apply font-sans antialiased bg-background text-foreground;
   }
 }
+
+@layer components {
+  .card-gradient {
+    @apply bg-gradient-to-br from-primary/10 to-primary/5;
+  }
+  
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-md hover:bg-primary/10;
+  }
+  
+  .journal-container {
+    @apply rounded-xl bg-card shadow-sm p-4 border border-border;
+  }
+  
+  .journal-entry {
+    @apply p-3 rounded-lg my-2;
+  }
+  
+  .journal-entry-user {
+    @apply bg-primary/10 text-primary-foreground;
+  }
+  
+  .journal-entry-ai {
+    @apply bg-muted text-muted-foreground;
+  }
+  
+  .mood-emoji {
+    @apply text-2xl cursor-pointer transition-transform hover:scale-110;
+  }
+  
+  .mood-emoji-selected {
+    @apply text-2xl scale-110 text-primary;
+  }
+  
+  .goal-progress-bar {
+    @apply h-2 rounded-full bg-primary/20 overflow-hidden;
+  }
+  
+  .goal-progress-fill {
+    @apply h-full bg-primary transition-all duration-300;
+  }
+}

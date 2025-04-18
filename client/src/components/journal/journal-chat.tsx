@@ -4,8 +4,9 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { User, JournalEntry } from "@shared/schema";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, Send, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 
 type JournalChatProps = {
   userId: number;
@@ -51,73 +52,76 @@ export function JournalChat({ userId }: JournalChatProps) {
   };
 
   return (
-    <div className="bg-white rounded-card shadow-sm">
-      <div className="p-4 border-b border-neutral-light flex justify-between items-center">
-        <h2 className="text-lg font-semibold font-nunito">Today's Journal</h2>
-        <button className="text-neutral-medium hover:text-primary">
-          <i className="ri-more-2-fill"></i>
-        </button>
-      </div>
+    <Card className="journal-container shadow-sm card-gradient">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-lg font-medium flex items-center">
+          <MessageSquare className="h-5 w-5 mr-2 text-primary" />
+          Today's Journal
+        </CardTitle>
+      </CardHeader>
       
-      <div 
-        ref={chatContainerRef}
-        className="p-4 h-96 flex flex-col overflow-y-auto hide-scrollbar"
-      >
-        {isLoading ? (
-          <div className="flex justify-center items-center h-full">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        ) : entries.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center">
-            <div className="w-16 h-16 rounded-full bg-primary bg-opacity-10 flex items-center justify-center mb-4">
-              <i className="ri-chat-smile-line text-primary text-2xl"></i>
+      <CardContent className="p-4">
+        <div 
+          ref={chatContainerRef}
+          className="h-96 flex flex-col space-y-2 overflow-y-auto scrollbar-thin"
+        >
+          {isLoading ? (
+            <div className="flex justify-center items-center h-full">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
-            <h3 className="text-lg font-medium text-neutral-dark mb-2">Start Journaling</h3>
-            <p className="text-neutral-medium max-w-md">
-              Your AI companion is here to listen. Share your thoughts or choose a prompt to begin.
-            </p>
-          </div>
-        ) : (
-          entries.map((entry) => (
-            <div 
-              key={entry.id}
-              className={cn(
-                "journal-bubble max-w-[85%] mb-4 px-4 py-3 rounded-[18px]",
-                entry.isAiResponse 
-                  ? "bg-primary text-white rounded-bl-[4px] self-start"
-                  : "bg-neutral-light rounded-br-[4px] self-end"
-              )}
-            >
-              <p>{entry.content}</p>
+          ) : entries.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full text-center p-4">
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                <MessageSquare className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="text-lg font-medium mb-2">Start Journaling</h3>
+              <p className="text-muted-foreground max-w-md">
+                Your AI companion is here to listen. Share your thoughts or choose a prompt to begin.
+              </p>
             </div>
-          ))
-        )}
-        
-        {addEntryMutation.isPending && (
-          <div className="journal-bubble max-w-[85%] mb-4 px-4 py-3 rounded-[18px] bg-primary text-white rounded-bl-[4px] self-start animate-pulse">
-            <p>Thinking...</p>
-          </div>
-        )}
-      </div>
+          ) : (
+            entries.map((entry) => (
+              <div 
+                key={entry.id}
+                className={cn(
+                  "max-w-[85%] px-4 py-3 rounded-2xl journal-entry",
+                  entry.isAiResponse 
+                    ? "journal-entry-ai self-start"
+                    : "journal-entry-user self-end"
+                )}
+              >
+                <p className="whitespace-pre-line">{entry.content}</p>
+              </div>
+            ))
+          )}
+          
+          {addEntryMutation.isPending && (
+            <div className="max-w-[85%] px-4 py-3 rounded-2xl journal-entry journal-entry-ai self-start animate-pulse">
+              <p>Thinking...</p>
+            </div>
+          )}
+        </div>
+      </CardContent>
       
-      <div className="p-4 border-t border-neutral-light">
-        <form className="flex items-center" onSubmit={handleSubmit}>
+      <CardFooter className="p-4 pt-2">
+        <form className="flex items-center w-full gap-2" onSubmit={handleSubmit}>
           <Input
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            className="flex-grow p-3 bg-neutral-light bg-opacity-50 rounded-l-full border-0 focus:ring-2 focus:ring-primary focus:outline-none"
+            className="flex-grow rounded-full bg-muted/50 border-0"
             placeholder="Continue your journal..."
             disabled={addEntryMutation.isPending}
           />
           <Button
             type="submit"
-            className="bg-primary text-white p-3 rounded-r-full focus:outline-none hover:bg-primary-dark"
+            size="icon"
+            className="rounded-full w-10 h-10"
             disabled={addEntryMutation.isPending}
           >
-            <i className="ri-send-plane-fill"></i>
+            <Send className="h-4 w-4" />
           </Button>
         </form>
-      </div>
-    </div>
+      </CardFooter>
+    </Card>
   );
 }
