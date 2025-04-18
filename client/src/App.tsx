@@ -8,6 +8,10 @@ import { ProtectedRoute } from "@/lib/protected-route";
 import HomePage from "@/pages/home-page";
 import AuthPage from "@/pages/auth-page";
 import LandingPage from "@/pages/landing-page";
+import JournalPage from "@/pages/journal-page";
+import InsightsPage from "@/pages/insights-page";
+import GoalsPage from "@/pages/goals-page";
+import SettingsPage from "@/pages/settings-page";
 import NotFound from "@/pages/not-found";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -21,10 +25,10 @@ function Router() {
       <Switch>
         <Route path="/" component={LandingPage} />
         <Route path="/auth" component={AuthPage} />
-        <ProtectedRoute path="/journal" component={HomePage} />
-        <ProtectedRoute path="/insights" component={HomePage} />
-        <ProtectedRoute path="/goals" component={HomePage} />
-        <ProtectedRoute path="/settings" component={HomePage} />
+        <ProtectedRoute path="/journal" component={JournalPage} />
+        <ProtectedRoute path="/insights" component={InsightsPage} />
+        <ProtectedRoute path="/goals" component={GoalsPage} />
+        <ProtectedRoute path="/settings" component={SettingsPage} />
         <Route component={NotFound} />
       </Switch>
     );
@@ -33,10 +37,10 @@ function Router() {
   return (
     <Switch>
       <ProtectedRoute path="/" component={HomePage} />
-      <ProtectedRoute path="/journal" component={HomePage} />
-      <ProtectedRoute path="/insights" component={HomePage} />
-      <ProtectedRoute path="/goals" component={HomePage} />
-      <ProtectedRoute path="/settings" component={HomePage} />
+      <ProtectedRoute path="/journal" component={JournalPage} />
+      <ProtectedRoute path="/insights" component={InsightsPage} />
+      <ProtectedRoute path="/goals" component={GoalsPage} />
+      <ProtectedRoute path="/settings" component={SettingsPage} />
       <Route path="/auth" component={AuthPage} />
       <Route component={NotFound} />
     </Switch>
