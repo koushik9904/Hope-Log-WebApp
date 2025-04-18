@@ -88,7 +88,7 @@ export function MoodTracker({ userId }: MoodTrackerProps) {
           <h2 className="rosebud-card-title">Mood Tracker</h2>
           <p className="rosebud-card-subtitle">How are you feeling over time?</p>
         </div>
-        <div className="bg-rose-100 p-2 rounded-full">
+        <div className="bg-pink-100 p-2 rounded-full">
           <Heart className="h-5 w-5 text-primary" />
         </div>
       </div>
@@ -103,7 +103,7 @@ export function MoodTracker({ userId }: MoodTrackerProps) {
       </div>
       
       {/* Today's Mood */}
-      <div className="bg-rose-50 p-4 rounded-2xl">
+      <div className="bg-pink-50 p-4 rounded-2xl">
         <h3 className="text-md font-semibold mb-4 text-gray-800">
           How are you feeling today?
         </h3>

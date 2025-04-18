@@ -25,10 +25,10 @@ export function GoalsHabits({ userId }: GoalsHabitsProps) {
   });
   
   const colorClasses = {
-    1: "bg-indigo-500",
-    2: "bg-pink-500",
-    3: "bg-amber-500",
-    4: "bg-emerald-500"
+    1: "bg-pink-400",
+    2: "bg-blue-400",
+    3: "bg-green-400",
+    4: "bg-purple-400"
   };
   
   return (
@@ -51,7 +51,7 @@ export function GoalsHabits({ userId }: GoalsHabitsProps) {
         </div>
       ) : goals.length === 0 ? (
         <div className="text-center p-6 my-4">
-          <div className="w-20 h-20 mx-auto rounded-full bg-indigo-50 flex items-center justify-center mb-4">
+          <div className="w-20 h-20 mx-auto rounded-full bg-pink-50 flex items-center justify-center mb-4">
             <Target className="h-8 w-8 text-primary" />
           </div>
           <h3 className="text-xl font-bold mb-2">No Goals Yet</h3>

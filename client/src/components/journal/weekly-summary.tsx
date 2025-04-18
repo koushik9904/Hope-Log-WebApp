@@ -41,33 +41,33 @@ export function WeeklySummary({ userId }: WeeklySummaryProps) {
         </div>
       ) : summary ? (
         <div className="space-y-4 my-4">
-          <div className="bg-rose-50 rounded-2xl p-4">
+          <div className="bg-pink-50 rounded-2xl p-4">
             <h3 className="text-base font-semibold mb-3 text-gray-800">
               Top Emotions
             </h3>
             <div className="flex flex-wrap gap-2">
               {summary.topEmotions.map((emotion, index) => (
-                <Badge key={index} className="bg-white border border-rose-200 text-gray-700 px-3 py-1 rounded-full">
+                <Badge key={index} className="bg-white border border-pink-200 text-gray-700 px-3 py-1 rounded-full">
                   {emotion}
                 </Badge>
               ))}
             </div>
           </div>
           
-          <div className="bg-amber-50 rounded-2xl p-4">
+          <div className="bg-blue-50 rounded-2xl p-4">
             <h3 className="text-base font-semibold mb-3 text-gray-800">
               Common Themes
             </h3>
             <div className="flex flex-wrap gap-2">
               {summary.commonThemes.map((theme, index) => (
-                <Badge key={index} className="bg-white border border-amber-200 text-gray-700 px-3 py-1 rounded-full">
+                <Badge key={index} className="bg-white border border-blue-100 text-gray-700 px-3 py-1 rounded-full">
                   {theme}
                 </Badge>
               ))}
             </div>
           </div>
           
-          <div className="bg-violet-50 rounded-2xl p-4">
+          <div className="bg-green-50 rounded-2xl p-4">
             <h3 className="text-base font-semibold mb-3 text-gray-800">
               Key Insights
             </h3>
