@@ -16,7 +16,7 @@ export function Sidebar() {
     
     return (
       <Link href={href}>
-        <a className={cn(
+        <div className={cn(
           "flex items-center px-6 py-3",
           isActive 
             ? "bg-primary bg-opacity-10 text-primary" 
@@ -24,7 +24,7 @@ export function Sidebar() {
         )}>
           <i className={`${icon} mr-3`}></i>
           <span>{label}</span>
-        </a>
+        </div>
       </Link>
     );
   };

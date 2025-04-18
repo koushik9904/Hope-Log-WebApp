@@ -9,13 +9,13 @@ export function MobileNav() {
     
     return (
       <Link href={href}>
-        <a className={cn(
+        <div className={cn(
           "flex flex-col items-center justify-center",
           isActive ? "text-primary" : "text-neutral-medium"
         )}>
           <i className={`${icon} text-xl`}></i>
           <span className="text-xs mt-1">{label}</span>
-        </a>
+        </div>
       </Link>
     );
   };
