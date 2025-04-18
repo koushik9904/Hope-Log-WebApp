@@ -132,7 +132,7 @@ export default function AuthPage() {
       </div>
       
       {/* Auth Forms */}
-      <div className="w-full md:w-1/2 flex items-center justify-center p-4 md:p-10 bg-[#FFF8E8]">
+      <div className="w-full md:w-1/2 flex items-center justify-center p-4 md:p-10 bg-gray-900">
         <Card className="w-full max-w-md shadow-lg border-0 rounded-xl bg-white">
           <CardHeader className="space-y-1">
             <div className="flex items-center justify-center md:hidden mb-4">
