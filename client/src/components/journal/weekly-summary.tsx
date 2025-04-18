@@ -16,7 +16,7 @@ export function WeeklySummary({ userId }: WeeklySummaryProps) {
   const endDateStr = format(endDate, "MMM d, yyyy");
   
   const { data: summary, isLoading } = useQuery<Summary>({
-    queryKey: ["/api/summary", userId],
+    queryKey: [`/api/summary/${userId}`],
   });
   
   return (

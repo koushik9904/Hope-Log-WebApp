@@ -11,7 +11,7 @@ type GoalsHabitsProps = {
 
 export function GoalsHabits({ userId }: GoalsHabitsProps) {
   const { data: goals = [], isLoading } = useQuery<Goal[]>({
-    queryKey: ["/api/goals", userId],
+    queryKey: [`/api/goals/${userId}`],
   });
   
   const updateGoalMutation = useMutation({
@@ -20,7 +20,7 @@ export function GoalsHabits({ userId }: GoalsHabitsProps) {
       return await res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/goals", userId] });
+      queryClient.invalidateQueries({ queryKey: [`/api/goals/${userId}`] });
     },
   });
   
