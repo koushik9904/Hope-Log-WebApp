@@ -7,8 +7,10 @@ import App from "./App";
 import "./index.css";
 
 // Import fonts
-import "@fontsource-variable/plus-jakarta-sans";
-import "@fontsource-variable/nunito";
+import "@fontsource-variable/plus-jakarta-sans"; // Default font
+import "@fontsource-variable/nunito"; // Default font
+import "@fontsource-variable/montserrat"; // Replacing Acorn font
+import "@fontsource-variable/inter"; // Replacing TT Commons font
 
 createRoot(document.getElementById("root")!).render(
   <ThemeProvider attribute="class" defaultTheme="light">
