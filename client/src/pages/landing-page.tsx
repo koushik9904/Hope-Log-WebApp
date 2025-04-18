@@ -57,7 +57,7 @@ export default function LandingPage() {
         <div className="container mx-auto px-4 sm:px-6 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center">
-              <HopeLogLogo size="md" />
+              <HopeLogLogo size="lg" withText />
             </div>
             <div className="hidden md:flex items-center space-x-8">
               <a href="#features" className="text-gray-600 hover:text-gray-900">Features</a>
@@ -148,12 +148,8 @@ export default function LandingPage() {
                 
                 {/* Window 3 - Front */}
                 <div className="relative bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-200 z-20">
-                  <div className="bg-[#CB3B8C] p-4 text-white flex items-center">
-                    <HopeLogLogo size="sm" withText={false} className="mr-2" />
-                    <div>
-                      <h2 className="font-bold">Hope Log</h2>
-                      <p className="text-xs">Your personal journal assistant</p>
-                    </div>
+                  <div className="bg-black p-4 text-white flex items-center">
+                    <HopeLogLogo size="sm" withText className="w-auto mr-2" />
                   </div>
                   
                   <div className="p-5">

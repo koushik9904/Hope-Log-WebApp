@@ -77,7 +77,7 @@ export default function AuthPage() {
       <div className="hidden md:flex md:w-1/2 bg-black p-10 text-white flex-col justify-center">
         <div className="max-w-md mx-auto">
           <div className="flex items-center mb-6">
-            <HopeLogLogo size="lg" className="w-auto" />
+            <HopeLogLogo size="lg" withText className="w-auto" />
           </div>
           
           <h2 className="text-3xl font-bold mb-6">Your AI-powered mental wellness companion</h2>
@@ -137,7 +137,7 @@ export default function AuthPage() {
           <CardHeader className="space-y-1">
             <div className="flex items-center justify-center md:hidden mb-4">
               <div className="bg-black rounded-xl p-2">
-                <HopeLogLogo size="md" className="w-auto" />
+                <HopeLogLogo size="md" withText className="w-auto" />
               </div>
             </div>
             <CardTitle className="text-2xl font-bold text-center">Welcome Back</CardTitle>
