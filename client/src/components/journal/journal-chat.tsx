@@ -192,15 +192,15 @@ export function JournalChat({ userId }: JournalChatProps) {
         <TabsContent value="chat" className="mt-0 space-y-4">
           {/* Sentiment Analysis Summary (when requested) */}
           {showSummary && (
-            <div className="bg-blue-50 rounded-lg p-4 border border-blue-100 mb-4">
+            <div className="bg-gray-800 rounded-lg p-4 border border-gray-700 mb-4">
               <div className="flex justify-between items-start mb-2">
-                <h3 className="font-semibold text-gray-800 flex items-center">
-                  <BarChart className="h-4 w-4 mr-1.5 text-blue-600" />
+                <h3 className="font-semibold text-white flex items-center">
+                  <BarChart className="h-4 w-4 mr-1.5 text-[#F5B8DB]" />
                   Conversation Analysis
                 </h3>
                 <button 
                   onClick={() => setShowSummary(false)}
-                  className="text-gray-500 hover:text-gray-700 text-sm"
+                  className="text-gray-400 hover:text-white text-sm"
                 >
                   Close
                 </button>
@@ -216,19 +216,19 @@ export function JournalChat({ userId }: JournalChatProps) {
                 </div>
               ) : (
                 <div className="space-y-3 text-sm">
-                  <p className="text-gray-600">
+                  <p className="text-gray-300">
                     {analyzeEntriesMutation.data?.summary || 
                       "You've been showing mixed emotions in your recent journal entries, with some anxiety but also moments of joy."}
                   </p>
                   
                   <div>
-                    <div className="font-medium text-gray-700 mb-1 flex items-center">
-                      <Heart className="h-3.5 w-3.5 mr-1 text-rose-500" /> 
+                    <div className="font-medium text-white mb-1 flex items-center">
+                      <Heart className="h-3.5 w-3.5 mr-1 text-[#F5B8DB]" /> 
                       Primary Emotions
                     </div>
                     <div className="flex flex-wrap gap-1">
                       {(analyzeEntriesMutation.data?.emotions || ["Anxiety", "Joy", "Hope"]).map((emotion, i) => (
-                        <span key={i} className="px-2 py-0.5 bg-white rounded-full text-xs border border-gray-200">
+                        <span key={i} className="px-2 py-0.5 bg-gray-700 rounded-full text-xs border border-gray-600 text-gray-200">
                           {emotion}
                         </span>
                       ))}
@@ -236,10 +236,10 @@ export function JournalChat({ userId }: JournalChatProps) {
                   </div>
                   
                   <div>
-                    <div className="font-medium text-gray-700 mb-1">Common Themes</div>
+                    <div className="font-medium text-white mb-1">Common Themes</div>
                     <div className="flex flex-wrap gap-1">
                       {(analyzeEntriesMutation.data?.themes || ["Work", "Relationships"]).map((theme, i) => (
-                        <span key={i} className="px-2 py-0.5 bg-white rounded-full text-xs border border-gray-200">
+                        <span key={i} className="px-2 py-0.5 bg-gray-700 rounded-full text-xs border border-gray-600 text-gray-200">
                           {theme}
                         </span>
                       ))}
@@ -247,7 +247,7 @@ export function JournalChat({ userId }: JournalChatProps) {
                   </div>
                   
                   <div className="pt-1">
-                    <button className="text-blue-600 text-xs font-medium flex items-center">
+                    <button className="text-[#B6CAEB] text-xs font-medium flex items-center hover:text-[#F5B8DB]">
                       <Download className="h-3 w-3 mr-1" /> Download full analysis
                     </button>
                   </div>
