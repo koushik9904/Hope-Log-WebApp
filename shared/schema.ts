@@ -24,6 +24,7 @@ export const journalEntries = pgTable("journal_entries", {
   content: text("content").notNull(),
   date: timestamp("date", { mode: 'string' }).notNull(),
   isAiResponse: boolean("is_ai_response").notNull().default(false),
+  isJournal: boolean("is_journal").notNull().default(false),
   sentiment: jsonb("sentiment").$type<{
     score: number;
     emotions: string[];

@@ -127,10 +127,13 @@ export function JournalChat({ userId }: JournalChatProps) {
     return [...entries].reverse();
   };
 
-  // Filter entries based on search term
-  const filteredEntries = entries.filter(entry => 
-    entry.content.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filter entries based on search term and isJournal property
+  const filteredEntries = entries.filter(entry => {
+    const matchesSearch = entry.content.toLowerCase().includes(searchTerm.toLowerCase());
+    // Filter out chat-based entries when in journal mode
+    // Consider any entry with a journal property as journal-type entry, otherwise treat all as non-journal entries
+    return matchesSearch && ((entry as any).isJournal === undefined || !(entry as any).isJournal);
+  });
 
   // Scroll to bottom of chat when entries change
   useEffect(() => {
@@ -422,14 +425,15 @@ export function JournalChat({ userId }: JournalChatProps) {
             <h3 className="font-semibold text-gray-800 mb-3">Recent Journal Entries</h3>
             
             <div className="divide-y divide-gray-100 max-h-48 overflow-y-auto pr-2">
-              {filteredEntries.length === 0 ? (
+              {/* Check if we have any journal entries - either isJournal flag is true or it's a long-form entry */}
+              {entries.filter(entry => (entry as any).isJournal === true || (!entry.isAiResponse && entry.content.length > 200)).length === 0 ? (
                 <div className="py-8 text-center text-gray-500">
                   <FileText className="h-10 w-10 mx-auto mb-3 text-gray-300" />
                   <p>No journal entries yet</p>
                 </div>
               ) : (
-                filteredEntries
-                  .filter(entry => entry.isJournal)
+                entries
+                  .filter(entry => (entry as any).isJournal === true || (!entry.isAiResponse && entry.content.length > 200))
                   .map((entry) => (
                     <div key={entry.id} className="py-3">
                       <div className="flex justify-between items-start mb-1">
