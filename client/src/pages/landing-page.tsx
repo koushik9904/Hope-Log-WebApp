@@ -88,9 +88,9 @@ export default function LandingPage() {
 
       {/* Hero Section - Rosebud-inspired with pastel graphics */}
       <section className="py-20 px-4 relative overflow-hidden">
-        <div className="absolute top-20 right-20 w-96 h-96 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
-        <div className="absolute top-0 -left-20 w-96 h-96 bg-indigo-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
-        <div className="absolute -bottom-40 right-0 w-96 h-96 bg-pink-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+        <div className="absolute top-20 right-20 w-96 h-96 bg-[#F5B8DB]/20 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+        <div className="absolute top-0 -left-20 w-96 h-96 bg-[#B6CAEB]/20 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+        <div className="absolute -bottom-40 right-0 w-96 h-96 bg-[#F5D867]/20 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
         
         <div className="container mx-auto relative z-10">
           <div className="flex flex-col lg:flex-row items-center justify-between">
@@ -148,7 +148,7 @@ export default function LandingPage() {
                 
                 {/* Window 3 - Front */}
                 <div className="relative bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-200 z-20">
-                  <div className="bg-gradient-to-r from-blue-500 to-indigo-600 p-4 text-white flex items-center">
+                  <div className="bg-gradient-to-r from-[#F5B8DB] to-[#B6CAEB] p-4 text-white flex items-center">
                     <HopeLogLogo size="sm" withText={false} className="mr-2" />
                     <div>
                       <h2 className="font-bold">Hope Log</h2>
@@ -319,7 +319,7 @@ export default function LandingPage() {
                     {[...Array(7)].map((_, i) => (
                       <div key={i} className="flex flex-col items-center">
                         <div 
-                          className={`w-4 ${[4, 3, 5, 2, 4, 5, 4][i % 7] * 8}px rounded-t-full bg-gradient-to-t from-blue-500 to-indigo-600`}
+                          className={`w-4 ${[4, 3, 5, 2, 4, 5, 4][i % 7] * 8}px rounded-t-full bg-gradient-to-t from-[#F5B8DB] to-[#B6CAEB]`}
                         ></div>
                         <div className="text-xs mt-1 text-gray-500">{['M', 'T', 'W', 'T', 'F', 'S', 'S'][i]}</div>
                       </div>
@@ -555,7 +555,7 @@ export default function LandingPage() {
       {/* Quote Section */}
       <section className="py-16">
         <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl p-12 text-white relative">
+          <div className="max-w-4xl mx-auto bg-gradient-to-r from-[#F5B8DB] to-[#B6CAEB] rounded-2xl p-12 text-white relative">
             <div className="absolute top-8 left-8 opacity-20">
               <Quote className="h-20 w-20" />
             </div>
@@ -717,7 +717,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
               <div key={index} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 relative">
-                <div className="absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg">
+                <div className="absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-r from-[#F5B8DB] to-[#B6CAEB] rounded-full flex items-center justify-center shadow-lg">
                   <Quote className="h-5 w-5 text-white" />
                 </div>
                 
@@ -731,7 +731,7 @@ export default function LandingPage() {
                 </div>
                 <p className="text-gray-600 mb-6 italic">"{testimonial.content}"</p>
                 <div className="flex items-center">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-300 to-indigo-300 flex items-center justify-center text-white font-bold">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[#F5B8DB] to-[#B6CAEB] flex items-center justify-center text-white font-bold">
                     {testimonial.name.charAt(0)}
                   </div>
                   <div className="ml-3">
@@ -748,7 +748,7 @@ export default function LandingPage() {
       {/* CTA Section */}
       <section className="py-20">
         <div className="container mx-auto px-4 sm:px-6">
-          <div className="max-w-4xl mx-auto bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl p-12 text-white text-center relative overflow-hidden">
+          <div className="max-w-4xl mx-auto bg-gradient-to-r from-[#F5B8DB] to-[#B6CAEB] rounded-2xl p-12 text-white text-center relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-full opacity-10">
               <div className="absolute top-0 left-1/4 w-96 h-96 bg-white rounded-full mix-blend-overlay filter blur-3xl"></div>
               <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-white rounded-full mix-blend-overlay filter blur-3xl"></div>
@@ -761,7 +761,7 @@ export default function LandingPage() {
                 Join thousands of people who have transformed their mental wellbeing with Hope Log.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/auth?tab=register" className="bg-white text-blue-600 hover:bg-blue-50 py-3 px-8 rounded-lg font-medium text-lg">
+                <Link href="/auth?tab=register" className="bg-white text-[#9AAB63] hover:bg-gray-50 py-3 px-8 rounded-lg font-medium text-lg">
                   Get Started — It's Free
                 </Link>
                 <a href="#features" className="bg-blue-600/30 hover:bg-blue-600/40 text-white py-3 px-8 rounded-lg font-medium text-lg border border-white/20">
