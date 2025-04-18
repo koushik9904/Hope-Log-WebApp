@@ -93,7 +93,7 @@
   
   /* Buttons */
   .pi-button {
-    @apply rounded-xl py-2.5 px-5 font-medium text-white transition-all bg-[#F5B8DB] hover:bg-[#EEA4CF];
+    @apply rounded-xl py-2.5 px-5 font-medium text-white transition-all bg-[#CB3B8C] hover:bg-[#B32E77];
   }
   
   .pi-button-outline {
@@ -131,7 +131,7 @@
 
   /* Voice message button */
   .voice-button {
-    @apply rounded-full w-10 h-10 flex items-center justify-center bg-[#F5B8DB] hover:bg-[#EEA4CF];
+    @apply rounded-full w-10 h-10 flex items-center justify-center bg-[#CB3B8C] hover:bg-[#B32E77];
   }
 
   /* Pi suggestions */

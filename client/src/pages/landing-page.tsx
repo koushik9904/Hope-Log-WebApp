@@ -148,7 +148,7 @@ export default function LandingPage() {
                 
                 {/* Window 3 - Front */}
                 <div className="relative bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-200 z-20">
-                  <div className="bg-[#F5B8DB] p-4 text-white flex items-center">
+                  <div className="bg-[#CB3B8C] p-4 text-white flex items-center">
                     <HopeLogLogo size="sm" withText={false} className="mr-2" />
                     <div>
                       <h2 className="font-bold">Hope Log</h2>
@@ -555,7 +555,7 @@ export default function LandingPage() {
       {/* Quote Section */}
       <section className="py-16">
         <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto bg-gradient-to-r from-[#F5B8DB] to-[#B6CAEB] rounded-2xl p-12 text-white relative">
+          <div className="max-w-4xl mx-auto bg-[#CB3B8C] rounded-2xl p-12 text-white relative">
             <div className="absolute top-8 left-8 opacity-20">
               <Quote className="h-20 w-20" />
             </div>
@@ -748,11 +748,7 @@ export default function LandingPage() {
       {/* CTA Section */}
       <section className="py-20">
         <div className="container mx-auto px-4 sm:px-6">
-          <div className="max-w-4xl mx-auto bg-[#F5B8DB] rounded-2xl p-12 text-white text-center relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-full opacity-10">
-              <div className="absolute top-0 left-1/4 w-96 h-96 bg-white rounded-full mix-blend-overlay filter blur-3xl"></div>
-              <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-white rounded-full mix-blend-overlay filter blur-3xl"></div>
-            </div>
+          <div className="max-w-4xl mx-auto bg-[#CB3B8C] rounded-2xl p-12 text-white text-center relative overflow-hidden">
             
             <div className="relative z-10">
               <HopeLogLogo size="lg" className="mx-auto mb-6 text-white" />
