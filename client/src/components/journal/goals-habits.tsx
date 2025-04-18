@@ -1,11 +1,9 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Button } from "@/components/ui/button";
 import { Goal } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import { Target, PlusCircle } from "lucide-react";
+import { Target, PlusCircle, ChevronRight } from "lucide-react";
 
 type GoalsHabitsProps = {
   userId: number;
@@ -26,79 +24,72 @@ export function GoalsHabits({ userId }: GoalsHabitsProps) {
     },
   });
   
+  const colorClasses = {
+    1: "bg-indigo-500",
+    2: "bg-pink-500",
+    3: "bg-amber-500",
+    4: "bg-emerald-500"
+  };
+  
   return (
-    <Card className="journal-container shadow-sm card-gradient">
-      <CardHeader className="pb-2 flex flex-row items-center justify-between">
-        <CardTitle className="text-lg font-medium flex items-center">
-          <Target className="h-5 w-5 mr-2 text-primary" />
-          Goals & Habits
-        </CardTitle>
-        <Button variant="ghost" size="sm" className="text-primary h-8 px-2">
-          <PlusCircle className="h-4 w-4 mr-1" />
-          Add New
-        </Button>
-      </CardHeader>
+    <div className="rosebud-card">
+      <div className="rosebud-card-header">
+        <div>
+          <h2 className="rosebud-card-title">Goals & Habits</h2>
+          <p className="rosebud-card-subtitle">Track your progress</p>
+        </div>
+        <button className="bg-primary text-white p-2 rounded-full hover:bg-primary/90">
+          <PlusCircle className="h-5 w-5" />
+        </button>
+      </div>
       
-      <CardContent className="p-4">
-        {isLoading ? (
-          <div className="space-y-4">
-            <Skeleton className="w-full h-10" />
-            <Skeleton className="w-full h-10" />
-            <Skeleton className="w-full h-10" />
+      {isLoading ? (
+        <div className="space-y-4 my-4">
+          <Skeleton className="w-full h-10" />
+          <Skeleton className="w-full h-10" />
+          <Skeleton className="w-full h-10" />
+        </div>
+      ) : goals.length === 0 ? (
+        <div className="text-center p-6 my-4">
+          <div className="w-20 h-20 mx-auto rounded-full bg-indigo-50 flex items-center justify-center mb-4">
+            <Target className="h-8 w-8 text-primary" />
           </div>
-        ) : goals.length === 0 ? (
-          <div className="text-center p-6">
-            <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-4">
-              <Target className="h-8 w-8 text-primary" />
-            </div>
-            <h3 className="text-lg font-medium mb-2">No Goals Yet</h3>
-            <p className="text-muted-foreground">
-              You don't have any goals set up yet. Click 'Add New' to create one.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {goals.map((goal) => {
-              const progressPercent = (goal.progress / goal.target) * 100;
-              const colorClasses = {
-                1: "bg-blue-500",
-                2: "bg-green-500",
-                3: "bg-purple-500",
-                4: "bg-amber-500"
-              };
-              
-              return (
-                <div className="space-y-1.5" key={goal.id}>
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-sm font-medium">{goal.name}</h3>
-                    <span className="text-xs text-muted-foreground">
-                      {goal.progress}/{goal.target} {goal.unit}
-                    </span>
-                  </div>
-                  <div className="goal-progress-bar">
-                    <div 
-                      className={cn(
-                        "goal-progress-fill",
-                        colorClasses[goal.colorScheme as 1 | 2 | 3 | 4] || "bg-primary"
-                      )}
-                      style={{ width: `${progressPercent}%` }}
-                    ></div>
-                  </div>
+          <h3 className="text-xl font-bold mb-2">No Goals Yet</h3>
+          <p className="text-gray-600 mb-6">
+            You don't have any goals set up yet. Click the + button to create one.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-5 my-4">
+          {goals.map((goal) => {
+            const progressPercent = (goal.progress / goal.target) * 100;
+            
+            return (
+              <div key={goal.id} className="bg-gray-50 p-4 rounded-2xl">
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="text-base font-semibold text-gray-800">{goal.name}</h3>
+                  <span className="text-sm font-medium text-gray-500">
+                    {goal.progress}/{goal.target} {goal.unit}
+                  </span>
                 </div>
-              );
-            })}
-          </div>
-        )}
-      </CardContent>
+                <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
+                  <div 
+                    className={cn(
+                      "h-full rounded-full transition-all duration-300",
+                      colorClasses[goal.colorScheme as 1 | 2 | 3 | 4] || "bg-primary"
+                    )}
+                    style={{ width: `${progressPercent}%` }}
+                  ></div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
       
-      <CardFooter className="px-4 pb-4 pt-0">
-        <Button 
-          variant="outline" 
-          className="w-full"
-        >
-          View All Goals
-        </Button>
-      </CardFooter>
-    </Card>
+      <button className="w-full py-3 text-primary font-medium flex items-center justify-center">
+        View All Goals <ChevronRight className="h-4 w-4 ml-1" />
+      </button>
+    </div>
   );
 }

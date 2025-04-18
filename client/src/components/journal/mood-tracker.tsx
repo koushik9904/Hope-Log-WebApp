@@ -6,8 +6,7 @@ import { MoodEmoji } from "@/components/ui/mood-emoji";
 import { format, subDays } from "date-fns";
 import { User, Mood } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
-import { LineChart, Sparkles } from "lucide-react";
+import { LineChart, Heart } from "lucide-react";
 
 type MoodTrackerProps = {
   userId: number;
@@ -83,67 +82,64 @@ export function MoodTracker({ userId }: MoodTrackerProps) {
   }
   
   return (
-    <Card className="journal-container shadow-sm card-gradient">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-medium flex items-center">
-          <LineChart className="h-5 w-5 mr-2 text-primary" />
-          Mood Tracker
-        </CardTitle>
-        <CardDescription>
-          Track how you're feeling over time
-        </CardDescription>
-      </CardHeader>
+    <div className="rosebud-card">
+      <div className="rosebud-card-header">
+        <div>
+          <h2 className="rosebud-card-title">Mood Tracker</h2>
+          <p className="rosebud-card-subtitle">How are you feeling over time?</p>
+        </div>
+        <div className="bg-rose-100 p-2 rounded-full">
+          <Heart className="h-5 w-5 text-primary" />
+        </div>
+      </div>
       
-      <CardContent className="p-4">
-        {/* Mood Chart */}
-        <div className="chart-container mb-6">
-          {isLoading ? (
-            <Skeleton className="w-full h-[180px]" />
-          ) : (
-            <MoodChart data={chartData} height={180} />
-          )}
+      {/* Mood Chart */}
+      <div className="mb-8">
+        {isLoading ? (
+          <Skeleton className="w-full h-[180px]" />
+        ) : (
+          <MoodChart data={chartData} height={180} />
+        )}
+      </div>
+      
+      {/* Today's Mood */}
+      <div className="bg-rose-50 p-4 rounded-2xl">
+        <h3 className="text-md font-semibold mb-4 text-gray-800">
+          How are you feeling today?
+        </h3>
+        <div className="flex justify-between px-4">
+          <MoodEmoji 
+            mood={1} 
+            label="Sad" 
+            isSelected={selectedMood === 1} 
+            onClick={handleMoodSelect} 
+          />
+          <MoodEmoji 
+            mood={2} 
+            label="Worried" 
+            isSelected={selectedMood === 2} 
+            onClick={handleMoodSelect} 
+          />
+          <MoodEmoji 
+            mood={3} 
+            label="Neutral" 
+            isSelected={selectedMood === 3} 
+            onClick={handleMoodSelect} 
+          />
+          <MoodEmoji 
+            mood={4} 
+            label="Good" 
+            isSelected={selectedMood === 4} 
+            onClick={handleMoodSelect} 
+          />
+          <MoodEmoji 
+            mood={5} 
+            label="Great" 
+            isSelected={selectedMood === 5} 
+            onClick={handleMoodSelect} 
+          />
         </div>
-        
-        {/* Today's Mood */}
-        <div className="mt-4">
-          <h3 className="text-md font-medium mb-3 flex items-center">
-            <Sparkles className="h-4 w-4 mr-2 text-primary" />
-            How are you feeling today?
-          </h3>
-          <div className="flex justify-between px-4">
-            <MoodEmoji 
-              mood={1} 
-              label="Sad" 
-              isSelected={selectedMood === 1} 
-              onClick={handleMoodSelect} 
-            />
-            <MoodEmoji 
-              mood={2} 
-              label="Worried" 
-              isSelected={selectedMood === 2} 
-              onClick={handleMoodSelect} 
-            />
-            <MoodEmoji 
-              mood={3} 
-              label="Neutral" 
-              isSelected={selectedMood === 3} 
-              onClick={handleMoodSelect} 
-            />
-            <MoodEmoji 
-              mood={4} 
-              label="Good" 
-              isSelected={selectedMood === 4} 
-              onClick={handleMoodSelect} 
-            />
-            <MoodEmoji 
-              mood={5} 
-              label="Great" 
-              isSelected={selectedMood === 5} 
-              onClick={handleMoodSelect} 
-            />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
