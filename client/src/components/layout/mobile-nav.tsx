@@ -17,7 +17,7 @@ export function MobileNav() {
     return (
       <Link href={href} className={cn(
           "flex flex-col items-center justify-center px-2",
-          isActive ? "text-[#9AAB63]" : "text-gray-500"
+          isActive ? "text-[#F5B8DB]" : "text-gray-400"
         )}>
           <div className="w-6 h-6 mb-1">
             {icon}
@@ -29,7 +29,7 @@ export function MobileNav() {
   
   return (
     <>
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[#FFF8E8] border-t border-[#F5D867]/30 z-50">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 z-50">
         <div className="flex justify-around items-center h-16 px-2">
           <NavLink href="/" icon={<Home className="w-full h-full" />} label="Home" />
           <NavLink href="/journal" icon={<BookOpen className="w-full h-full" />} label="Journal" />
@@ -39,7 +39,7 @@ export function MobileNav() {
       </nav>
       
       {/* Floating Action Button (mobile only) */}
-      <button className="md:hidden fixed right-6 bottom-20 w-12 h-12 rounded-full bg-gradient-to-r from-[#F5B8DB] to-[#B6CAEB] shadow-lg flex items-center justify-center z-50">
+      <button className="md:hidden fixed right-6 bottom-20 w-12 h-12 rounded-full bg-[#F5B8DB] shadow-lg flex items-center justify-center z-50">
         <Plus className="w-6 h-6 text-white" />
       </button>
     </>

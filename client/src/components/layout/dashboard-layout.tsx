@@ -21,7 +21,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       <main className="flex-grow md:ml-64 pb-16 md:pb-0">
         <DashboardHeader user={user} />
         
-        <div className="p-4 md:p-6">
+        <div className="p-4 md:p-6 bg-gray-900 text-white">
           {children}
         </div>
       </main>

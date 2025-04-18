@@ -10,6 +10,7 @@ import {
   Settings,
   LogOut
 } from "lucide-react";
+import { HopeLogLogo } from "@/components/ui/hope-log-logo";
 
 export function Sidebar() {
   const { user, logoutMutation } = useAuth();
@@ -30,8 +31,8 @@ export function Sidebar() {
     
     return (
       <Link href={href} className={cn(
-          "flex items-center px-6 py-3 text-gray-600 hover:bg-[#FFF8E8] transition-colors",
-          isActive && "bg-[#F5B8DB]/10 text-[#9AAB63] border-r-2 border-[#9AAB63]"
+          "flex items-center px-6 py-3 text-gray-400 hover:bg-gray-800 hover:text-white transition-colors",
+          isActive && "bg-gray-800 text-white border-r-2 border-[#F5B8DB]"
         )}>
           <div className="w-5 h-5 mr-3">
             {icon}
@@ -42,13 +43,10 @@ export function Sidebar() {
   };
 
   return (
-    <div className="hidden md:flex md:fixed md:h-full md:w-64 bg-[#FFF8E8] shadow-sm border-r border-[#F5D867]/20">
+    <div className="hidden md:flex md:fixed md:h-full md:w-64 bg-gray-900 shadow-sm border-r border-gray-800">
       <div className="flex flex-col w-full">
-        <div className="flex items-center p-6">
-          <div className="w-10 h-10 rounded-md bg-gradient-to-r from-[#F5B8DB] to-[#B6CAEB] flex items-center justify-center text-white mr-2">
-            <span className="text-lg font-bold">H</span>
-          </div>
-          <h1 className="text-xl font-bold font-['Montserrat_Variable'] text-[#9AAB63]">Hope Log</h1>
+        <div className="flex items-center justify-center p-6">
+          <HopeLogLogo size="md" withText className="w-auto" />
         </div>
         
         <div className="px-6 py-3">
@@ -82,19 +80,19 @@ export function Sidebar() {
         />
         
         <div className="mt-auto p-4">
-          <div className="rounded-xl bg-[#FFF8E8] p-4 border border-[#F5D867]/30">
+          <div className="rounded-xl bg-gray-800 p-4 border border-gray-700">
             <div className="flex items-center">
-              <div className="w-10 h-10 rounded-full bg-[#B6CAEB]/20 flex items-center justify-center text-[#9AAB63] font-medium">
+              <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-white font-medium">
                 {user?.username.charAt(0).toUpperCase()}
               </div>
               <div className="ml-3">
-                <p className="text-sm font-medium text-[#9AAB63]">{user?.username}</p>
-                <p className="text-xs text-gray-500">Standard Plan</p>
+                <p className="text-sm font-medium text-white">{user?.username}</p>
+                <p className="text-xs text-gray-400">Standard Plan</p>
               </div>
             </div>
             <button 
               onClick={handleLogout}
-              className="mt-3 w-full py-2 rounded-xl border border-[#F5B8DB]/30 text-sm text-[#F5B8DB] hover:bg-[#F5B8DB]/10 flex items-center justify-center font-medium transition-colors"
+              className="mt-3 w-full py-2 rounded-xl border border-gray-700 text-sm text-white hover:bg-gray-700 flex items-center justify-center font-medium transition-colors"
             >
               <LogOut className="h-4 w-4 mr-2" /> Sign Out
             </button>
