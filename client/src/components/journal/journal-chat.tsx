@@ -178,10 +178,9 @@ export function JournalChat({ userId }: JournalChatProps) {
   const displayEntries = getReversedEntries();
 
   return (
-    <div className="pi-card bg-gray-900 border-gray-800">
+    <div className="pi-card bg-[#FFF8E8] border border-gray-200">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <div className="pi-card-header flex justify-between bg-black rounded-t-xl border-b border-gray-800 -mx-6 -mt-6 p-4 mb-6">
-          <HopeLogLogo size="md" withText className="w-auto" />
+        <div className="pi-card-header flex justify-end bg-black rounded-t-xl border-b border-gray-800 -mx-6 -mt-6 p-4 mb-6">
           
           <TabsList className="px-1">
             <TabsTrigger value="chat" className="px-3 py-1.5">Chat</TabsTrigger>
@@ -270,11 +269,11 @@ export function JournalChat({ userId }: JournalChatProps) {
               </div>
             ) : entries.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center p-4">
-                <div className="w-20 h-20 rounded-full bg-gray-800 flex items-center justify-center mb-4">
+                <div className="w-20 h-20 rounded-full bg-[#F5B8DB]/10 flex items-center justify-center mb-4">
                   <Sparkle className="h-8 w-8 text-[#F5B8DB]" />
                 </div>
-                <h3 className="text-xl font-bold mb-2 text-white">Start Journaling</h3>
-                <p className="text-gray-400 max-w-md mb-6">
+                <h3 className="text-xl font-bold mb-2 text-gray-800">Start Journaling</h3>
+                <p className="text-gray-600 max-w-md mb-6">
                   Your AI companion is here to listen. Share your thoughts or choose a suggestion below.
                 </p>
                 
@@ -333,12 +332,12 @@ export function JournalChat({ userId }: JournalChatProps) {
             )}
           </div>
           
-          <div className="flex justify-between items-center text-xs text-gray-400 px-1">
+          <div className="flex justify-between items-center text-xs text-gray-600 px-1">
             <Button
               variant="outline"
               size="sm"
               onClick={handleSaveChat}
-              className="text-xs text-white bg-gray-800 border-gray-700 hover:bg-gray-700"
+              className="text-xs text-gray-800 bg-white border-[#F5B8DB]/30 hover:bg-[#F5B8DB]/5"
               disabled={saveChatMutation.isPending}
             >
               {saveChatMutation.isPending ? (

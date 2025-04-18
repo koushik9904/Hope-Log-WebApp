@@ -66,11 +66,11 @@
   }
   
   .journal-entry-user {
-    @apply bg-[#9AAB63]/20 text-white border border-[#9AAB63]/30;
+    @apply bg-[#9AAB63]/20 text-gray-800 border border-[#9AAB63]/30;
   }
   
   .journal-entry-ai {
-    @apply bg-gray-800 text-white border border-[#F5B8DB]/30;
+    @apply bg-white text-gray-800 border border-[#F5B8DB]/30;
   }
   
   /* Mood tracking */
@@ -102,7 +102,7 @@
   
   /* Inputs */
   .pi-input {
-    @apply rounded-xl px-4 py-2.5 bg-gray-800 border border-gray-700 text-white focus:ring-2 focus:ring-[#F5B8DB]/20 focus:border-[#F5B8DB]/30 focus:bg-gray-800 transition-all placeholder:text-gray-500;
+    @apply rounded-xl px-4 py-2.5 bg-white border border-[#F5B8DB]/20 text-gray-800 focus:ring-2 focus:ring-[#F5B8DB]/20 focus:border-[#F5B8DB]/30 focus:bg-white transition-all placeholder:text-gray-500;
   }
   
   /* Prompt cards */
@@ -140,6 +140,6 @@
   }
 
   .pi-suggestion-chip {
-    @apply px-3 py-1.5 rounded-xl bg-gray-800 text-sm font-medium text-gray-200 cursor-pointer hover:bg-gray-700 border border-gray-700 transition-colors;
+    @apply px-3 py-1.5 rounded-xl bg-white text-sm font-medium text-[#9AAB63] cursor-pointer hover:bg-[#9AAB63]/5 border border-[#9AAB63]/20 transition-colors;
   }
 }
