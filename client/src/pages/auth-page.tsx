@@ -10,6 +10,10 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { insertUserSchema } from "@shared/schema";
+import { Separator } from "@/components/ui/separator";
+import { FcGoogle } from "react-icons/fc";
+import { SiApple } from "react-icons/si";
+import { Image, MessageCircle, Heart, BarChart, Lightbulb, Sparkles, BookOpen } from "lucide-react";
 
 const loginSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -56,6 +60,11 @@ export default function AuthPage() {
     registerMutation.mutate(userData);
   };
 
+  const handleSocialLogin = (provider: string) => {
+    // In a real implementation, this would redirect to OAuth provider
+    console.log(`Logging in with ${provider}`);
+  };
+
   // Redirect if already logged in
   if (user) {
     return <Redirect to="/" />;
@@ -64,13 +73,15 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
       {/* Hero Section */}
-      <div className="hidden md:flex md:w-1/2 bg-primary p-10 text-white flex-col justify-center">
+      <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-blue-600 to-indigo-700 p-10 text-white flex-col justify-center">
         <div className="max-w-md mx-auto">
           <div className="flex items-center mb-6">
-            <div className="w-12 h-12 rounded-full bg-white bg-opacity-20 flex items-center justify-center text-white mr-4">
-              <i className="ri-mental-health-line text-2xl"></i>
+            <div className="w-12 h-12 rounded-md bg-white bg-opacity-20 flex items-center justify-center text-white mr-4">
+              <div className="app-logo-icon">
+                <span className="text-lg font-bold">H</span>
+              </div>
             </div>
-            <h1 className="text-3xl font-bold font-nunito">HopeLog AI</h1>
+            <h1 className="text-3xl font-bold font-['Nunito_Variable']">Hope Log</h1>
           </div>
           
           <h2 className="text-3xl font-bold mb-6">Your AI-powered mental wellness companion</h2>
@@ -79,34 +90,45 @@ export default function AuthPage() {
             Journal with our AI assistant, track your mood, and gain insights to improve your mental wellbeing.
           </p>
           
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div className="flex items-start">
-              <div className="bg-white bg-opacity-10 p-2 rounded-full mr-4">
-                <i className="ri-chat-smile-3-line"></i>
+              <div className="bg-white bg-opacity-10 p-2 rounded-lg mr-4">
+                <MessageCircle className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h3 className="font-bold">Conversational Journaling</h3>
-                <p className="text-sm text-white text-opacity-80">Get empathetic responses and guided reflection</p>
+                <h3 className="font-bold text-xl">Conversational Journaling</h3>
+                <p className="text-sm text-white text-opacity-90 mt-1">Get empathetic responses and guided reflection</p>
               </div>
             </div>
             
             <div className="flex items-start">
-              <div className="bg-white bg-opacity-10 p-2 rounded-full mr-4">
-                <i className="ri-emotion-line"></i>
+              <div className="bg-white bg-opacity-10 p-2 rounded-lg mr-4">
+                <Heart className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h3 className="font-bold">Mood Tracking</h3>
-                <p className="text-sm text-white text-opacity-80">Visualize your emotional patterns over time</p>
+                <h3 className="font-bold text-xl">Mood Tracking</h3>
+                <p className="text-sm text-white text-opacity-90 mt-1">Visualize your emotional patterns over time</p>
               </div>
             </div>
             
             <div className="flex items-start">
-              <div className="bg-white bg-opacity-10 p-2 rounded-full mr-4">
-                <i className="ri-lightbulb-line"></i>
+              <div className="bg-white bg-opacity-10 p-2 rounded-lg mr-4">
+                <Sparkles className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h3 className="font-bold">AI Insights</h3>
-                <p className="text-sm text-white text-opacity-80">Receive personalized mental wellness recommendations</p>
+                <h3 className="font-bold text-xl">AI Insights</h3>
+                <p className="text-sm text-white text-opacity-90 mt-1">Receive personalized mental wellness recommendations</p>
+              </div>
+            </div>
+            
+            <div className="mt-10 flex items-center">
+              <div className="flex overflow-hidden -space-x-2">
+                <div className="w-8 h-8 rounded-full border-2 border-white bg-blue-300 flex items-center justify-center text-xs font-bold text-white">JD</div>
+                <div className="w-8 h-8 rounded-full border-2 border-white bg-pink-400 flex items-center justify-center text-xs font-bold text-white">KL</div>
+                <div className="w-8 h-8 rounded-full border-2 border-white bg-green-400 flex items-center justify-center text-xs font-bold text-white">TM</div>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm">Join 25,000+ users using Hope Log</p>
               </div>
             </div>
           </div>
@@ -114,21 +136,50 @@ export default function AuthPage() {
       </div>
       
       {/* Auth Forms */}
-      <div className="w-full md:w-1/2 flex items-center justify-center p-4 md:p-10">
-        <Card className="w-full max-w-md">
+      <div className="w-full md:w-1/2 flex items-center justify-center p-4 md:p-10 bg-gray-50">
+        <Card className="w-full max-w-md shadow-lg border-0">
           <CardHeader className="space-y-1">
             <div className="flex items-center justify-center md:hidden mb-4">
-              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white mr-2">
-                <i className="ri-mental-health-line text-xl"></i>
+              <div className="w-10 h-10 rounded-md bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center text-white mr-2">
+                <span className="text-sm font-bold">H</span>
               </div>
-              <h1 className="text-2xl font-bold font-nunito">HopeLog AI</h1>
+              <h1 className="text-2xl font-bold font-['Nunito_Variable']">Hope Log</h1>
             </div>
-            <CardTitle className="text-2xl font-bold text-center">Welcome</CardTitle>
+            <CardTitle className="text-2xl font-bold text-center">Welcome Back</CardTitle>
             <CardDescription className="text-center">
-              Start your mental wellness journey today
+              Continue your mental wellness journey
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {/* Social Login Buttons */}
+            <div className="space-y-3 mb-6">
+              <Button 
+                variant="outline" 
+                className="w-full bg-white hover:bg-gray-50 border border-gray-200 flex items-center justify-center gap-2"
+                onClick={() => handleSocialLogin('google')}
+              >
+                <FcGoogle size={20} />
+                <span>Continue with Google</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="w-full bg-white hover:bg-gray-50 border border-gray-200 flex items-center justify-center gap-2" 
+                onClick={() => handleSocialLogin('apple')}
+              >
+                <SiApple size={20} />
+                <span>Continue with Apple</span>
+              </Button>
+            </div>
+            
+            <div className="relative mb-6">
+              <div className="absolute inset-0 flex items-center">
+                <Separator className="w-full" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white px-2 text-muted-foreground">Or continue with</span>
+              </div>
+            </div>
+            
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-4">
                 <TabsTrigger value="login">Login</TabsTrigger>
@@ -145,7 +196,7 @@ export default function AuthPage() {
                         <FormItem>
                           <FormLabel>Username</FormLabel>
                           <FormControl>
-                            <Input placeholder="Enter your username" {...field} />
+                            <Input className="pi-input" placeholder="Enter your username" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -158,7 +209,7 @@ export default function AuthPage() {
                         <FormItem>
                           <FormLabel>Password</FormLabel>
                           <FormControl>
-                            <Input type="password" placeholder="Enter your password" {...field} />
+                            <Input className="pi-input" type="password" placeholder="Enter your password" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -166,7 +217,7 @@ export default function AuthPage() {
                     />
                     <Button
                       type="submit"
-                      className="w-full bg-primary hover:bg-primary-dark"
+                      className="w-full pi-button"
                       disabled={loginMutation.isPending}
                     >
                       {loginMutation.isPending ? "Logging in..." : "Login"}
@@ -185,7 +236,7 @@ export default function AuthPage() {
                         <FormItem>
                           <FormLabel>Username</FormLabel>
                           <FormControl>
-                            <Input placeholder="Choose a username" {...field} />
+                            <Input className="pi-input" placeholder="Choose a username" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -198,7 +249,7 @@ export default function AuthPage() {
                         <FormItem>
                           <FormLabel>Password</FormLabel>
                           <FormControl>
-                            <Input type="password" placeholder="Create a password" {...field} />
+                            <Input className="pi-input" type="password" placeholder="Create a password" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -211,7 +262,7 @@ export default function AuthPage() {
                         <FormItem>
                           <FormLabel>Confirm Password</FormLabel>
                           <FormControl>
-                            <Input type="password" placeholder="Confirm your password" {...field} />
+                            <Input className="pi-input" type="password" placeholder="Confirm your password" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -219,7 +270,7 @@ export default function AuthPage() {
                     />
                     <Button
                       type="submit"
-                      className="w-full bg-primary hover:bg-primary-dark"
+                      className="w-full pi-button"
                       disabled={registerMutation.isPending}
                     >
                       {registerMutation.isPending ? "Creating account..." : "Create Account"}
@@ -230,7 +281,7 @@ export default function AuthPage() {
             </Tabs>
           </CardContent>
           <CardFooter className="flex flex-col">
-            <p className="text-center text-sm text-muted-foreground mt-4">
+            <p className="text-center text-xs text-muted-foreground mt-4">
               By continuing, you agree to our Terms of Service and Privacy Policy.
             </p>
           </CardFooter>

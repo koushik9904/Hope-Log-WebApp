@@ -70,7 +70,7 @@ export function JournalChat({ userId }: JournalChatProps) {
             <span className="text-sm font-bold">H</span>
           </div>
           <div>
-            <h2 className="pi-card-title">HopeLog AI</h2>
+            <h2 className="pi-card-title">Hope Log</h2>
             <p className="pi-card-subtitle">Your personal journal assistant</p>
           </div>
         </div>
