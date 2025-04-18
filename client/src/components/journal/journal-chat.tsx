@@ -180,7 +180,7 @@ export function JournalChat({ userId }: JournalChatProps) {
   return (
     <div className="pi-card bg-[#FFF8E8] border border-gray-200">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <div className="pi-card-header flex justify-end bg-black rounded-t-xl border-b border-gray-800 -mx-6 -mt-6 p-4 mb-6">
+        <div className="pi-card-header flex justify-end bg-[#9AAB63] rounded-t-xl border-b border-[#9AAB63]/50 -mx-6 -mt-6 p-4 mb-6">
           
           <TabsList className="px-1">
             <TabsTrigger value="chat" className="px-3 py-1.5">Chat</TabsTrigger>
@@ -191,15 +191,15 @@ export function JournalChat({ userId }: JournalChatProps) {
         <TabsContent value="chat" className="mt-0 space-y-4">
           {/* Sentiment Analysis Summary (when requested) */}
           {showSummary && (
-            <div className="bg-gray-800 rounded-lg p-4 border border-gray-700 mb-4">
+            <div className="bg-white rounded-lg p-4 border border-[#F5B8DB]/20 mb-4">
               <div className="flex justify-between items-start mb-2">
-                <h3 className="font-semibold text-white flex items-center">
+                <h3 className="font-semibold text-gray-800 flex items-center">
                   <BarChart className="h-4 w-4 mr-1.5 text-[#F5B8DB]" />
                   Conversation Analysis
                 </h3>
                 <button 
                   onClick={() => setShowSummary(false)}
-                  className="text-gray-400 hover:text-white text-sm"
+                  className="text-gray-500 hover:text-gray-700 text-sm"
                 >
                   Close
                 </button>
@@ -215,19 +215,19 @@ export function JournalChat({ userId }: JournalChatProps) {
                 </div>
               ) : (
                 <div className="space-y-3 text-sm">
-                  <p className="text-gray-300">
+                  <p className="text-gray-700">
                     {analyzeEntriesMutation.data?.summary || 
                       "You've been showing mixed emotions in your recent journal entries, with some anxiety but also moments of joy."}
                   </p>
                   
                   <div>
-                    <div className="font-medium text-white mb-1 flex items-center">
+                    <div className="font-medium text-gray-800 mb-1 flex items-center">
                       <Heart className="h-3.5 w-3.5 mr-1 text-[#F5B8DB]" /> 
                       Primary Emotions
                     </div>
                     <div className="flex flex-wrap gap-1">
                       {(analyzeEntriesMutation.data?.emotions || ["Anxiety", "Joy", "Hope"]).map((emotion, i) => (
-                        <span key={i} className="px-2 py-0.5 bg-gray-700 rounded-full text-xs border border-gray-600 text-gray-200">
+                        <span key={i} className="px-2 py-0.5 bg-[#F5B8DB]/10 rounded-full text-xs border border-[#F5B8DB]/20 text-gray-700">
                           {emotion}
                         </span>
                       ))}
@@ -235,10 +235,10 @@ export function JournalChat({ userId }: JournalChatProps) {
                   </div>
                   
                   <div>
-                    <div className="font-medium text-white mb-1">Common Themes</div>
+                    <div className="font-medium text-gray-800 mb-1">Common Themes</div>
                     <div className="flex flex-wrap gap-1">
                       {(analyzeEntriesMutation.data?.themes || ["Work", "Relationships"]).map((theme, i) => (
-                        <span key={i} className="px-2 py-0.5 bg-gray-700 rounded-full text-xs border border-gray-600 text-gray-200">
+                        <span key={i} className="px-2 py-0.5 bg-[#B6CAEB]/10 rounded-full text-xs border border-[#B6CAEB]/20 text-gray-700">
                           {theme}
                         </span>
                       ))}
@@ -246,7 +246,7 @@ export function JournalChat({ userId }: JournalChatProps) {
                   </div>
                   
                   <div className="pt-1">
-                    <button className="text-[#B6CAEB] text-xs font-medium flex items-center hover:text-[#F5B8DB]">
+                    <button className="text-[#9AAB63] text-xs font-medium flex items-center hover:text-[#F5B8DB]">
                       <Download className="h-3 w-3 mr-1" /> Download full analysis
                     </button>
                   </div>
@@ -382,12 +382,12 @@ export function JournalChat({ userId }: JournalChatProps) {
         </TabsContent>
         
         <TabsContent value="journal" className="mt-0 space-y-4">
-          <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-            <h3 className="font-semibold text-white flex items-center mb-2">
-              <PenLine className="h-4 w-4 mr-1.5 text-[#F5B8DB]" />
+          <div className="bg-white rounded-lg p-4 border border-[#9AAB63]/30">
+            <h3 className="font-semibold text-gray-800 flex items-center mb-2">
+              <PenLine className="h-4 w-4 mr-1.5 text-[#9AAB63]" />
               Daily Journal
             </h3>
-            <p className="text-sm text-gray-400 mb-4">
+            <p className="text-sm text-gray-600 mb-4">
               Write a reflective entry about your day, thoughts, or feelings. Your entry will be saved with AI-generated insights.
             </p>
             
@@ -420,14 +420,14 @@ export function JournalChat({ userId }: JournalChatProps) {
             </form>
           </div>
           
-          <div className="bg-gray-800 rounded-lg border border-gray-700 p-4">
-            <h3 className="font-semibold text-white mb-3">Recent Journal Entries</h3>
+          <div className="bg-white rounded-lg border border-[#B6CAEB]/30 p-4">
+            <h3 className="font-semibold text-gray-800 mb-3">Recent Journal Entries</h3>
             
-            <div className="divide-y divide-gray-700 max-h-48 overflow-y-auto pr-2">
+            <div className="divide-y divide-[#B6CAEB]/20 max-h-48 overflow-y-auto pr-2">
               {/* Check if we have any journal entries - either isJournal flag is true or it's a long-form entry */}
               {entries.filter(entry => (entry as any).isJournal === true || (!entry.isAiResponse && entry.content.length > 200)).length === 0 ? (
-                <div className="py-8 text-center text-gray-400">
-                  <FileText className="h-10 w-10 mx-auto mb-3 text-gray-600" />
+                <div className="py-8 text-center text-gray-500">
+                  <FileText className="h-10 w-10 mx-auto mb-3 text-gray-400" />
                   <p>No journal entries yet</p>
                 </div>
               ) : (
@@ -436,14 +436,14 @@ export function JournalChat({ userId }: JournalChatProps) {
                   .map((entry) => (
                     <div key={entry.id} className="py-3">
                       <div className="flex justify-between items-start mb-1">
-                        <div className="text-xs font-medium text-[#F5B8DB]">
+                        <div className="text-xs font-medium text-[#9AAB63]">
                           Journal Entry
                         </div>
-                        <div className="text-xs text-gray-400">
+                        <div className="text-xs text-gray-500">
                           {new Date(entry.date).toLocaleDateString()}
                         </div>
                       </div>
-                      <p className="text-sm text-gray-300 line-clamp-2">{entry.content}</p>
+                      <p className="text-sm text-gray-700 line-clamp-2">{entry.content}</p>
                     </div>
                   ))
               )}
