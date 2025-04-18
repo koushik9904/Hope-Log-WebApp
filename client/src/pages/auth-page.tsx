@@ -14,6 +14,7 @@ import { Separator } from "@/components/ui/separator";
 import { FcGoogle } from "react-icons/fc";
 import { SiApple } from "react-icons/si";
 import { Image, MessageCircle, Heart, BarChart, Lightbulb, Sparkles, BookOpen } from "lucide-react";
+import { HopeLogLogo } from "@/components/ui/hope-log-logo";
 
 const loginSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -73,15 +74,10 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
       {/* Hero Section */}
-      <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-[#F5B8DB] to-[#B6CAEB] p-10 text-white flex-col justify-center">
+      <div className="hidden md:flex md:w-1/2 bg-[#F5B8DB] p-10 text-white flex-col justify-center">
         <div className="max-w-md mx-auto">
           <div className="flex items-center mb-6">
-            <div className="w-16 h-16 rounded-xl bg-white bg-opacity-20 flex items-center justify-center text-white mr-4">
-              <div className="app-logo-icon">
-                <span className="text-2xl font-bold">H</span>
-              </div>
-            </div>
-            <h1 className="text-4xl font-bold font-['Montserrat_Variable']">Hope Log</h1>
+            <HopeLogLogo size="lg" className="w-auto" />
           </div>
           
           <h2 className="text-3xl font-bold mb-6">Your AI-powered mental wellness companion</h2>
@@ -140,10 +136,7 @@ export default function AuthPage() {
         <Card className="w-full max-w-md shadow-lg border-0 rounded-xl bg-white">
           <CardHeader className="space-y-1">
             <div className="flex items-center justify-center md:hidden mb-4">
-              <div className="w-14 h-14 rounded-xl bg-gradient-to-r from-[#F5B8DB] to-[#B6CAEB] flex items-center justify-center text-white mr-2">
-                <span className="text-lg font-bold">H</span>
-              </div>
-              <h1 className="text-3xl font-bold font-['Montserrat_Variable'] text-[#9AAB63]">Hope Log</h1>
+              <HopeLogLogo size="md" className="w-auto" />
             </div>
             <CardTitle className="text-2xl font-bold text-center">Welcome Back</CardTitle>
             <CardDescription className="text-center">
