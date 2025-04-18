@@ -1,8 +1,8 @@
-import { User, InsertUser, JournalEntry, InsertJournalEntry, Mood, InsertMood, Goal, InsertGoal, Prompt, InsertPrompt, Summary, InsertSummary } from "@shared/schema";
+import { User, InsertUser, JournalEntry, InsertJournalEntry, Mood, InsertMood, Goal, InsertGoal, Prompt, InsertPrompt, Summary, InsertSummary, users, journalEntries, moods, goals, prompts, summaries } from "@shared/schema";
 import session from "express-session";
-import createMemoryStore from "memorystore";
-
-const MemoryStore = createMemoryStore(session);
+import connectPg from "connect-pg-simple";
+import { db, pool } from "./db";
+import { eq, and, gte, desc } from "drizzle-orm";
 
 // Interfaces for storage methods
 export interface IStorage {
@@ -41,201 +41,221 @@ export interface IStorage {
   sessionStore: session.SessionStore;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private journalEntries: Map<number, JournalEntry>;
-  private moods: Map<number, Mood>;
-  private goals: Map<number, Goal>;
-  private prompts: Map<number, Prompt>;
-  private summaries: Map<number, Summary>;
-  
-  private userIdCounter: number;
-  private journalIdCounter: number;
-  private moodIdCounter: number;
-  private goalIdCounter: number;
-  private promptIdCounter: number;
-  
-  sessionStore: session.SessionStore;
+const PostgresSessionStore = connectPg(session);
 
+export class DatabaseStorage implements IStorage {
+  sessionStore: session.SessionStore;
+  
   constructor() {
-    this.users = new Map();
-    this.journalEntries = new Map();
-    this.moods = new Map();
-    this.goals = new Map();
-    this.prompts = new Map();
-    this.summaries = new Map();
-    
-    this.userIdCounter = 1;
-    this.journalIdCounter = 1;
-    this.moodIdCounter = 1;
-    this.goalIdCounter = 1;
-    this.promptIdCounter = 1;
-    
-    this.sessionStore = new MemoryStore({
-      checkPeriod: 86400000, // 24 hours
+    this.sessionStore = new PostgresSessionStore({ 
+      pool, 
+      createTableIfMissing: true 
     });
     
-    // Create default prompts
+    // Setup default prompts
     this.createDefaultPrompts();
   }
-
-  // User methods
+  
   async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
-  }
-
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
-  }
-
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.userIdCounter++;
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
+    const result = await db.select().from(users).where(eq(users.id, id));
+    return result[0];
   }
   
-  // Journal methods
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const result = await db.select().from(users).where(eq(users.username, username));
+    return result[0];
+  }
+  
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const result = await db.insert(users).values(insertUser).returning();
+    return result[0];
+  }
+  
   async getJournalEntriesByUserId(userId: number): Promise<JournalEntry[]> {
-    return Array.from(this.journalEntries.values())
-      .filter(entry => entry.userId === userId)
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    return await db
+      .select()
+      .from(journalEntries)
+      .where(eq(journalEntries.userId, userId))
+      .orderBy(desc(journalEntries.date));
   }
   
   async getRecentJournalEntriesByUserId(userId: number, limit: number): Promise<JournalEntry[]> {
-    return Array.from(this.journalEntries.values())
-      .filter(entry => entry.userId === userId)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .slice(0, limit);
+    return await db
+      .select()
+      .from(journalEntries)
+      .where(eq(journalEntries.userId, userId))
+      .orderBy(desc(journalEntries.date))
+      .limit(limit);
   }
   
   async getJournalEntriesForLastWeek(userId: number): Promise<JournalEntry[]> {
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
     
-    return Array.from(this.journalEntries.values())
-      .filter(entry => 
-        entry.userId === userId && 
-        new Date(entry.date).getTime() >= oneWeekAgo.getTime()
+    return await db
+      .select()
+      .from(journalEntries)
+      .where(
+        and(
+          eq(journalEntries.userId, userId),
+          gte(journalEntries.date, oneWeekAgo.toISOString())
+        )
       )
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      .orderBy(desc(journalEntries.date));
   }
   
   async createJournalEntry(entry: InsertJournalEntry): Promise<JournalEntry> {
-    const id = this.journalIdCounter++;
-    const newEntry: JournalEntry = { 
-      ...entry, 
-      id, 
-      sentiment: entry.sentiment || { score: 3, emotions: [], themes: [] }
-    };
-    this.journalEntries.set(id, newEntry);
-    return newEntry;
+    const result = await db
+      .insert(journalEntries)
+      .values({
+        ...entry,
+        sentiment: entry.sentiment || { score: 3, emotions: [], themes: [] }
+      })
+      .returning();
+      
+    return result[0];
   }
   
   async updateJournalEntrySentiment(
-    id: number, 
+    id: number,
     sentiment: { score: number; emotions: string[]; themes: string[] }
   ): Promise<JournalEntry> {
-    const entry = this.journalEntries.get(id);
-    if (!entry) throw new Error("Journal entry not found");
+    const result = await db
+      .update(journalEntries)
+      .set({ sentiment })
+      .where(eq(journalEntries.id, id))
+      .returning();
+      
+    if (result.length === 0) {
+      throw new Error(`Journal entry with id ${id} not found`);
+    }
     
-    const updatedEntry = { ...entry, sentiment };
-    this.journalEntries.set(id, updatedEntry);
-    return updatedEntry;
+    return result[0];
   }
   
-  // Mood methods
   async getMoodsByUserId(userId: number): Promise<Mood[]> {
-    return Array.from(this.moods.values())
-      .filter(mood => mood.userId === userId)
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    return await db
+      .select()
+      .from(moods)
+      .where(eq(moods.userId, userId))
+      .orderBy(desc(moods.date));
   }
   
   async getRecentMoodsByUserId(userId: number, limit: number): Promise<Mood[]> {
-    return Array.from(this.moods.values())
-      .filter(mood => mood.userId === userId)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .slice(0, limit);
+    return await db
+      .select()
+      .from(moods)
+      .where(eq(moods.userId, userId))
+      .orderBy(desc(moods.date))
+      .limit(limit);
   }
   
   async createMood(mood: InsertMood): Promise<Mood> {
-    const id = this.moodIdCounter++;
-    const newMood: Mood = { ...mood, id };
-    this.moods.set(id, newMood);
-    return newMood;
+    const result = await db
+      .insert(moods)
+      .values(mood)
+      .returning();
+      
+    return result[0];
   }
   
-  // Goal methods
   async getGoalsByUserId(userId: number): Promise<Goal[]> {
-    return Array.from(this.goals.values())
-      .filter(goal => goal.userId === userId);
+    return await db
+      .select()
+      .from(goals)
+      .where(eq(goals.userId, userId))
+      .orderBy(desc(goals.id));
   }
   
   async getGoalById(id: number): Promise<Goal | undefined> {
-    return this.goals.get(id);
+    const result = await db
+      .select()
+      .from(goals)
+      .where(eq(goals.id, id));
+      
+    return result[0];
   }
   
   async createGoal(goal: InsertGoal): Promise<Goal> {
-    const id = this.goalIdCounter++;
-    const newGoal: Goal = { ...goal, id };
-    this.goals.set(id, newGoal);
-    return newGoal;
+    const result = await db
+      .insert(goals)
+      .values(goal)
+      .returning();
+      
+    return result[0];
   }
   
   async updateGoalProgress(id: number, progress: number): Promise<Goal> {
-    const goal = this.goals.get(id);
-    if (!goal) throw new Error("Goal not found");
+    const result = await db
+      .update(goals)
+      .set({ progress })
+      .where(eq(goals.id, id))
+      .returning();
+      
+    if (result.length === 0) {
+      throw new Error(`Goal with id ${id} not found`);
+    }
     
-    const updatedGoal = { ...goal, progress };
-    this.goals.set(id, updatedGoal);
-    return updatedGoal;
+    return result[0];
   }
   
-  // Prompt methods
   async getDefaultPrompts(): Promise<Prompt[]> {
-    return Array.from(this.prompts.values())
-      .filter(prompt => prompt.category === "default");
+    return await db
+      .select()
+      .from(prompts)
+      .where(eq(prompts.category, "default"));
   }
   
   async createPrompt(prompt: InsertPrompt): Promise<Prompt> {
-    const id = this.promptIdCounter++;
-    const newPrompt: Prompt = { ...prompt, id };
-    this.prompts.set(id, newPrompt);
-    return newPrompt;
+    const result = await db
+      .insert(prompts)
+      .values(prompt)
+      .returning();
+      
+    return result[0];
   }
   
-  // Summary methods
   async getSummaryByUserId(userId: number): Promise<Summary | undefined> {
-    return Array.from(this.summaries.values())
-      .find(summary => summary.userId === userId);
+    const result = await db
+      .select()
+      .from(summaries)
+      .where(eq(summaries.userId, userId));
+      
+    return result[0];
   }
   
   async createOrUpdateSummary(summary: InsertSummary): Promise<Summary> {
     const existingSummary = await this.getSummaryByUserId(summary.userId);
     
     if (existingSummary) {
-      // Update existing summary
-      const updatedSummary: Summary = { 
-        ...existingSummary, 
-        topEmotions: summary.topEmotions,
-        commonThemes: summary.commonThemes,
-        insights: summary.insights,
-        updatedAt: summary.updatedAt
-      };
-      this.summaries.set(existingSummary.userId, updatedSummary);
-      return updatedSummary;
+      const result = await db
+        .update(summaries)
+        .set(summary)
+        .where(eq(summaries.userId, summary.userId))
+        .returning();
+        
+      return result[0];
     } else {
-      // Create new summary
-      const newSummary: Summary = { ...summary };
-      this.summaries.set(summary.userId, newSummary);
-      return newSummary;
+      const result = await db
+        .insert(summaries)
+        .values(summary)
+        .returning();
+        
+      return result[0];
     }
   }
   
-  // Helper methods
   private async createDefaultPrompts() {
+    // Check if default prompts already exist
+    const existingPrompts = await db
+      .select()
+      .from(prompts)
+      .where(eq(prompts.category, "default"));
+      
+    if (existingPrompts.length > 0) {
+      return; // Default prompts already exist
+    }
+    
     const defaultPrompts = [
       "What are three things that went well today, and why?",
       "When did you feel most at peace this week?",
@@ -258,4 +278,4 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
