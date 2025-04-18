@@ -74,7 +74,7 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
       {/* Hero Section */}
-      <div className="hidden md:flex md:w-1/2 bg-[#F5B8DB] p-10 text-white flex-col justify-center">
+      <div className="hidden md:flex md:w-1/2 bg-black p-10 text-white flex-col justify-center">
         <div className="max-w-md mx-auto">
           <div className="flex items-center mb-6">
             <HopeLogLogo size="lg" className="w-auto" />
@@ -136,7 +136,9 @@ export default function AuthPage() {
         <Card className="w-full max-w-md shadow-lg border-0 rounded-xl bg-white">
           <CardHeader className="space-y-1">
             <div className="flex items-center justify-center md:hidden mb-4">
-              <HopeLogLogo size="md" className="w-auto" />
+              <div className="bg-black rounded-xl p-2">
+                <HopeLogLogo size="md" className="w-auto" />
+              </div>
             </div>
             <CardTitle className="text-2xl font-bold text-center">Welcome Back</CardTitle>
             <CardDescription className="text-center">
