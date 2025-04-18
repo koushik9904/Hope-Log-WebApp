@@ -319,7 +319,7 @@ export default function LandingPage() {
                     {[...Array(7)].map((_, i) => (
                       <div key={i} className="flex flex-col items-center">
                         <div 
-                          className={`w-4 ${[4, 3, 5, 2, 4, 5, 4][i % 7] * 8}px rounded-t-full bg-gradient-to-t from-[#F5B8DB] to-[#B6CAEB]`}
+                          className={`w-4 ${[4, 3, 5, 2, 4, 5, 4][i % 7] * 8}px rounded-t-full bg-[#F5B8DB]`}
                         ></div>
                         <div className="text-xs mt-1 text-gray-500">{['M', 'T', 'W', 'T', 'F', 'S', 'S'][i]}</div>
                       </div>
@@ -717,7 +717,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
               <div key={index} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 relative">
-                <div className="absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-r from-[#F5B8DB] to-[#B6CAEB] rounded-full flex items-center justify-center shadow-lg">
+                <div className="absolute -top-4 -right-4 w-12 h-12 bg-[#F5B8DB] rounded-full flex items-center justify-center shadow-lg">
                   <Quote className="h-5 w-5 text-white" />
                 </div>
                 
@@ -731,7 +731,7 @@ export default function LandingPage() {
                 </div>
                 <p className="text-gray-600 mb-6 italic">"{testimonial.content}"</p>
                 <div className="flex items-center">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[#F5B8DB] to-[#B6CAEB] flex items-center justify-center text-white font-bold">
+                  <div className="w-10 h-10 rounded-full bg-[#B6CAEB] flex items-center justify-center text-white font-bold">
                     {testimonial.name.charAt(0)}
                   </div>
                   <div className="ml-3">
@@ -748,7 +748,7 @@ export default function LandingPage() {
       {/* CTA Section */}
       <section className="py-20">
         <div className="container mx-auto px-4 sm:px-6">
-          <div className="max-w-4xl mx-auto bg-gradient-to-r from-[#F5B8DB] to-[#B6CAEB] rounded-2xl p-12 text-white text-center relative overflow-hidden">
+          <div className="max-w-4xl mx-auto bg-[#F5B8DB] rounded-2xl p-12 text-white text-center relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-full opacity-10">
               <div className="absolute top-0 left-1/4 w-96 h-96 bg-white rounded-full mix-blend-overlay filter blur-3xl"></div>
               <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-white rounded-full mix-blend-overlay filter blur-3xl"></div>
@@ -774,59 +774,59 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-50 py-16 border-t border-gray-200">
+      <footer className="bg-black py-16 border-t border-gray-800">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
             <div>
               <HopeLogLogo size="md" className="mb-4" />
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-400 mb-6">
                 Your AI-powered mental wellness journal and companion.
               </p>
               <div className="flex space-x-4">
-                <a href="#" className="text-gray-400 hover:text-gray-500">
+                <a href="#" className="text-gray-400 hover:text-white">
                   <FaTwitter size={20} />
                 </a>
-                <a href="#" className="text-gray-400 hover:text-gray-500">
+                <a href="#" className="text-gray-400 hover:text-white">
                   <FaInstagram size={20} />
                 </a>
-                <a href="#" className="text-gray-400 hover:text-gray-500">
+                <a href="#" className="text-gray-400 hover:text-white">
                   <FaFacebook size={20} />
                 </a>
               </div>
             </div>
             
             <div>
-              <h3 className="font-bold text-lg mb-4">Product</h3>
+              <h3 className="font-bold text-lg mb-4 text-white">Product</h3>
               <ul className="space-y-3">
-                <li><a href="#features" className="text-gray-600 hover:text-gray-900">Features</a></li>
-                <li><a href="#pricing" className="text-gray-600 hover:text-gray-900">Pricing</a></li>
-                <li><a href="#" className="text-gray-600 hover:text-gray-900">API Access</a></li>
-                <li><a href="#" className="text-gray-600 hover:text-gray-900">Integrations</a></li>
+                <li><a href="#features" className="text-gray-400 hover:text-white">Features</a></li>
+                <li><a href="#pricing" className="text-gray-400 hover:text-white">Pricing</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white">API Access</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white">Integrations</a></li>
               </ul>
             </div>
             
             <div>
-              <h3 className="font-bold text-lg mb-4">Resources</h3>
+              <h3 className="font-bold text-lg mb-4 text-white">Resources</h3>
               <ul className="space-y-3">
-                <li><a href="#blog" className="text-gray-600 hover:text-gray-900">Blog</a></li>
-                <li><a href="#" className="text-gray-600 hover:text-gray-900">Help Center</a></li>
-                <li><a href="#" className="text-gray-600 hover:text-gray-900">Community</a></li>
-                <li><a href="#" className="text-gray-600 hover:text-gray-900">Mental Health Resources</a></li>
+                <li><a href="#blog" className="text-gray-400 hover:text-white">Blog</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white">Help Center</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white">Community</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white">Mental Health Resources</a></li>
               </ul>
             </div>
             
             <div>
-              <h3 className="font-bold text-lg mb-4">Company</h3>
+              <h3 className="font-bold text-lg mb-4 text-white">Company</h3>
               <ul className="space-y-3">
-                <li><a href="#about" className="text-gray-600 hover:text-gray-900">About Us</a></li>
-                <li><a href="#" className="text-gray-600 hover:text-gray-900">Careers</a></li>
-                <li><a href="#" className="text-gray-600 hover:text-gray-900">Privacy Policy</a></li>
-                <li><a href="#" className="text-gray-600 hover:text-gray-900">Terms of Service</a></li>
+                <li><a href="#about" className="text-gray-400 hover:text-white">About Us</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white">Careers</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white">Privacy Policy</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white">Terms of Service</a></li>
               </ul>
             </div>
           </div>
           
-          <div className="border-t border-gray-200 pt-8 text-center text-gray-500 text-sm">
+          <div className="border-t border-gray-700 pt-8 text-center text-gray-400 text-sm">
             <p>&copy; {new Date().getFullYear()} Hope Log. All rights reserved.</p>
           </div>
         </div>
