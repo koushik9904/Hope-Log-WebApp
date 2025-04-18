@@ -15,8 +15,7 @@ export function MobileNav() {
     const isActive = location === href;
     
     return (
-      <Link href={href}>
-        <a className={cn(
+      <Link href={href} className={cn(
           "flex flex-col items-center justify-center px-2",
           isActive ? "text-blue-600" : "text-gray-500"
         )}>
@@ -24,7 +23,6 @@ export function MobileNav() {
             {icon}
           </div>
           <span className="text-xs font-medium">{label}</span>
-        </a>
       </Link>
     );
   };
