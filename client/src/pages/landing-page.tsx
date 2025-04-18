@@ -620,8 +620,8 @@ export default function LandingPage() {
               </Link>
             </div>
             
-            <div className="bg-gradient-to-b from-blue-50 to-white p-8 rounded-xl shadow-xl border-2 border-blue-200 relative lg:scale-105 lg:-translate-y-2">
-              <div className="absolute top-0 right-0 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg rounded-tr-xl">
+            <div className="bg-gradient-to-b from-[#F5B8DB]/10 to-white p-8 rounded-xl shadow-xl border-2 border-[#F5B8DB]/30 relative lg:scale-105 lg:-translate-y-2">
+              <div className="absolute top-0 right-0 bg-[#F5B8DB] text-white text-xs font-bold px-3 py-1 rounded-bl-lg rounded-tr-xl">
                 POPULAR
               </div>
               
@@ -705,7 +705,7 @@ export default function LandingPage() {
       <section id="testimonials" className="py-20 bg-gray-50">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <div className="inline-flex items-center justify-center p-2 bg-blue-50 rounded-full text-blue-600 mb-4">
+            <div className="inline-flex items-center justify-center p-2 bg-[#F5B8DB]/20 rounded-full text-[#F5B8DB] mb-4">
               <Star className="h-5 w-5 fill-current" />
             </div>
             <h2 className="text-3xl font-bold mb-4">What Our Users Say</h2>
@@ -757,14 +757,14 @@ export default function LandingPage() {
             <div className="relative z-10">
               <HopeLogLogo size="lg" className="mx-auto mb-6 text-white" />
               <h2 className="text-3xl md:text-4xl font-bold mb-4">Start Your Mental Wellness Journey Today</h2>
-              <p className="text-xl md:text-2xl mb-8 text-blue-100">
+              <p className="text-xl md:text-2xl mb-8 text-white/80">
                 Join thousands of people who have transformed their mental wellbeing with Hope Log.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/auth?tab=register" className="bg-white text-[#9AAB63] hover:bg-gray-50 py-3 px-8 rounded-lg font-medium text-lg">
                   Get Started — It's Free
                 </Link>
-                <a href="#features" className="bg-blue-600/30 hover:bg-blue-600/40 text-white py-3 px-8 rounded-lg font-medium text-lg border border-white/20">
+                <a href="#features" className="bg-[#B6CAEB]/30 hover:bg-[#B6CAEB]/40 text-white py-3 px-8 rounded-lg font-medium text-lg border border-white/20">
                   Learn More
                 </a>
               </div>
