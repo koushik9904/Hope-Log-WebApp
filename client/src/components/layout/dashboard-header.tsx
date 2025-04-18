@@ -2,6 +2,7 @@ import { User } from "@shared/schema";
 import { format } from "date-fns";
 import { Bell, Menu, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { HopeLogLogo } from "@/components/ui/hope-log-logo";
 
 type DashboardHeaderProps = {
   user: User | null;
@@ -17,36 +18,36 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
   };
 
   return (
-    <header className="bg-[#FFF8E8] shadow-sm p-4 md:p-6 border-b border-[#F5D867]/20">
+    <header className="bg-black shadow-sm p-4 md:p-6 border-b border-gray-800">
       <div className="flex justify-between items-center">
         <div className="flex items-center">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-r from-[#F5B8DB] to-[#B6CAEB] flex items-center justify-center text-white mr-3 hidden md:flex">
-            <span className="font-bold">H</span>
+          <div className="mr-3 hidden md:flex">
+            <HopeLogLogo size="sm" className="w-auto" />
           </div>
           <div>
-            <h1 className="text-xl font-semibold font-['Montserrat_Variable'] text-[#9AAB63]">
+            <h1 className="text-xl font-semibold font-['Montserrat_Variable'] text-white">
               Welcome back, {user?.username}
             </h1>
-            <p className="text-gray-500 text-sm">{formattedDate}</p>
+            <p className="text-gray-400 text-sm">{formattedDate}</p>
           </div>
         </div>
         
         <div className="hidden md:flex items-center space-x-4">
-          <button className="text-[#B6CAEB] hover:text-[#B6CAEB]/80 bg-[#B6CAEB]/10 p-2 rounded-full transition-colors">
+          <button className="text-white hover:text-gray-200 bg-gray-700 p-2 rounded-full transition-colors">
             <Bell className="h-5 w-5" />
           </button>
           
           <div className="relative group">
             <button className="flex items-center space-x-2">
-              <div className="w-9 h-9 rounded-full bg-[#B6CAEB]/20 flex items-center justify-center text-[#9AAB63] font-medium">
+              <div className="w-9 h-9 rounded-full bg-gray-700 flex items-center justify-center text-white font-medium">
                 {user?.username.charAt(0).toUpperCase()}
               </div>
             </button>
             
-            <div className="absolute right-0 mt-2 w-48 bg-[#FFF8E8] rounded-xl shadow-lg border border-[#F5D867]/30 py-1 invisible group-hover:visible z-50">
+            <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-xl shadow-lg border border-gray-700 py-1 invisible group-hover:visible z-50">
               <button 
                 onClick={handleLogout}
-                className="flex items-center px-4 py-2 text-[#F5B8DB] hover:bg-[#F5B8DB]/10 w-full text-left transition-colors"
+                className="flex items-center px-4 py-2 text-white hover:bg-gray-700 w-full text-left transition-colors"
               >
                 <LogOut className="h-4 w-4 mr-2" />
                 <span>Log out</span>
@@ -55,7 +56,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
           </div>
         </div>
         
-        <button className="md:hidden p-2 rounded-xl text-[#9AAB63] hover:bg-[#9AAB63]/10 transition-colors">
+        <button className="md:hidden p-2 rounded-xl text-white hover:bg-gray-700 transition-colors">
           <Menu className="h-5 w-5" />
         </button>
       </div>
