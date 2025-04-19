@@ -257,7 +257,7 @@ export function JournalChat({ userId }: JournalChatProps) {
           
           <div 
             ref={chatContainerRef}
-            className="h-80 flex flex-col space-y-3 overflow-y-auto px-2 mb-3"
+            className="chat-messages h-80 px-2 mb-3"
           >
             {isLoading ? (
               <div className="flex justify-center items-center h-full">
@@ -366,7 +366,7 @@ export function JournalChat({ userId }: JournalChatProps) {
             </button>
           </div>
           
-          <div className="mt-3">
+          <div className="chat-input mt-3">
             <form className="flex items-center w-full gap-2" onSubmit={handleSubmit}>
               <Input
                 value={message}

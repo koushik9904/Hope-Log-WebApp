@@ -142,4 +142,37 @@
   .pi-suggestion-chip {
     @apply px-3 py-1.5 rounded-xl bg-white text-sm font-medium text-[#9AAB63] cursor-pointer hover:bg-[#9AAB63]/5 border border-[#9AAB63]/20 transition-colors;
   }
+  
+  /* Chat container improvements */
+  .chat-container {
+    @apply flex flex-col h-full;
+  }
+  
+  .chat-messages {
+    @apply flex-grow overflow-y-auto flex flex-col space-y-3;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(154, 171, 99, 0.5) rgba(154, 171, 99, 0.1);
+  }
+  
+  .chat-messages::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .chat-messages::-webkit-scrollbar-track {
+    background: rgba(154, 171, 99, 0.1);
+    border-radius: 10px;
+  }
+  
+  .chat-messages::-webkit-scrollbar-thumb {
+    background: rgba(154, 171, 99, 0.5);
+    border-radius: 10px;
+  }
+  
+  .chat-messages::-webkit-scrollbar-thumb:hover {
+    background: rgba(154, 171, 99, 0.7);
+  }
+  
+  .chat-input {
+    @apply sticky bottom-0 bg-white py-2 border-t border-[#9AAB63]/10;
+  }
 }
