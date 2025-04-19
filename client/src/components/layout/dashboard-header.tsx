@@ -21,9 +21,6 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
     <header className="bg-black shadow-sm p-4 md:p-6 border-b border-gray-800">
       <div className="flex justify-between items-center">
         <div className="flex items-center">
-          <div className="mr-3 hidden md:flex">
-            <HopeLogLogo size="sm" className="w-auto" />
-          </div>
           <div>
             <h1 className="text-xl font-semibold font-['Montserrat_Variable'] text-white">
               Welcome back, {user?.username}

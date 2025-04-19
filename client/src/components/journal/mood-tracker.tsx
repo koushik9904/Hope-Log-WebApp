@@ -82,18 +82,18 @@ export function MoodTracker({ userId }: MoodTrackerProps) {
   }
   
   return (
-    <div className="pi-card">
-      <div className="pi-card-header">
+    <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+      <div className="flex justify-between items-start mb-4">
         <div className="flex items-center">
-          <div className="rounded-md bg-blue-100 p-1.5 mr-2">
-            <Smile className="h-5 w-5 text-primary" />
+          <div className="rounded-md bg-[#F5B8DB]/10 p-1.5 mr-2">
+            <Smile className="h-5 w-5 text-[#F5B8DB]" />
           </div>
           <div>
-            <h2 className="pi-card-title">Mood Insights</h2>
-            <p className="pi-card-subtitle">Track your emotional patterns</p>
+            <h2 className="text-xl font-semibold text-gray-800">Mood Insights</h2>
+            <p className="text-sm text-gray-500">Track your emotional patterns</p>
           </div>
         </div>
-        <button className="text-blue-500 flex items-center text-sm font-medium">
+        <button className="text-[#9AAB63] flex items-center text-sm font-medium">
           <BarChart2 className="h-4 w-4 mr-1" /> More stats
         </button>
       </div>
@@ -106,15 +106,15 @@ export function MoodTracker({ userId }: MoodTrackerProps) {
           <>
             <MoodChart data={chartData} height={180} />
             
-            {/* Pi.ai style insight card */}
+            {/* Insight card */}
             {moods && moods.length > 0 && (
-              <div className="mt-4 border border-blue-100 rounded-lg p-3 bg-blue-50 flex items-start">
-                <Info className="h-5 w-5 text-primary mr-2 mt-0.5 shrink-0" />
+              <div className="mt-4 border border-[#B6CAEB]/30 rounded-lg p-3 bg-[#B6CAEB]/10 flex items-start">
+                <Info className="h-5 w-5 text-[#B6CAEB] mr-2 mt-0.5 shrink-0" />
                 <div>
                   <p className="text-sm text-gray-700">
                     Your mood has been mostly positive this week. Your happiness levels tend to peak on weekends.
                   </p>
-                  <button className="text-sm text-primary font-medium mt-1 flex items-center">
+                  <button className="text-sm text-[#9AAB63] font-medium mt-1 flex items-center hover:text-[#B6CAEB]">
                     See pattern analysis <ChevronRight className="h-3 w-3 ml-1" />
                   </button>
                 </div>
@@ -125,9 +125,9 @@ export function MoodTracker({ userId }: MoodTrackerProps) {
       </div>
       
       {/* Today's Mood */}
-      <div className="border border-gray-200 p-4 rounded-lg bg-gray-50">
+      <div className="border border-[#F5B8DB]/20 p-4 rounded-lg bg-[#F5B8DB]/5">
         <h3 className="text-md font-semibold mb-4 text-gray-800 flex items-center">
-          <Heart className="h-5 w-5 mr-2 text-rose-500" />
+          <Heart className="h-5 w-5 mr-2 text-[#F5B8DB]" />
           How are you feeling today?
         </h3>
         <div className="flex justify-between px-4">

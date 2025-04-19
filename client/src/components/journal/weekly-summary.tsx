@@ -22,14 +22,14 @@ export function WeeklySummary({ userId }: WeeklySummaryProps) {
   });
   
   return (
-    <div className="rosebud-card">
-      <div className="rosebud-card-header">
+    <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+      <div className="flex justify-between items-start mb-4">
         <div>
-          <h2 className="rosebud-card-title">Weekly Insights</h2>
-          <p className="rosebud-card-subtitle">{startDateStr} - {endDateStr}</p>
+          <h2 className="text-xl font-semibold text-gray-800">Weekly Insights</h2>
+          <p className="text-sm text-gray-500">{startDateStr} - {endDateStr}</p>
         </div>
-        <div className="bg-primary/10 p-2 rounded-full">
-          <BarChart4 className="h-5 w-5 text-primary" />
+        <div className="bg-[#B6CAEB]/10 p-2 rounded-full">
+          <BarChart4 className="h-5 w-5 text-[#B6CAEB]" />
         </div>
       </div>
       
@@ -41,33 +41,33 @@ export function WeeklySummary({ userId }: WeeklySummaryProps) {
         </div>
       ) : summary ? (
         <div className="space-y-4 my-4">
-          <div className="bg-pink-50 rounded-2xl p-4">
+          <div className="bg-[#F5B8DB]/10 rounded-2xl p-4 border border-[#F5B8DB]/20">
             <h3 className="text-base font-semibold mb-3 text-gray-800">
               Top Emotions
             </h3>
             <div className="flex flex-wrap gap-2">
               {summary.topEmotions.map((emotion, index) => (
-                <Badge key={index} className="bg-white border border-pink-200 text-gray-700 px-3 py-1 rounded-full">
+                <Badge key={index} className="bg-white border border-[#F5B8DB]/30 text-gray-700 px-3 py-1 rounded-full">
                   {emotion}
                 </Badge>
               ))}
             </div>
           </div>
           
-          <div className="bg-blue-50 rounded-2xl p-4">
+          <div className="bg-[#B6CAEB]/10 rounded-2xl p-4 border border-[#B6CAEB]/20">
             <h3 className="text-base font-semibold mb-3 text-gray-800">
               Common Themes
             </h3>
             <div className="flex flex-wrap gap-2">
               {summary.commonThemes.map((theme, index) => (
-                <Badge key={index} className="bg-white border border-blue-100 text-gray-700 px-3 py-1 rounded-full">
+                <Badge key={index} className="bg-white border border-[#B6CAEB]/30 text-gray-700 px-3 py-1 rounded-full">
                   {theme}
                 </Badge>
               ))}
             </div>
           </div>
           
-          <div className="bg-green-50 rounded-2xl p-4">
+          <div className="bg-[#9AAB63]/10 rounded-2xl p-4 border border-[#9AAB63]/20">
             <h3 className="text-base font-semibold mb-3 text-gray-800">
               Key Insights
             </h3>
