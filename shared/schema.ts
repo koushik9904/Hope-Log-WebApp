@@ -106,3 +106,17 @@ export const insertSummarySchema = createInsertSchema(summaries);
 
 export type InsertSummary = z.infer<typeof insertSummarySchema>;
 export type Summary = typeof summaries.$inferSelect;
+
+// Journal Embeddings table for RAG implementation
+export const journalEmbeddings = pgTable("journal_embeddings", {
+  id: serial("id").primaryKey(),
+  journalEntryId: integer("journal_entry_id").notNull().references(() => journalEntries.id, { onDelete: 'cascade' }),
+  embeddingJson: jsonb("embedding_json").notNull(),
+  createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
+});
+
+export const insertJournalEmbeddingSchema = createInsertSchema(journalEmbeddings)
+  .omit({ id: true, createdAt: true });
+
+export type InsertJournalEmbedding = z.infer<typeof insertJournalEmbeddingSchema>;
+export type JournalEmbedding = typeof journalEmbeddings.$inferSelect;
