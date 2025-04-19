@@ -14,6 +14,10 @@ import GoalsPage from "@/pages/goals-page";
 import SettingsPage from "@/pages/settings-page";
 import SettingsProfilePage from "@/pages/settings-profile-page";
 import SettingsPasswordPage from "@/pages/settings-password-page";
+import SettingsNotificationsPage from "@/pages/settings-notifications-page";
+import SettingsPrivacyPage from "@/pages/settings-privacy-page";
+import SettingsAppearancePage from "@/pages/settings-appearance-page";
+import SettingsDataPage from "@/pages/settings-data-page";
 import NotFound from "@/pages/not-found";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -33,6 +37,10 @@ function Router() {
         <ProtectedRoute path="/settings" component={SettingsPage} />
         <ProtectedRoute path="/settings/profile" component={SettingsProfilePage} />
         <ProtectedRoute path="/settings/password" component={SettingsPasswordPage} />
+        <ProtectedRoute path="/settings/notifications" component={SettingsNotificationsPage} />
+        <ProtectedRoute path="/settings/privacy" component={SettingsPrivacyPage} />
+        <ProtectedRoute path="/settings/appearance" component={SettingsAppearancePage} />
+        <ProtectedRoute path="/settings/data" component={SettingsDataPage} />
         <Route component={NotFound} />
       </Switch>
     );
@@ -47,6 +55,10 @@ function Router() {
       <ProtectedRoute path="/settings" component={SettingsPage} />
       <ProtectedRoute path="/settings/profile" component={SettingsProfilePage} />
       <ProtectedRoute path="/settings/password" component={SettingsPasswordPage} />
+      <ProtectedRoute path="/settings/notifications" component={SettingsNotificationsPage} />
+      <ProtectedRoute path="/settings/privacy" component={SettingsPrivacyPage} />
+      <ProtectedRoute path="/settings/appearance" component={SettingsAppearancePage} />
+      <ProtectedRoute path="/settings/data" component={SettingsDataPage} />
       <Route path="/auth" component={AuthPage} />
       <Route component={NotFound} />
     </Switch>
