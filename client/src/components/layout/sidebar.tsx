@@ -18,20 +18,29 @@ import {
   ChevronDown,
   ChevronRight
 } from "lucide-react";
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { HopeLogLogo } from "@/components/ui/hope-log-logo";
 
 export function Sidebar() {
   const { user, logoutMutation } = useAuth();
   const [location] = useLocation();
-  const [settingsExpanded, setSettingsExpanded] = useState(false);
+  
+  // Check if we're on any settings page
+  const isSettingsActive = location.startsWith("/settings");
+  
+  // Auto-expand settings menu when on settings pages
+  const [settingsExpanded, setSettingsExpanded] = useState(isSettingsActive);
+  
+  // Update expansion when location changes
+  useEffect(() => {
+    if (isSettingsActive) {
+      setSettingsExpanded(true);
+    }
+  }, [isSettingsActive]);
 
   const handleLogout = () => {
     logoutMutation.mutate();
   };
-  
-  // Check if we're on any settings page
-  const isSettingsActive = location.startsWith("/settings");
 
   type NavLinkProps = {
     href: string;
@@ -72,8 +81,8 @@ export function Sidebar() {
   };
 
   return (
-    <div className="hidden md:flex md:fixed md:h-full md:w-64 bg-gray-900 shadow-sm border-r border-gray-800">
-      <div className="flex flex-col w-full">
+    <div className="hidden md:flex md:fixed md:h-full md:w-64 bg-gray-900 shadow-sm border-r border-gray-800 overflow-hidden">
+      <div className="flex flex-col w-full h-full overflow-y-auto">
         <div className="flex items-center justify-center p-6">
           <HopeLogLogo size="md" withText className="w-auto" />
         </div>
