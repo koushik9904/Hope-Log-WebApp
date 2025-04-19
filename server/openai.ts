@@ -27,14 +27,22 @@ export async function storeEmbedding(journalEntryId: number, text: string): Prom
   try {
     const embedding = await generateEmbedding(text);
     
-    await db.insert(journalEmbeddings).values({
-      journalEntryId,
-      embeddingJson: embedding as any
-    });
-    
-    console.log(`Stored embedding for journal entry ${journalEntryId}`);
+    try {
+      // Try to insert into journal_embeddings table
+      await db.insert(journalEmbeddings).values({
+        journalEntryId,
+        embeddingJson: embedding as any
+      });
+      
+      console.log(`Stored embedding for journal entry ${journalEntryId}`);
+    } catch (dbError) {
+      // If table doesn't exist yet, just log but don't fail
+      console.log(`Could not store embedding (table may not exist yet): ${dbError}`);
+      
+      // We could queue this for later processing if needed
+    }
   } catch (error) {
-    console.error("Error storing embedding:", error);
+    console.error("Error generating embedding:", error);
   }
 }
 
@@ -45,56 +53,143 @@ export async function retrieveSimilarEntries(
   limit: number = 3
 ): Promise<{ id: number; content: string; similarity: number }[]> {
   try {
-    // Generate embedding for the query
-    const queryEmbedding = await generateEmbedding(query);
+    // First, try the optimized version with embeddings if that table exists
+    try {
+      // Generate embedding for the query
+      const queryEmbedding = await generateEmbedding(query);
+      
+      // Get all embeddings for the user's journal entries
+      const userEntries = await db.select({
+        id: journalEntries.id,
+        content: journalEntries.content,
+        embedding: journalEmbeddings.embeddingJson
+      })
+      .from(journalEntries)
+      .innerJoin(
+        journalEmbeddings,
+        eq(journalEntries.id, journalEmbeddings.journalEntryId)
+      )
+      .where(
+        and(
+          eq(journalEntries.userId, userId),
+          eq(journalEntries.isAiResponse, false)
+        )
+      );
+      
+      // If we successfully got entries with embeddings, calculate similarity
+      if (userEntries.length > 0) {
+        // Calculate similarity using cosine similarity
+        const similarEntries = userEntries
+          .map(entry => {
+            // Extract embedding
+            const entryEmbedding = entry.embedding as unknown as number[];
+            
+            // Calculate cosine similarity
+            let dotProduct = 0;
+            let queryMagnitude = 0;
+            let entryMagnitude = 0;
+            
+            for (let i = 0; i < queryEmbedding.length; i++) {
+              dotProduct += queryEmbedding[i] * entryEmbedding[i];
+              queryMagnitude += queryEmbedding[i] * queryEmbedding[i];
+              entryMagnitude += entryEmbedding[i] * entryEmbedding[i];
+            }
+            
+            const similarity = dotProduct / (Math.sqrt(queryMagnitude) * Math.sqrt(entryMagnitude));
+            
+            return {
+              id: entry.id,
+              content: entry.content,
+              similarity
+            };
+          })
+          .sort((a, b) => b.similarity - a.similarity)
+          .slice(0, limit);
+        
+        return similarEntries;
+      }
+    } catch (e) {
+      console.log("Embeddings table may not exist yet, falling back to keyword search:", e);
+    }
     
-    // Get all embeddings for the user's journal entries
+    // Fallback: Get recent entries and use OpenAI to find relevant ones
+    // This approach doesn't require the embeddings table
     const userEntries = await db.select({
       id: journalEntries.id,
       content: journalEntries.content,
-      embedding: journalEmbeddings.embeddingJson
     })
     .from(journalEntries)
-    .innerJoin(
-      journalEmbeddings,
-      eq(journalEntries.id, journalEmbeddings.journalEntryId)
-    )
     .where(
       and(
         eq(journalEntries.userId, userId),
         eq(journalEntries.isAiResponse, false)
       )
-    );
+    )
+    .orderBy(desc(journalEntries.date))
+    .limit(10);
     
-    // Calculate similarity using cosine similarity
-    const similarEntries = userEntries
-      .map(entry => {
-        // Extract embedding
-        const entryEmbedding = entry.embedding as unknown as number[];
-        
-        // Calculate cosine similarity
-        let dotProduct = 0;
-        let queryMagnitude = 0;
-        let entryMagnitude = 0;
-        
-        for (let i = 0; i < queryEmbedding.length; i++) {
-          dotProduct += queryEmbedding[i] * entryEmbedding[i];
-          queryMagnitude += queryEmbedding[i] * queryEmbedding[i];
-          entryMagnitude += entryEmbedding[i] * entryEmbedding[i];
-        }
-        
-        const similarity = dotProduct / (Math.sqrt(queryMagnitude) * Math.sqrt(entryMagnitude));
-        
-        return {
-          id: entry.id,
-          content: entry.content,
-          similarity
-        };
-      })
-      .sort((a, b) => b.similarity - a.similarity)
-      .slice(0, limit);
+    if (userEntries.length === 0) {
+      return [];
+    }
     
-    return similarEntries;
+    // If only a few entries, return them all with arbitrary similarity scores
+    if (userEntries.length <= limit) {
+      return userEntries.map((entry, index) => ({
+        id: entry.id,
+        content: entry.content,
+        similarity: 1 - (index * 0.1) // Simple decreasing similarity 
+      }));
+    }
+    
+    // Use OpenAI to rank the relevance of entries to the query
+    try {
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: `You are a retrieval system. Given a query and a set of journal entries, 
+                     return the indices of the ${limit} most relevant entries to the query.
+                     Return only a JSON array of numbers representing the indices, with no explanation.`
+          },
+          {
+            role: "user",
+            content: `Query: ${query}
+
+                     Journal entries:
+                     ${userEntries.map((entry, i) => `[${i}] ${entry.content.substring(0, 200)}...`).join('\n\n')}`
+          }
+        ],
+        response_format: { type: "json_object" },
+        temperature: 0.3,
+      });
+      
+      // Parse the response to get the indices
+      const jsonResponse = JSON.parse(response.choices[0].message.content || '{"indices":[0,1,2]}');
+      const relevantIndices = Array.isArray(jsonResponse.indices) ? jsonResponse.indices : 
+                              Array.isArray(jsonResponse) ? jsonResponse : [0, 1, 2];
+      
+      // Map the indices to entries
+      return relevantIndices
+        .filter((index: number) => index >= 0 && index < userEntries.length)
+        .map((index: number, rank: number) => ({
+          id: userEntries[index].id,
+          content: userEntries[index].content,
+          similarity: 1 - (rank * 0.1) // Arbitrary similarity score based on rank
+        }))
+        .slice(0, limit);
+      
+    } catch (oaiError) {
+      console.error("OpenAI ranking failed, returning most recent entries:", oaiError);
+      
+      // If OpenAI fails, just return the most recent entries
+      return userEntries.slice(0, limit).map((entry, index) => ({
+        id: entry.id,
+        content: entry.content,
+        similarity: 1 - (index * 0.1)
+      }));
+    }
+    
   } catch (error) {
     console.error("Error retrieving similar entries:", error);
     return [];
@@ -104,7 +199,7 @@ export async function retrieveSimilarEntries(
 // Chat response generation with RAG
 export async function generateAIResponse(
   userMessage: string,
-  conversationHistory: { role: "user" | "ai"; content: string }[],
+  conversationHistory: { role: "user" | "ai" | string; content: string }[],
   username: string,
   userId?: number
 ): Promise<string> {
