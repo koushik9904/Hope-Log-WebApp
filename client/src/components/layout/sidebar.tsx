@@ -8,17 +8,30 @@ import {
   BarChart2, 
   Target, 
   Settings,
-  LogOut
+  LogOut,
+  UserCircle,
+  Lock,
+  Bell,
+  Shield,
+  Sun,
+  Download,
+  ChevronDown,
+  ChevronRight
 } from "lucide-react";
+import { useState } from "react";
 import { HopeLogLogo } from "@/components/ui/hope-log-logo";
 
 export function Sidebar() {
   const { user, logoutMutation } = useAuth();
   const [location] = useLocation();
+  const [settingsExpanded, setSettingsExpanded] = useState(false);
 
   const handleLogout = () => {
     logoutMutation.mutate();
   };
+  
+  // Check if we're on any settings page
+  const isSettingsActive = location.startsWith("/settings");
 
   type NavLinkProps = {
     href: string;
@@ -38,6 +51,22 @@ export function Sidebar() {
             {icon}
           </div>
           <span className="font-medium">{label}</span>
+      </Link>
+    );
+  };
+  
+  const SubNavLink = ({ href, icon, label }: NavLinkProps) => {
+    const isActive = location === href;
+    
+    return (
+      <Link href={href} className={cn(
+          "flex items-center px-6 py-2 text-gray-400 hover:bg-gray-800 hover:text-white transition-colors pl-14",
+          isActive && "bg-gray-800 text-white"
+        )}>
+          <div className="w-4 h-4 mr-3">
+            {icon}
+          </div>
+          <span className="font-medium text-sm">{label}</span>
       </Link>
     );
   };
@@ -73,11 +102,61 @@ export function Sidebar() {
           icon={<Target className="w-full h-full" />} 
           label="Goals & Habits" 
         />
-        <NavLink 
-          href="/settings" 
-          icon={<Settings className="w-full h-full" />} 
-          label="Settings" 
-        />
+        
+        {/* Settings section with sub-navigation */}
+        <div className={`${isSettingsActive || settingsExpanded ? "bg-gray-800" : ""}`}>
+          <button
+            onClick={() => setSettingsExpanded(!settingsExpanded)}
+            className={cn(
+              "flex items-center px-6 py-3 w-full text-left text-gray-400 hover:bg-gray-800 hover:text-white transition-colors",
+              (isSettingsActive || settingsExpanded) && "text-white"
+            )}
+          >
+            <div className="w-5 h-5 mr-3">
+              <Settings className="w-full h-full" />
+            </div>
+            <span className="font-medium">Settings</span>
+            <div className="ml-auto">
+              {settingsExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            </div>
+          </button>
+          
+          {/* Sub-navigation items */}
+          {(settingsExpanded || isSettingsActive) && (
+            <div className="bg-gray-900 pb-2">
+              <SubNavLink 
+                href="/settings/profile" 
+                icon={<UserCircle className="w-full h-full text-[#F5B8DB]" />} 
+                label="Profile" 
+              />
+              <SubNavLink 
+                href="/settings/password" 
+                icon={<Lock className="w-full h-full text-[#9AAB63]" />} 
+                label="Password" 
+              />
+              <SubNavLink 
+                href="/settings/notifications" 
+                icon={<Bell className="w-full h-full text-[#F5D867]" />} 
+                label="Notifications" 
+              />
+              <SubNavLink 
+                href="/settings/privacy" 
+                icon={<Shield className="w-full h-full text-[#B6CAEB]" />} 
+                label="Privacy" 
+              />
+              <SubNavLink 
+                href="/settings/appearance" 
+                icon={<Sun className="w-full h-full text-[#F5D867]" />} 
+                label="Appearance" 
+              />
+              <SubNavLink 
+                href="/settings/data" 
+                icon={<Download className="w-full h-full text-[#F5B8DB]" />} 
+                label="Data & Export" 
+              />
+            </div>
+          )}
+        </div>
         
         <div className="mt-auto p-4">
           <div className="rounded-xl bg-gray-800 p-4 border border-gray-700">
