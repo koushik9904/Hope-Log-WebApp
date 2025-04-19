@@ -188,7 +188,8 @@ export function JournalChat({ userId }: JournalChatProps) {
           </TabsList>
         </div>
         
-        <TabsContent value="chat" className="mt-0 space-y-4">
+        <TabsContent value="chat" className="mt-0 space-y-4 flex flex-col h-full">
+          <div className="chat-container flex-grow flex flex-col">
           {/* Sentiment Analysis Summary (when requested) */}
           {showSummary && (
             <div className="bg-white rounded-lg p-4 border border-[#F5B8DB]/20 mb-4">
@@ -390,6 +391,7 @@ export function JournalChat({ userId }: JournalChatProps) {
                 <Send className="h-5 w-5" />
               </button>
             </form>
+          </div>
           </div>
         </TabsContent>
         
