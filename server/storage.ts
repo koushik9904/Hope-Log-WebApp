@@ -17,6 +17,7 @@ export interface IStorage {
   getJournalEntriesForLastWeek(userId: number): Promise<JournalEntry[]>;
   createJournalEntry(entry: InsertJournalEntry): Promise<JournalEntry>;
   updateJournalEntrySentiment(id: number, sentiment: { score: number; emotions: string[]; themes: string[] }): Promise<JournalEntry>;
+  deleteJournalEntry(id: number): Promise<void>;
   
   // Mood methods
   getMoodsByUserId(userId: number): Promise<Mood[]>;
@@ -131,6 +132,12 @@ export class DatabaseStorage implements IStorage {
     }
     
     return result[0];
+  }
+  
+  async deleteJournalEntry(id: number): Promise<void> {
+    await db
+      .delete(journalEntries)
+      .where(eq(journalEntries.id, id));
   }
   
   async getMoodsByUserId(userId: number): Promise<Mood[]> {

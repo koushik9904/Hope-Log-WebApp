@@ -23,6 +23,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to fetch journal entries" });
     }
   });
+  
+  // Save Chat Transcript - collects all chat messages and saves them as a single journal entry
+  app.post("/api/journal-entries/save-chat", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const { userId } = req.body;
+    if (req.user?.id !== userId) return res.sendStatus(403);
+    
+    try {
+      // Get recent chat entries that aren't already part of a saved journal
+      const recentEntries = await storage.getRecentJournalEntriesByUserId(userId, 50);
+      const chatEntries = recentEntries.filter(entry => !(entry as any).isJournal);
+      
+      if (chatEntries.length === 0) {
+        return res.status(400).json({ error: "No chat entries to save" });
+      }
+      
+      // Combine all entries into a transcript
+      const transcript = chatEntries
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+        .map(entry => `${entry.isAiResponse ? 'Hope Log: ' : 'You: '}${entry.content}`)
+        .join('\n\n');
+      
+      // Generate summary and analyze sentiment
+      const sentiment = await analyzeSentiment(transcript);
+      
+      // Create the journal entry with the complete transcript
+      const journalEntry = await storage.createJournalEntry({
+        userId,
+        content: transcript,
+        date: new Date().toISOString(),
+        isAiResponse: false,
+        isJournal: true
+      });
+      
+      // Update with sentiment analysis
+      const updatedEntry = await storage.updateJournalEntrySentiment(
+        journalEntry.id, 
+        sentiment
+      );
+      
+      // Store embedding for RAG
+      await storeEmbedding(journalEntry.id, transcript);
+      
+      // Delete individual chat entries to clear the chat
+      // This is optional - comment out if you want to keep the chat history
+      for (const entry of chatEntries) {
+        await storage.deleteJournalEntry(entry.id);
+      }
+      
+      res.status(201).json(updatedEntry);
+    } catch (error) {
+      console.error("Error saving chat transcript:", error);
+      res.status(500).json({ error: "Failed to save chat transcript" });
+    }
+  });
 
   app.post("/api/journal-entries", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
