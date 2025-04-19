@@ -257,7 +257,7 @@ export function JournalChat({ userId }: JournalChatProps) {
           
           <div 
             ref={chatContainerRef}
-            className="h-80 flex flex-col space-y-3 overflow-y-auto pr-2"
+            className="h-80 flex flex-col space-y-3 overflow-y-auto px-2 mb-3"
           >
             {isLoading ? (
               <div className="flex justify-center items-center h-full">
@@ -291,32 +291,44 @@ export function JournalChat({ userId }: JournalChatProps) {
               </div>
             ) : (
               <>
-                {/* Display the chat entries in regular order (oldest first) */}
-                {entries.map((entry) => (
-                  <div 
-                    key={entry.id}
-                    className={cn(
-                      "max-w-[85%] px-4 py-3 journal-entry",
-                      entry.isAiResponse 
-                        ? "journal-entry-ai self-start"
-                        : "journal-entry-user self-end"
-                    )}
-                  >
-                    <p className="whitespace-pre-line text-[15px]">{entry.content}</p>
-                  </div>
-                ))}
+                {/* Chat container with flex-col-reverse to display newest messages at the bottom */}
+                <div className="flex flex-col space-y-3">
+                  {/* Filter only chat entries (not journal entries) and sort by date */}
+                  {[...entries]
+                    .filter(entry => !(entry as any).isJournal)
+                    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                    .map((entry) => (
+                    <div 
+                      key={entry.id}
+                      className={cn(
+                        "max-w-[85%] px-4 py-3 journal-entry",
+                        entry.isAiResponse 
+                          ? "journal-entry-ai self-start"
+                          : "journal-entry-user self-end"
+                      )}
+                    >
+                      <p className="whitespace-pre-line text-[15px]">{entry.content}</p>
+                    </div>
+                  ))}
+                </div>
                 
-                {/* Pi.ai style suggestions after AI responses */}
-                {entries.length > 0 && entries[entries.length - 1]?.isAiResponse && (
-                  <div className="pi-suggestions self-start ml-2 mt-1">
-                    <button className="pi-suggestion-chip flex items-center">
-                      Tell me more <ChevronRight className="h-3 w-3 ml-1" />
-                    </button>
-                    <button className="pi-suggestion-chip flex items-center">
-                      Why do I feel this way? <ChevronRight className="h-3 w-3 ml-1" />
-                    </button>
-                  </div>
-                )}
+                {/* Pi.ai style suggestions after AI responses - get the most recent entry */}
+                {entries.length > 0 && 
+                  // Find the most recent AI response
+                  [...entries]
+                    .filter(entry => !(entry as any).isJournal)
+                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]?.isAiResponse && 
+                  (
+                    <div className="pi-suggestions self-start ml-2 mt-1">
+                      <button className="pi-suggestion-chip flex items-center">
+                        Tell me more <ChevronRight className="h-3 w-3 ml-1" />
+                      </button>
+                      <button className="pi-suggestion-chip flex items-center">
+                        Why do I feel this way? <ChevronRight className="h-3 w-3 ml-1" />
+                      </button>
+                    </div>
+                  )
+                }
                 
                 {/* Display when AI is thinking */}
                 {addEntryMutation.isPending && (
