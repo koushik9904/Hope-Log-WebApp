@@ -359,20 +359,20 @@ export function JournalChat({ userId }: JournalChatProps) {
               <Input
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                className="pi-input flex-grow"
+                className="rounded-xl px-4 py-2.5 bg-white border border-[#9AAB63]/20 text-gray-800 focus:ring-2 focus:ring-[#9AAB63]/20 focus:border-[#9AAB63]/30 focus:bg-white transition-all placeholder:text-gray-500 flex-grow"
                 placeholder="Write your thoughts or ask a question..."
                 disabled={addEntryMutation.isPending}
               />
               <button
                 type="button"
-                className="voice-button"
+                className="rounded-full w-10 h-10 flex items-center justify-center bg-[#F5B8DB] hover:bg-[#F5B8DB]/80 transition-all"
                 disabled={addEntryMutation.isPending}
               >
                 <Mic className="h-5 w-5 text-white" />
               </button>
               <button
                 type="submit"
-                className="pi-button"
+                className="rounded-xl py-2.5 px-5 font-medium text-white transition-all bg-[#9AAB63] hover:bg-[#9AAB63]/80"
                 disabled={addEntryMutation.isPending || !message.trim()}
               >
                 <Send className="h-5 w-5" />
@@ -394,7 +394,7 @@ export function JournalChat({ userId }: JournalChatProps) {
             <form onSubmit={handleJournalSubmit} className="space-y-3">
               <Textarea 
                 placeholder="How was your day? What's on your mind?"
-                className="min-h-[120px] pi-input"
+                className="min-h-[120px] rounded-xl px-4 py-2.5 bg-white border border-[#9AAB63]/20 text-gray-800 focus:ring-2 focus:ring-[#9AAB63]/20 focus:border-[#9AAB63]/30 focus:bg-white transition-all placeholder:text-gray-500"
                 value={journalEntry}
                 onChange={(e) => setJournalEntry(e.target.value)}
                 disabled={saveJournalEntryMutation.isPending}
@@ -402,7 +402,7 @@ export function JournalChat({ userId }: JournalChatProps) {
               
               <Button 
                 type="submit" 
-                className="pi-button w-full"
+                className="rounded-xl py-2.5 px-5 font-medium text-white transition-all bg-[#9AAB63] hover:bg-[#9AAB63]/80 w-full"
                 disabled={saveJournalEntryMutation.isPending || !journalEntry.trim()}
               >
                 {saveJournalEntryMutation.isPending ? (
