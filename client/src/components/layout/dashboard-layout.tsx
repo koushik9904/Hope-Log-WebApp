@@ -14,14 +14,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   if (!user) return null;
   
   return (
-    <div id="app" className="flex flex-col min-h-screen bg-gray-900">
+    <div id="app" className="flex flex-col min-h-screen bg-[#FFF8E8]">
       <Sidebar />
       <MobileNav />
       
       <main className="flex-grow md:ml-64 pb-16 md:pb-0">
         <DashboardHeader user={user} />
         
-        <div className="p-4 md:p-6 bg-gray-900 text-white">
+        <div className="p-4 md:p-6 bg-[#FFF8E8] text-gray-800">
           {children}
         </div>
       </main>
