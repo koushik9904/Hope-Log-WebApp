@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { z } from "zod";
 import { setupAuth } from "./auth";
 import { storage } from "./storage";
-import { generateAIResponse, analyzeSentiment, generateWeeklySummary, generateCustomPrompts } from "./openai";
+import { generateAIResponse, analyzeSentiment, generateWeeklySummary, generateCustomPrompts, storeEmbedding } from "./openai";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes
@@ -27,7 +27,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/journal-entries", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     
-    const { content, userId } = req.body;
+    const { content, userId, isJournal = false } = req.body;
     if (req.user?.id !== userId) return res.sendStatus(403);
     
     try {
@@ -36,12 +36,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId,
         content,
         date: new Date().toISOString(),
-        isAiResponse: false
+        isAiResponse: false,
+        isJournal
       });
       
       // Get sentiment analysis
       const sentiment = await analyzeSentiment(content);
       await storage.updateJournalEntrySentiment(userEntry.id, sentiment);
+      
+      // Store embedding for RAG functionality
+      try {
+        await storeEmbedding(userEntry.id, content);
+      } catch (embeddingError) {
+        console.error("Failed to store embedding, but continuing:", embeddingError);
+      }
       
       // Get recent conversation history
       const recentEntries = await storage.getRecentJournalEntriesByUserId(userId, 10);
@@ -50,15 +58,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         content: entry.content
       }));
       
-      // Generate AI response
-      const aiResponse = await generateAIResponse(content, conversationHistory, req.user.username);
+      // Generate AI response with RAG
+      const aiResponse = await generateAIResponse(content, conversationHistory, req.user.username, userId);
       
       // Save AI response
       const aiEntry = await storage.createJournalEntry({
         userId,
         content: aiResponse,
         date: new Date().toISOString(),
-        isAiResponse: true
+        isAiResponse: true,
+        isJournal
       });
       
       // Return both entries

@@ -1,23 +1,145 @@
 import OpenAI from "openai";
+import { db } from "./db";
+import { journalEntries, journalEmbeddings } from "@shared/schema";
+import { eq, desc, and } from "drizzle-orm";
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// Chat response generation
+// Generate embeddings for text
+export async function generateEmbedding(text: string): Promise<number[]> {
+  try {
+    const response = await openai.embeddings.create({
+      model: "text-embedding-3-small",
+      input: text,
+      encoding_format: "float",
+    });
+    
+    return response.data[0].embedding;
+  } catch (error) {
+    console.error("Error generating embedding:", error);
+    throw error;
+  }
+}
+
+// Store embedding for a journal entry
+export async function storeEmbedding(journalEntryId: number, text: string): Promise<void> {
+  try {
+    const embedding = await generateEmbedding(text);
+    
+    await db.insert(journalEmbeddings).values({
+      journalEntryId,
+      embeddingJson: embedding as any
+    });
+    
+    console.log(`Stored embedding for journal entry ${journalEntryId}`);
+  } catch (error) {
+    console.error("Error storing embedding:", error);
+  }
+}
+
+// Retrieve similar journal entries based on semantic search
+export async function retrieveSimilarEntries(
+  query: string, 
+  userId: number, 
+  limit: number = 3
+): Promise<{ id: number; content: string; similarity: number }[]> {
+  try {
+    // Generate embedding for the query
+    const queryEmbedding = await generateEmbedding(query);
+    
+    // Get all embeddings for the user's journal entries
+    const userEntries = await db.select({
+      id: journalEntries.id,
+      content: journalEntries.content,
+      embedding: journalEmbeddings.embeddingJson
+    })
+    .from(journalEntries)
+    .innerJoin(
+      journalEmbeddings,
+      eq(journalEntries.id, journalEmbeddings.journalEntryId)
+    )
+    .where(
+      and(
+        eq(journalEntries.userId, userId),
+        eq(journalEntries.isAiResponse, false)
+      )
+    );
+    
+    // Calculate similarity using cosine similarity
+    const similarEntries = userEntries
+      .map(entry => {
+        // Extract embedding
+        const entryEmbedding = entry.embedding as unknown as number[];
+        
+        // Calculate cosine similarity
+        let dotProduct = 0;
+        let queryMagnitude = 0;
+        let entryMagnitude = 0;
+        
+        for (let i = 0; i < queryEmbedding.length; i++) {
+          dotProduct += queryEmbedding[i] * entryEmbedding[i];
+          queryMagnitude += queryEmbedding[i] * queryEmbedding[i];
+          entryMagnitude += entryEmbedding[i] * entryEmbedding[i];
+        }
+        
+        const similarity = dotProduct / (Math.sqrt(queryMagnitude) * Math.sqrt(entryMagnitude));
+        
+        return {
+          id: entry.id,
+          content: entry.content,
+          similarity
+        };
+      })
+      .sort((a, b) => b.similarity - a.similarity)
+      .slice(0, limit);
+    
+    return similarEntries;
+  } catch (error) {
+    console.error("Error retrieving similar entries:", error);
+    return [];
+  }
+}
+
+// Chat response generation with RAG
 export async function generateAIResponse(
   userMessage: string,
   conversationHistory: { role: "user" | "ai"; content: string }[],
-  username: string
+  username: string,
+  userId?: number
 ): Promise<string> {
   try {
+    // Get relevant past entries using RAG if userId is provided
+    let contextFromPastEntries = "";
+    if (userId) {
+      try {
+        const similarEntries = await retrieveSimilarEntries(userMessage, userId);
+        if (similarEntries.length > 0) {
+          contextFromPastEntries = "Here are some relevant past journal entries that may provide context:\n\n" +
+            similarEntries.map(entry => `"${entry.content}"`).join("\n\n");
+        }
+      } catch (error) {
+        console.log("Error retrieving similar entries, continuing without RAG context:", error);
+      }
+    }
+
     const messages = [
       {
         role: "system",
-        content: `You are an empathetic AI journal assistant for an app called HopeLog AI. 
+        content: `You are Hope Log, an empathetic AI journal assistant. 
         Your purpose is to help ${username} with mental wellness through supportive conversation.
-        Be warm, thoughtful, and encouraging. Ask insightful questions that promote self-reflection.
-        Respond in a conversational, yet helpful manner. Keep responses concise (1-3 sentences).
-        Never claim to be a therapist or provide medical advice - suggest professional help if necessary.`,
+        Be warm, thoughtful, and encouraging. Ask insightful follow-up questions that promote self-reflection.
+        Respond in a conversational, yet helpful manner. Sound like a caring friend.
+        
+        ${contextFromPastEntries ? `\n\n${contextFromPastEntries}\n\n` : ""}
+        
+        Guidelines:
+        - Keep responses concise (2-3 sentences)
+        - Be empathetic and supportive
+        - Ask thoughtful follow-up questions to encourage journaling
+        - Remember details from the conversation
+        - Never claim to be a therapist or provide medical advice
+        - If the user expresses severe distress, suggest professional help`,
       },
       // Convert conversation history to OpenAI format
       ...conversationHistory.map((entry) => ({
