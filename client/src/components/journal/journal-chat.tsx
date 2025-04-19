@@ -190,8 +190,8 @@ export function JournalChat({ userId }: JournalChatProps) {
         
         <TabsContent value="chat" className="mt-0 space-y-4 flex flex-col h-full">
           <div className="chat-container flex-grow flex flex-col">
-          {/* Sentiment Analysis Summary (when requested) */}
-          {showSummary && (
+            {/* Sentiment Analysis Summary (when requested) */}
+            {showSummary && (
             <div className="bg-white rounded-lg p-4 border border-[#F5B8DB]/20 mb-4">
               <div className="flex justify-between items-start mb-2">
                 <h3 className="font-semibold text-gray-800 flex items-center">

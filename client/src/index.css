@@ -172,7 +172,22 @@
     background: rgba(154, 171, 99, 0.7);
   }
   
+  .journal-entry {
+    @apply rounded-2xl shadow-sm relative;
+    transition: all 0.2s ease;
+  }
+  
+  .journal-entry-user {
+    @apply bg-[#9AAB63] text-white;
+    border-bottom-right-radius: 0.25rem !important;
+  }
+  
+  .journal-entry-ai {
+    @apply bg-white text-gray-800 border border-[#F5B8DB]/20;
+    border-bottom-left-radius: 0.25rem !important;
+  }
+  
   .chat-input {
-    @apply sticky bottom-0 bg-white py-2 border-t border-[#9AAB63]/10;
+    @apply sticky bottom-0 bg-white py-2 border-t border-[#9AAB63]/10 rounded-b-xl;
   }
 }
