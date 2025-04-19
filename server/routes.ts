@@ -46,7 +46,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .map(entry => `${entry.isAiResponse ? 'Hope Log: ' : 'You: '}${entry.content}`)
         .join('\n\n');
       
-      // Generate summary and analyze sentiment
+      // Generate summary and analyze sentiment with goal extraction
       const sentiment = await analyzeSentiment(transcript);
       
       // Create the journal entry with the complete transcript
@@ -63,6 +63,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         journalEntry.id, 
         sentiment
       );
+      
+      // Extract and process any goals
+      if (sentiment.goals && sentiment.goals.length > 0) {
+        for (const goal of sentiment.goals) {
+          if (goal.isNew) {
+            // Create a new goal
+            await storage.createGoal({
+              userId,
+              name: goal.name,
+              target: 100, // Default target
+              progress: 0,
+              unit: "%",
+              colorScheme: "default"
+            });
+          } else if (goal.completion !== undefined) {
+            // Find the existing goal to update
+            const existingGoals = await storage.getGoalsByUserId(userId);
+            const matchingGoal = existingGoals.find(g => 
+              g.name.toLowerCase() === goal.name.toLowerCase()
+            );
+            
+            if (matchingGoal) {
+              // Update the goal progress
+              await storage.updateGoalProgress(matchingGoal.id, goal.completion);
+            }
+          }
+        }
+      }
       
       // Store embedding for RAG
       await storeEmbedding(journalEntry.id, transcript);
@@ -99,6 +127,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get sentiment analysis
       const sentiment = await analyzeSentiment(content);
       await storage.updateJournalEntrySentiment(userEntry.id, sentiment);
+      
+      // Process any goals from the journal entry
+      if (sentiment.goals && sentiment.goals.length > 0) {
+        for (const goal of sentiment.goals) {
+          if (goal.isNew) {
+            // Create a new goal
+            await storage.createGoal({
+              userId,
+              name: goal.name,
+              target: 100, // Default target
+              progress: 0,
+              unit: "%",
+              colorScheme: "default"
+            });
+          } else if (goal.completion !== undefined) {
+            // Find the existing goal to update
+            const existingGoals = await storage.getGoalsByUserId(userId);
+            const matchingGoal = existingGoals.find(g => 
+              g.name.toLowerCase() === goal.name.toLowerCase()
+            );
+            
+            if (matchingGoal) {
+              // Update the goal progress
+              await storage.updateGoalProgress(matchingGoal.id, goal.completion);
+            }
+          }
+        }
+      }
       
       // Store embedding for RAG functionality
       try {

@@ -264,15 +264,35 @@ export async function analyzeSentiment(text: string): Promise<{
   score: number;
   emotions: string[];
   themes: string[];
+  goals?: {
+    name: string;
+    isNew: boolean;
+    completion?: number;
+  }[];
 }> {
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
       messages: [
         {
           role: "system",
-          content:
-            "You are a sentiment analysis expert. Analyze the text and provide a sentiment score from 1 to 5 (1 being very negative, 5 being very positive), a list of the top 3 emotions expressed, and a list of up to 3 key themes. Respond with JSON only.",
+          content: `You are a sentiment analysis expert with a special focus on goal identification. Analyze the journal entry and provide:
+          
+          1. A rating from 1 (negative) to 5 (positive)
+          2. Key emotions present (top 3)
+          3. Main themes discussed (up to 3)
+          4. Any goals or tasks mentioned by the user
+          
+          For goals, determine:
+          - If it's a new goal or an update to an existing one
+          - For updates, include the estimated completion percentage (0-100)
+          
+          Format as JSON with keys:
+          - 'score': number from 1-5
+          - 'emotions': array of strings
+          - 'themes': array of strings
+          - 'goals': array of objects with { name: string, isNew: boolean, completion?: number }
+          `,
         },
         {
           role: "user",
@@ -282,13 +302,14 @@ export async function analyzeSentiment(text: string): Promise<{
       response_format: { type: "json_object" },
     });
 
-    const content = response.choices[0].message.content || '{"score":3,"emotions":[],"themes":[]}';
+    const content = response.choices[0].message.content || '{"score":3,"emotions":[],"themes":[],"goals":[]}';
     const result = JSON.parse(content);
 
     return {
       score: Math.max(1, Math.min(5, Math.round(result.score))),
       emotions: result.emotions || [],
       themes: result.themes || [],
+      goals: result.goals || [],
     };
   } catch (error) {
     console.error("Error analyzing sentiment:", error);
@@ -296,6 +317,7 @@ export async function analyzeSentiment(text: string): Promise<{
       score: 3, // Neutral fallback
       emotions: ["unknown"],
       themes: ["unknown"],
+      goals: [],
     };
   }
 }

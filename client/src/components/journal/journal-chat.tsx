@@ -67,13 +67,11 @@ export function JournalChat({ userId }: JournalChatProps) {
     },
   });
 
-  // Save chat as journal entry with sentiment analysis
+  // Save chat as journal entry with sentiment analysis and goal extraction
   const saveChatMutation = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/journal-entries/save", {
-        userId,
-        generateSummary: true,
-        analyzeSentiment: true
+      const res = await apiRequest("POST", "/api/journal-entries/save-chat", {
+        userId
       });
       return await res.json();
     },
@@ -83,6 +81,10 @@ export function JournalChat({ userId }: JournalChatProps) {
         description: "Your chat has been saved as a journal entry with sentiment analysis"
       });
       queryClient.invalidateQueries({ queryKey: [`/api/journal-entries/${userId}`] });
+      // Refetch journal entries to clear the chat display
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: [`/api/journal-entries/${userId}`] });
+      }, 300);
     },
   });
 
