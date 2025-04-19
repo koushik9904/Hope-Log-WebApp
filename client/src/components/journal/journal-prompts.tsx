@@ -14,14 +14,14 @@ export function JournalPrompts({ userId, onSelectPrompt }: JournalPromptsProps) 
   });
   
   return (
-    <div className="rosebud-card">
-      <div className="rosebud-card-header">
+    <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+      <div className="flex justify-between items-start mb-4">
         <div>
-          <h2 className="rosebud-card-title">Journal Prompts</h2>
-          <p className="rosebud-card-subtitle">Inspiration for reflection</p>
+          <h2 className="text-xl font-semibold text-gray-800">Journal Prompts</h2>
+          <p className="text-sm text-gray-500">Inspiration for reflection</p>
         </div>
-        <div className="bg-amber-100 p-2 rounded-full">
-          <LightbulbIcon className="h-5 w-5 text-amber-600" />
+        <div className="bg-[#F5D867]/10 p-2 rounded-full">
+          <LightbulbIcon className="h-5 w-5 text-[#F5D867]" />
         </div>
       </div>
       
@@ -34,8 +34,8 @@ export function JournalPrompts({ userId, onSelectPrompt }: JournalPromptsProps) 
           </>
         ) : prompts.length === 0 ? (
           <div className="text-center p-6">
-            <div className="w-20 h-20 mx-auto rounded-full bg-amber-50 flex items-center justify-center mb-4">
-              <LightbulbIcon className="h-8 w-8 text-amber-600" />
+            <div className="w-20 h-20 mx-auto rounded-full bg-[#F5D867]/10 flex items-center justify-center mb-4">
+              <LightbulbIcon className="h-8 w-8 text-[#F5D867]" />
             </div>
             <h3 className="text-xl font-bold mb-2">No Prompts</h3>
             <p className="text-gray-600">
@@ -46,7 +46,7 @@ export function JournalPrompts({ userId, onSelectPrompt }: JournalPromptsProps) 
           prompts.slice(0, 3).map((prompt) => (
             <div 
               key={prompt.id}
-              className="p-4 bg-amber-50 hover:bg-amber-100 rounded-2xl cursor-pointer transition-colors border border-amber-100/60"
+              className="p-4 bg-[#F5D867]/10 hover:bg-[#F5D867]/20 rounded-2xl cursor-pointer transition-colors border border-[#F5D867]/20"
               onClick={() => onSelectPrompt(prompt.text)}
             >
               <p className="text-gray-800">{prompt.text}</p>
