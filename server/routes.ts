@@ -54,7 +54,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get recent conversation history
       const recentEntries = await storage.getRecentJournalEntriesByUserId(userId, 10);
       const conversationHistory = recentEntries.map(entry => ({
-        role: entry.isAiResponse ? "ai" : "user",
+        role: entry.isAiResponse ? "ai" as const : "user" as const,
         content: entry.content
       }));
       
@@ -229,7 +229,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(404).json({ error: "Not enough journal entries to generate a summary" });
         }
         
-        const weeklySummary = await generateWeeklySummary(lastWeekEntries);
+        // Convert journal entries to the format expected by generateWeeklySummary
+        const formattedEntries = lastWeekEntries.map(entry => ({
+          content: entry.content,
+          sentiment: entry.sentiment || undefined
+        }));
+        
+        const weeklySummary = await generateWeeklySummary(formattedEntries);
         
         summary = await storage.createOrUpdateSummary({
           userId,
