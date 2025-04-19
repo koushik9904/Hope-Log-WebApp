@@ -182,7 +182,29 @@ export function JournalChat({ userId }: JournalChatProps) {
   return (
     <div className="pi-card bg-[#FFF8E8] border border-gray-200">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <div className="pi-card-header flex justify-end bg-[#9AAB63] rounded-t-xl border-b border-[#9AAB63]/50 -mx-6 -mt-6 p-4 mb-6">
+        <div className="pi-card-header flex justify-between items-center bg-[#9AAB63] rounded-t-xl border-b border-[#9AAB63]/50 -mx-6 -mt-6 p-4 mb-6">
+          {activeTab === "chat" && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="text-white bg-[#9AAB63] border-white/40 hover:bg-white/20 hover:text-white"
+              onClick={handleSaveChat}
+              disabled={saveChatMutation.isPending || entries.filter(entry => !(entry as any).isJournal).length === 0}
+            >
+              {saveChatMutation.isPending ? (
+                <>
+                  <span className="mr-1.5">Saving</span>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                </>
+              ) : (
+                <>
+                  <Save className="h-3.5 w-3.5 mr-1.5" />
+                  Save Chat
+                </>
+              )}
+            </Button>
+          )}
+          {activeTab !== "chat" && <div></div>}
           
           <TabsList className="px-1">
             <TabsTrigger value="chat" className="px-3 py-1.5">Chat</TabsTrigger>
@@ -347,22 +369,7 @@ export function JournalChat({ userId }: JournalChatProps) {
             )}
           </div>
           
-          <div className="flex justify-between items-center text-xs text-gray-600 px-1">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleSaveChat}
-              className="text-xs text-gray-800 bg-white border-[#F5B8DB]/30 hover:bg-[#F5B8DB]/5"
-              disabled={saveChatMutation.isPending}
-            >
-              {saveChatMutation.isPending ? (
-                <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
-              ) : (
-                <Save className="h-3.5 w-3.5 mr-1" />
-              )}
-              Save Chat
-            </Button>
-            
+          <div className="flex justify-end items-center text-xs text-gray-600 px-1">
             <button className="hover:text-[#F5B8DB] flex items-center">
               <Plus className="h-3.5 w-3.5 mr-1" />
               <span>New Chat</span>

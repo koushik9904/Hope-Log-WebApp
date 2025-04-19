@@ -75,7 +75,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               target: 100, // Default target
               progress: 0,
               unit: "%",
-              colorScheme: "default"
+              colorScheme: 1
             });
           } else if (goal.completion !== undefined) {
             // Find the existing goal to update
@@ -139,7 +139,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               target: 100, // Default target
               progress: 0,
               unit: "%",
-              colorScheme: "default"
+              colorScheme: 1
             });
           } else if (goal.completion !== undefined) {
             // Find the existing goal to update
