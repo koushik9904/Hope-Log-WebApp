@@ -215,7 +215,8 @@ export async function generateAIResponse(
   userMessage: string,
   conversationHistory: { role: "user" | "ai" | string; content: string }[],
   username: string,
-  userId?: number
+  userId?: number,
+  isMultiPartPrompt: boolean = false
 ): Promise<string> {
   try {
     // Get relevant past entries using RAG if userId is provided
@@ -236,10 +237,29 @@ export async function generateAIResponse(
       }
     }
 
-    const messages = [
-      {
-        role: "system",
-        content: `You are Hope Log, an empathetic AI journal assistant. 
+    // Check if the conversation history already contains a system message
+    const hasSystemMessage = conversationHistory.some(msg => msg.role === "system");
+    
+    let systemContent = '';
+    
+    // Use a different system prompt for multi-part prompts if no system message exists
+    if (!hasSystemMessage) {
+      if (isMultiPartPrompt) {
+        systemContent = `You are Hope Log, guiding ${username} through a structured journaling exercise.
+        Break down complex prompts into smaller steps and guide the user through them one by one.
+        
+        ${contextFromPastEntries ? `\n\n${contextFromPastEntries}\n\n` : ""}
+        
+        Guidelines for structured journaling:
+        - Ask about ONE part of the prompt at a time
+        - Wait for the user's response before moving to the next part
+        - For prompts asking for multiple items (like "three things"), address each item separately
+        - Ask follow-up questions about WHY or HOW to encourage deeper reflection
+        - Be patient, warm and supportive throughout the process
+        - After all parts are complete, provide a brief summary of the user's reflections
+        - Never claim to be a therapist or provide medical advice`;
+      } else {
+        systemContent = `You are Hope Log, an empathetic AI journal assistant. 
         Your purpose is to help ${username} with mental wellness through supportive conversation.
         Be warm, thoughtful, and encouraging. Ask insightful follow-up questions that promote self-reflection.
         Respond in a conversational, yet helpful manner. Sound like a caring friend.
@@ -252,21 +272,41 @@ export async function generateAIResponse(
         - Ask thoughtful follow-up questions to encourage journaling
         - Remember details from the conversation
         - Never claim to be a therapist or provide medical advice
-        - If the user expresses severe distress, suggest professional help`,
-      },
-      // Convert conversation history to OpenAI format
-      ...conversationHistory.map((entry) => ({
-        role: entry.role === "user" ? "user" : "assistant",
-        content: entry.content,
-      })),
-      // Add the current message
-      { role: "user", content: userMessage },
-    ] as any[];
+        - If the user expresses severe distress, suggest professional help`;
+      }
+    }
+    
+    // Build messages array
+    let messages = [] as any[];
+    
+    if (hasSystemMessage) {
+      // Use the existing system message from the history
+      messages = [
+        ...conversationHistory.map((entry) => ({
+          role: entry.role === "user" ? "user" : entry.role === "system" ? "system" : "assistant",
+          content: entry.content,
+        })),
+        { role: "user", content: userMessage },
+      ];
+    } else {
+      // Use our newly created system message
+      messages = [
+        {
+          role: "system",
+          content: systemContent,
+        },
+        ...conversationHistory.map((entry) => ({
+          role: entry.role === "user" ? "user" : "assistant",
+          content: entry.content,
+        })),
+        { role: "user", content: userMessage },
+      ];
+    }
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: messages,
-      max_tokens: 200,
+      max_tokens: isMultiPartPrompt ? 350 : 200,
       temperature: 0.7,
     });
 
