@@ -349,7 +349,7 @@ export default function JournalPage() {
                   <p className="text-gray-500">No journal entries found</p>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {/* Get unique months from entries */}
                   {Array.from(new Set(entries.map(entry => {
                     const date = new Date(entry.date);
@@ -378,48 +378,147 @@ export default function JournalPage() {
                       return acc;
                     }, {} as Record<number, JournalEntry[]>);
                     
+                    // Get days in month
+                    const daysInMonth = new Date(year, month, 0).getDate();
+                    
+                    // Create array for calendar grid
+                    const firstDayOfMonth = new Date(year, month - 1, 1).getDay();
+                    const calendarDays = [];
+                    
+                    // Add days from previous month to fill first week
+                    const prevMonthDays = firstDayOfMonth === 0 ? 0 : firstDayOfMonth;
+                    for (let i = 0; i < prevMonthDays; i++) {
+                      calendarDays.push(null);
+                    }
+                    
+                    // Add days of current month
+                    for (let i = 1; i <= daysInMonth; i++) {
+                      calendarDays.push(i);
+                    }
+                    
                     return (
-                      <div key={monthKey} className="border border-border rounded-md overflow-hidden">
-                        <div className="bg-muted/50 px-4 py-2 font-medium">
-                          {monthName} {year}
+                      <div key={monthKey} className="border border-gray-200 rounded-md overflow-hidden">
+                        <div className="bg-[#9AAB63]/10 px-4 py-3 font-medium border-b border-gray-200 flex justify-between items-center">
+                          <h4 className="text-lg text-[#9AAB63]">{monthName} {year}</h4>
+                          <Badge className="bg-[#F5B8DB]/90 hover:bg-[#F5B8DB]">
+                            {monthEntries.length} entries
+                          </Badge>
                         </div>
-                        <div className="p-3">
-                          {Object.entries(entriesByDay).sort((a, b) => Number(b[0]) - Number(a[0])).map(([day, dayEntries]) => (
-                            <div key={day} className="mb-3 last:mb-0">
-                              <div className="flex items-center mb-2">
-                                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                                  <span className="text-sm font-semibold text-primary">{day}</span>
+                        
+                        {/* Calendar grid view */}
+                        <div className="p-4">
+                          <div className="grid grid-cols-7 mb-2 text-center">
+                            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                              <div key={day} className="text-xs font-medium text-gray-500 py-1">
+                                {day}
+                              </div>
+                            ))}
+                          </div>
+                          
+                          <div className="grid grid-cols-7 gap-1">
+                            {calendarDays.map((day, index) => {
+                              if (day === null) {
+                                return <div key={`empty-${index}`} className="aspect-square p-1"></div>;
+                              }
+                              
+                              const hasEntries = !!entriesByDay[day];
+                              const dayEntries = entriesByDay[day] || [];
+                              
+                              return (
+                                <div 
+                                  key={day} 
+                                  className={`
+                                    relative rounded-md border group hover:border-[#9AAB63]/50 transition-colors
+                                    ${hasEntries ? 'border-[#9AAB63]/30 bg-[#9AAB63]/5' : 'border-gray-200'} 
+                                    aspect-square flex flex-col items-center justify-start overflow-hidden
+                                  `}
+                                >
+                                  <div className={`
+                                    w-full text-center py-1.5 text-sm
+                                    ${hasEntries ? 'font-medium text-[#9AAB63]' : 'text-gray-700'}
+                                  `}>
+                                    {day}
+                                  </div>
+                                  
+                                  {hasEntries && (
+                                    <>
+                                      <div className="absolute bottom-1 w-full px-1 flex justify-center">
+                                        <div className={`
+                                          text-xs ${dayEntries.length > 1 ? 'bg-[#9AAB63]' : 'bg-[#9AAB63]/70'} text-white 
+                                          rounded-full px-1.5 py-0.5 font-medium
+                                        `}>
+                                          {dayEntries.length}
+                                        </div>
+                                      </div>
+                                      
+                                      <div className="absolute inset-0 bg-white/95 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-center items-center p-1">
+                                        <div className="text-center mb-1">
+                                          <span className="text-sm font-medium">{dayEntries.length} {dayEntries.length === 1 ? 'entry' : 'entries'}</span>
+                                        </div>
+                                        <div className="w-full">
+                                          {dayEntries.slice(0, 2).map(entry => (
+                                            <Link 
+                                              key={entry.id} 
+                                              href={`/journal/${entry.id}`}
+                                              className="block text-xs truncate hover:underline py-0.5 text-center text-gray-700"
+                                            >
+                                              {new Date(entry.date).toLocaleTimeString([], {
+                                                hour: 'numeric',
+                                                minute: '2-digit'
+                                              })}
+                                            </Link>
+                                          ))}
+                                          {dayEntries.length > 2 && (
+                                            <div className="text-center text-xs text-[#F5B8DB]">
+                                              +{dayEntries.length - 2} more
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </>
+                                  )}
                                 </div>
-                                <span className="ml-2 text-sm font-medium">{dayEntries.length} entries</span>
-                              </div>
-                              <div className="pl-10 space-y-1">
-                                {dayEntries.map(entry => (
-                                  <Link 
-                                    key={entry.id} 
-                                    href={`/journal/${entry.id}`}
-                                    className="flex items-center text-sm hover:underline py-1 text-muted-foreground hover:text-foreground"
-                                  >
-                                    <span className="w-12 text-xs">
-                                      {new Date(entry.date).toLocaleTimeString([], { 
-                                        hour: '2-digit', 
-                                        minute: '2-digit',
-                                        hour12: true
-                                      })}
-                                    </span>
-                                    <span className="ml-2 line-clamp-1">
-                                      {(() => {
-                                        // Get first ~30 chars of content
-                                        if (!entry.content) return "Untitled Entry";
-                                        const text = entry.content.trim();
-                                        return text.length > 30 ? `${text.substring(0, 30)}...` : text;
-                                      })()}
-                                    </span>
-                                  </Link>
-                                ))}
-                              </div>
-                            </div>
-                          ))}
+                              );
+                            })}
+                          </div>
                         </div>
+                        
+                        {/* List view of day entries when there are entries */}
+                        {Object.keys(entriesByDay).length > 0 && (
+                          <div className="border-t border-gray-200 p-4">
+                            <h5 className="font-medium mb-3 text-gray-700">Day entries:</h5>
+                            {Object.entries(entriesByDay).sort((a, b) => Number(b[0]) - Number(a[0])).map(([day, dayEntries]) => (
+                              <div key={day} className="mb-4 last:mb-0">
+                                <div className="flex items-center mb-2">
+                                  <div className="w-8 h-8 rounded-full bg-[#9AAB63]/10 flex items-center justify-center">
+                                    <span className="text-sm font-semibold text-[#9AAB63]">{day}</span>
+                                  </div>
+                                  <span className="ml-2 text-sm font-medium">{dayEntries.length} entries</span>
+                                </div>
+                                <div className="pl-10 space-y-1">
+                                  {dayEntries.map(entry => (
+                                    <Link 
+                                      key={entry.id} 
+                                      href={`/journal/${entry.id}`}
+                                      className="flex items-center text-sm hover:underline py-1 text-gray-600 hover:text-gray-900"
+                                    >
+                                      <span className="w-14 text-xs flex items-center">
+                                        <Clock className="h-3 w-3 mr-1 text-[#F5B8DB]" />
+                                        {new Date(entry.date).toLocaleTimeString([], {
+                                          hour: 'numeric',
+                                          minute: '2-digit'
+                                        })}
+                                      </span>
+                                      <span className="truncate">
+                                        {entry.content.length > 40 ? entry.content.substring(0, 40) + '...' : entry.content}
+                                      </span>
+                                    </Link>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     );
                   })}
