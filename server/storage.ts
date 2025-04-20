@@ -13,6 +13,7 @@ export interface IStorage {
   
   // Journal methods
   getJournalEntriesByUserId(userId: number): Promise<JournalEntry[]>;
+  getJournalEntryById(id: number): Promise<JournalEntry | undefined>;
   getRecentJournalEntriesByUserId(userId: number, limit: number): Promise<JournalEntry[]>;
   getJournalEntriesForLastWeek(userId: number): Promise<JournalEntry[]>;
   createJournalEntry(entry: InsertJournalEntry): Promise<JournalEntry>;
@@ -76,6 +77,15 @@ export class DatabaseStorage implements IStorage {
       .from(journalEntries)
       .where(eq(journalEntries.userId, userId))
       .orderBy(desc(journalEntries.date));
+  }
+  
+  async getJournalEntryById(id: number): Promise<JournalEntry | undefined> {
+    const result = await db
+      .select()
+      .from(journalEntries)
+      .where(eq(journalEntries.id, id));
+      
+    return result[0];
   }
   
   async getRecentJournalEntriesByUserId(userId: number, limit: number): Promise<JournalEntry[]> {

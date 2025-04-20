@@ -24,6 +24,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get a single journal entry by ID
+  app.get("/api/journal-entries/entry/:id", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const id = Number(req.params.id);
+    
+    try {
+      const entry = await storage.getJournalEntryById(id);
+      
+      if (!entry) {
+        return res.status(404).json({ error: "Journal entry not found" });
+      }
+      
+      // Check if the entry belongs to the authenticated user
+      if (entry.userId !== req.user?.id) {
+        return res.sendStatus(403);
+      }
+      
+      res.json(entry);
+    } catch (error) {
+      console.error("Error fetching journal entry:", error);
+      res.status(500).json({ error: "Failed to fetch journal entry" });
+    }
+  });
+  
   // Save Chat Transcript - collects all chat messages and saves them as a single journal entry
   app.post("/api/journal-entries/save-chat", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
