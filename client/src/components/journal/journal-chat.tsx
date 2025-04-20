@@ -183,29 +183,7 @@ export function JournalChat({ userId }: JournalChatProps) {
     <div className="pi-card bg-[#FFF8E8] border border-gray-200">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <div className="pi-card-header flex justify-between items-center bg-[#9AAB63] rounded-t-xl border-b border-[#9AAB63]/50 -mx-6 -mt-6 p-4 mb-6">
-          {activeTab === "chat" && (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="text-white bg-[#9AAB63] border-white/40 hover:bg-white/20 hover:text-white"
-              onClick={handleSaveChat}
-              disabled={saveChatMutation.isPending || entries.filter(entry => !(entry as any).isJournal).length === 0}
-            >
-              {saveChatMutation.isPending ? (
-                <>
-                  <span className="mr-1.5">Saving</span>
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                </>
-              ) : (
-                <>
-                  <Save className="h-3.5 w-3.5 mr-1.5" />
-                  Save Chat
-                </>
-              )}
-            </Button>
-          )}
-          {activeTab !== "chat" && <div></div>}
-          
+          <div></div>
           <TabsList className="px-1">
             <TabsTrigger value="chat" className="px-3 py-1.5">Chat</TabsTrigger>
             <TabsTrigger value="journal" className="px-3 py-1.5">Journal</TabsTrigger>
@@ -376,7 +354,32 @@ export function JournalChat({ userId }: JournalChatProps) {
             </button>
           </div>
           
-          <div className="chat-input mt-3">
+          <div className="mt-3 flex flex-col gap-3">
+            {/* Save Chat button at the bottom */}
+            {entries.filter(entry => !(entry as any).isJournal).length > 0 && (
+              <div className="w-full flex justify-center">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="text-[#9AAB63] bg-white border-[#9AAB63]/40 hover:bg-[#9AAB63]/10 hover:text-[#9AAB63] mb-1"
+                  onClick={handleSaveChat}
+                  disabled={saveChatMutation.isPending}
+                >
+                  {saveChatMutation.isPending ? (
+                    <>
+                      <span className="mr-1.5">Saving</span>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-3.5 w-3.5 mr-1.5" />
+                      Save Chat as Journal Entry
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+          
             <form className="flex items-center w-full gap-2" onSubmit={handleSubmit}>
               <Input
                 value={message}
