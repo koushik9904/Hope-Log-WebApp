@@ -10,6 +10,7 @@ import { ChevronLeft, Clock, Calendar } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { JournalEntry } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
+import hopeLogLogo from "../assets/HopeLog_logo-Photoroom.png";
 
 export default function JournalEntryPage() {
   const { id } = useParams<{ id: string }>();
@@ -179,12 +180,35 @@ export default function JournalEntryPage() {
                           {entry.transcript.split("\n").map((line, index) => {
                             // Check if line is from AI or user
                             const isAI = line.startsWith("Hope Log:") || line.startsWith("AI:");
+                            const messageText = isAI 
+                              ? line.replace(/^(Hope Log:|AI:)\s*/, "").trim()
+                              : line.replace(/^(You:|User:)\s*/, "").trim();
+                              
                             return (
                               <div 
                                 key={index} 
-                                className={`px-4 py-3 rounded-lg ${isAI ? 'bg-blue-50 border-l-4 border-blue-200' : 'bg-gray-50 border-l-4 border-gray-200'}`}
+                                className={`flex items-start gap-3 rounded-lg p-3 ${isAI ? 'bg-blue-50' : 'bg-gray-50'}`}
                               >
-                                <p className="my-0">{line}</p>
+                                {isAI ? (
+                                  <div className="flex-shrink-0 w-8 h-8 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center">
+                                    <img 
+                                      src={hopeLogLogo} 
+                                      alt="Hope Log" 
+                                      className="w-7 h-7 object-contain"
+                                    />
+                                  </div>
+                                ) : (
+                                  <div className="flex-shrink-0 w-8 h-8 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-gray-500">
+                                      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                                      <circle cx="12" cy="7" r="4"></circle>
+                                    </svg>
+                                  </div>
+                                )}
+                                
+                                <div className={`flex-1 px-3 py-2 rounded-lg ${isAI ? 'border-l-4 border-blue-200' : 'border-l-4 border-gray-200'}`}>
+                                  <p className="my-0 text-sm">{messageText}</p>
+                                </div>
                               </div>
                             );
                           })}
