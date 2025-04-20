@@ -64,6 +64,14 @@ export function JournalPrompts({ userId, onSelectPrompt }: JournalPromptsProps) 
           if (chatMessagesContainer) {
             chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
           }
+          
+          // Focus the input box
+          setTimeout(() => {
+            const inputElement = document.querySelector('input[placeholder="Write your thoughts or ask a question..."]') as HTMLInputElement;
+            if (inputElement) {
+              inputElement.focus();
+            }
+          }, 100);
         })
         .catch(error => {
           console.error("Error sending multi-part prompt:", error);

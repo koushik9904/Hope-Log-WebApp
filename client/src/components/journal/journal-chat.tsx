@@ -314,6 +314,14 @@ export function JournalChat({ userId }: JournalChatProps) {
     if (message.trim()) {
       addEntryMutation.mutate(message);
       setMessage("");
+      
+      // Focus back on the input after submission
+      setTimeout(() => {
+        const inputElement = document.querySelector('input[placeholder="Write your thoughts or ask a question..."]') as HTMLInputElement;
+        if (inputElement) {
+          inputElement.focus();
+        }
+      }, 100);
     }
   };
 
@@ -334,6 +342,14 @@ export function JournalChat({ userId }: JournalChatProps) {
     
     // Log to confirm this method is being called
     console.log("Direct AI prompt:", prompt);
+    
+    // Focus the input after clicking a suggested prompt
+    setTimeout(() => {
+      const inputElement = document.querySelector('input[placeholder="Write your thoughts or ask a question..."]') as HTMLInputElement;
+      if (inputElement) {
+        inputElement.focus();
+      }
+    }, 100);
   };
 
   const handleSaveChat = () => {
@@ -494,6 +510,14 @@ export function JournalChat({ userId }: JournalChatProps) {
                         setMessage("Tell me more about what you just said");
                         addEntryMutation.mutate("Tell me more about what you just said");
                         setMessage("");
+                        
+                        // Focus back on the input after clicking a suggestion
+                        setTimeout(() => {
+                          const inputElement = document.querySelector('input[placeholder="Write your thoughts or ask a question..."]') as HTMLInputElement;
+                          if (inputElement) {
+                            inputElement.focus();
+                          }
+                        }, 100);
                       }}
                     >
                       Tell me more <ChevronRight className="h-3 w-3 ml-1" />
@@ -504,6 +528,14 @@ export function JournalChat({ userId }: JournalChatProps) {
                         setMessage("Why might I feel this way?");
                         addEntryMutation.mutate("Why might I feel this way?");
                         setMessage("");
+                        
+                        // Focus back on the input after clicking a suggestion
+                        setTimeout(() => {
+                          const inputElement = document.querySelector('input[placeholder="Write your thoughts or ask a question..."]') as HTMLInputElement;
+                          if (inputElement) {
+                            inputElement.focus();
+                          }
+                        }, 100);
                       }}
                     >
                       Why do I feel this way? <ChevronRight className="h-3 w-3 ml-1" />
