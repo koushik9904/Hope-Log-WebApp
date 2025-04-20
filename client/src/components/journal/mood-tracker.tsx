@@ -130,7 +130,7 @@ export function MoodTracker({ userId }: MoodTrackerProps) {
             <p className="text-sm text-gray-500">Track your emotional patterns</p>
           </div>
         </div>
-        <Link to="/insights" className="text-[#9AAB63] flex items-center text-sm font-medium hover:underline">
+        <Link to="/insights#top" className="text-[#9AAB63] flex items-center text-sm font-medium hover:underline" onClick={() => window.scrollTo(0, 0)}>
           <BarChart2 className="h-4 w-4 mr-1" /> More stats
         </Link>
       </div>
@@ -167,7 +167,7 @@ export function MoodTracker({ userId }: MoodTrackerProps) {
                       From journal
                     </span>
                   </div>
-                  <Link to="/insights" className="text-sm text-[#9AAB63] font-medium mt-2 flex items-center hover:text-[#B6CAEB] hover:underline">
+                  <Link to="/insights#top" className="text-sm text-[#9AAB63] font-medium mt-2 flex items-center hover:text-[#B6CAEB] hover:underline" onClick={() => window.scrollTo(0, 0)}>
                     See pattern analysis <ChevronRight className="h-3 w-3 ml-1" />
                   </Link>
                 </div>

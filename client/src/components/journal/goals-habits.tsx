@@ -39,7 +39,7 @@ export function GoalsHabits({ userId }: GoalsHabitsProps) {
           <h2 className="text-xl font-semibold text-gray-800">Goals & Habits</h2>
           <p className="text-sm text-gray-500">Track your progress</p>
         </div>
-        <Link to="/goals" className="bg-[#9AAB63] text-white p-2 rounded-full hover:bg-[#9AAB63]/90 transition-colors inline-flex">
+        <Link to="/goals#top" className="bg-[#9AAB63] text-white p-2 rounded-full hover:bg-[#9AAB63]/90 transition-colors inline-flex" onClick={() => window.scrollTo(0, 0)}>
           <PlusCircle className="h-5 w-5" />
         </Link>
       </div>
@@ -88,7 +88,7 @@ export function GoalsHabits({ userId }: GoalsHabitsProps) {
         </div>
       )}
       
-      <Link to="/goals" className="w-full py-3 text-[#9AAB63] font-medium flex items-center justify-center hover:text-[#9AAB63]/80 transition-colors hover:underline">
+      <Link to="/goals#top" className="w-full py-3 text-[#9AAB63] font-medium flex items-center justify-center hover:text-[#9AAB63]/80 transition-colors hover:underline" onClick={() => window.scrollTo(0, 0)}>
         View All Goals <ChevronRight className="h-4 w-4 ml-1" />
       </Link>
     </div>

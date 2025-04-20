@@ -1,8 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Prompt } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LightbulbIcon, ChevronRight } from "lucide-react";
-import { Link } from "wouter";
+import { LightbulbIcon, ChevronRight, RefreshCw } from "lucide-react";
+import { useState } from "react";
 
 type JournalPromptsProps = {
   userId: number;
@@ -10,6 +10,10 @@ type JournalPromptsProps = {
 };
 
 export function JournalPrompts({ userId, onSelectPrompt }: JournalPromptsProps) {
+  const [promptsOffset, setPromptsOffset] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const queryClient = useQueryClient();
+  
   const { data: prompts = [], isLoading } = useQuery<Prompt[]>({
     queryKey: ["/api/prompts"],
   });
@@ -115,10 +119,10 @@ export function JournalPrompts({ userId, onSelectPrompt }: JournalPromptsProps) 
             </p>
           </div>
         ) : (
-          prompts.slice(0, 3).map((prompt) => (
+          prompts.slice(promptsOffset, promptsOffset + 3).map((prompt) => (
             <div 
               key={prompt.id}
-              className="p-4 bg-[#F5D867]/10 hover:bg-[#F5D867]/20 rounded-2xl cursor-pointer transition-colors border border-[#F5D867]/20"
+              className={`p-4 bg-[#F5D867]/10 hover:bg-[#F5D867]/20 rounded-2xl cursor-pointer transition-colors border border-[#F5D867]/20 ${isRefreshing ? 'opacity-50' : ''}`}
               onClick={() => handlePromptClick(prompt.text)}
             >
               <p className="text-gray-800">{prompt.text}</p>
@@ -127,9 +131,30 @@ export function JournalPrompts({ userId, onSelectPrompt }: JournalPromptsProps) 
         )}
       </div>
       
-      <Link to="/journal" className="w-full py-3 text-primary font-medium flex items-center justify-center hover:underline">
-        Get More Prompts <ChevronRight className="h-4 w-4 ml-1" />
-      </Link>
+      <button 
+        onClick={() => {
+          setIsRefreshing(true);
+          // Calculate new offset
+          const newOffset = (promptsOffset + 3) % (prompts.length > 3 ? prompts.length - 2 : 3);
+          setPromptsOffset(newOffset);
+          
+          // Add a short delay to make the refresh animation visible
+          setTimeout(() => {
+            setIsRefreshing(false);
+          }, 500);
+        }} 
+        className="w-full py-3 text-primary font-medium flex items-center justify-center hover:underline"
+      >
+        {isRefreshing ? (
+          <>
+            <RefreshCw className="h-4 w-4 mr-1 animate-spin" /> Refreshing...
+          </>
+        ) : (
+          <>
+            Get More Prompts <ChevronRight className="h-4 w-4 ml-1" />
+          </>
+        )}
+      </button>
     </div>
   );
 }

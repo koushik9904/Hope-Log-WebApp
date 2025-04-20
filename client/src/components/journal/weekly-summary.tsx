@@ -87,7 +87,7 @@ export function WeeklySummary({ userId }: WeeklySummaryProps) {
         </div>
       )}
       
-      <Link to="/insights" className="w-full py-3 text-primary font-medium flex items-center justify-center hover:underline">
+      <Link to="/insights#top" className="w-full py-3 text-primary font-medium flex items-center justify-center hover:underline" onClick={() => window.scrollTo(0, 0)}>
         View Full Report <ChevronRight className="h-4 w-4 ml-1" />
       </Link>
     </div>
