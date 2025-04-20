@@ -11,35 +11,35 @@ export default function HomePage() {
   const { user } = useAuth();
   const [journalInput, setJournalInput] = useState("");
   
-  // This function now sends a specific message to the AI that will trigger a few-shot prompt flow
+  // Function to handle when a prompt is selected from the JournalPrompts component
   const handleSelectPrompt = (prompt: string) => {
-    // Find the journal chat component
-    const journalChat = document.querySelector('.pi-card form input') as HTMLInputElement;
+    console.log("Home page received prompt:", prompt);
     
-    // Create a special formatted message that tells the AI this is a multi-part prompt
-    const formattedPrompt = `__MULTI_PART_PROMPT__: ${prompt}`;
-    
-    // Instead of just setting the value, find a way to programmatically send this to the journal chat
-    // This will be picked up in the server route to handle specially
-    
-    // Find the form and get access to the addEntryMutation function inside JournalChat component
-    // For now, we'll simulate clicking on the chat tab first
+    // First, click on the chat tab to ensure we're in chat mode
     const chatTab = document.querySelector('button[value="chat"]') as HTMLButtonElement;
     if (chatTab) {
       chatTab.click();
       
       // Wait a moment for the tab to switch
       setTimeout(() => {
-        // Now find the journal input and submit button
+        // Find the input field and submit button
         const input = document.querySelector('input[placeholder="Write your thoughts or ask a question..."]') as HTMLInputElement;
         const submitButton = input?.closest('form')?.querySelector('button[type="submit"]') as HTMLButtonElement;
         
         if (input && submitButton) {
-          // Set the input value to our special formatted prompt
-          input.value = formattedPrompt;
+          // Set the input value to our prompt (which may already be formatted with __MULTI_PART_PROMPT__ prefix)
+          input.value = prompt;
           
-          // Trigger a click on the send button to simulate user sending the message
-          submitButton.click();
+          // Directly submit the form to send the message to the AI
+          const form = input.closest('form');
+          if (form) {
+            // Create and dispatch a submit event
+            const submitEvent = new Event('submit', { cancelable: true, bubbles: true });
+            form.dispatchEvent(submitEvent);
+          } else {
+            // Fallback - click the submit button
+            submitButton.click();
+          }
         }
       }, 100);
     }

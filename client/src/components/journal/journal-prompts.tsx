@@ -47,7 +47,11 @@ export function JournalPrompts({ userId, onSelectPrompt }: JournalPromptsProps) 
             <div 
               key={prompt.id}
               className="p-4 bg-[#F5D867]/10 hover:bg-[#F5D867]/20 rounded-2xl cursor-pointer transition-colors border border-[#F5D867]/20"
-              onClick={() => onSelectPrompt(prompt.text)}
+              onClick={() => {
+                console.log("Multi-part prompt selected:", prompt.text);
+                // Use the special format to indicate this is a multi-part prompt
+                onSelectPrompt(`__MULTI_PART_PROMPT__: ${prompt.text}`);
+              }}
             >
               <p className="text-gray-800">{prompt.text}</p>
             </div>

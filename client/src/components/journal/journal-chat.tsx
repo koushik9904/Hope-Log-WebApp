@@ -275,8 +275,11 @@ export function JournalChat({ userId }: JournalChatProps) {
 
   // Instead of copying the prompt to the input field, directly trigger an AI response
   const handleSuggestedPrompt = (prompt: string) => {
-    // Send the prompt directly to the AI without setting it in the input field
+    // Don't set the message state, just directly send the prompt to the AI
     addEntryMutation.mutate(prompt);
+    
+    // Log to confirm this method is being called
+    console.log("Direct AI prompt:", prompt);
   };
 
   const handleSaveChat = () => {
