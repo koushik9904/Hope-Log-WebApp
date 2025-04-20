@@ -31,20 +31,20 @@ function Router() {
   if (location === "/" && !user) {
     return (
       <Switch>
-        <Route path="/" component={LandingPage} />
         <Route path="/auth" component={AuthPage} />
-        <ProtectedRoute path="/journal" component={JournalPage} />
         <ProtectedRoute path="/journal/new" component={NewJournalEntryPage} />
         <ProtectedRoute path="/journal/:id" component={JournalEntryPage} />
+        <ProtectedRoute path="/journal" component={JournalPage} />
         <ProtectedRoute path="/insights" component={InsightsPage} />
         <ProtectedRoute path="/goals" component={GoalsPage} />
-        <ProtectedRoute path="/settings" component={SettingsPage} />
         <ProtectedRoute path="/settings/profile" component={SettingsProfilePage} />
         <ProtectedRoute path="/settings/password" component={SettingsPasswordPage} />
         <ProtectedRoute path="/settings/notifications" component={SettingsNotificationsPage} />
         <ProtectedRoute path="/settings/privacy" component={SettingsPrivacyPage} />
         <ProtectedRoute path="/settings/appearance" component={SettingsAppearancePage} />
         <ProtectedRoute path="/settings/data" component={SettingsDataPage} />
+        <ProtectedRoute path="/settings" component={SettingsPage} />
+        <Route path="/" component={LandingPage} />
         <Route component={NotFound} />
       </Switch>
     );
@@ -52,19 +52,19 @@ function Router() {
   
   return (
     <Switch>
-      <ProtectedRoute path="/" component={HomePage} />
-      <ProtectedRoute path="/journal" component={JournalPage} />
       <ProtectedRoute path="/journal/new" component={NewJournalEntryPage} />
       <ProtectedRoute path="/journal/:id" component={JournalEntryPage} />
+      <ProtectedRoute path="/journal" component={JournalPage} />
       <ProtectedRoute path="/insights" component={InsightsPage} />
       <ProtectedRoute path="/goals" component={GoalsPage} />
-      <ProtectedRoute path="/settings" component={SettingsPage} />
       <ProtectedRoute path="/settings/profile" component={SettingsProfilePage} />
       <ProtectedRoute path="/settings/password" component={SettingsPasswordPage} />
       <ProtectedRoute path="/settings/notifications" component={SettingsNotificationsPage} />
       <ProtectedRoute path="/settings/privacy" component={SettingsPrivacyPage} />
       <ProtectedRoute path="/settings/appearance" component={SettingsAppearancePage} />
       <ProtectedRoute path="/settings/data" component={SettingsDataPage} />
+      <ProtectedRoute path="/settings" component={SettingsPage} />
+      <ProtectedRoute path="/" component={HomePage} />
       <Route path="/auth" component={AuthPage} />
       <Route component={NotFound} />
     </Switch>

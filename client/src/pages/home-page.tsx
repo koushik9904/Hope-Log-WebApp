@@ -30,6 +30,7 @@ export default function HomePage() {
         {/* Left Column */}
         <div className="lg:col-span-2 space-y-6">
           <JournalChat userId={user.id} />
+          <JournalPrompts userId={user.id} onSelectPrompt={handleSelectPrompt} />
           <MoodTracker userId={user.id} />
         </div>
         
@@ -37,7 +38,6 @@ export default function HomePage() {
         <div className="space-y-6">
           <WeeklySummary userId={user.id} />
           <GoalsHabits userId={user.id} />
-          <JournalPrompts userId={user.id} onSelectPrompt={handleSelectPrompt} />
         </div>
       </div>
     </DashboardLayout>

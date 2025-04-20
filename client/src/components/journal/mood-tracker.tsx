@@ -40,10 +40,15 @@ export function MoodTracker({ userId }: MoodTrackerProps) {
     recordMoodMutation.mutate(mood);
   };
   
+  // Fetch journal entries to access sentiment analysis data
+  const { data: entries = [] } = useQuery<JournalEntry[]>({
+    queryKey: [`/api/journal-entries/${userId}`],
+  });
+
   // Format mood data for the chart
   const chartData: MoodData[] = [];
   
-  if (moods && moods.length > 0) {
+  if ((moods && moods.length > 0) || (entries && entries.length > 0)) {
     // Create data for the past 7 days
     const today = new Date();
     
@@ -52,16 +57,47 @@ export function MoodTracker({ userId }: MoodTrackerProps) {
       const dateStr = format(date, "yyyy-MM-dd");
       const dayLabel = format(date, "EEE");
       
-      // Find mood for this day if it exists
+      // Find self-reported mood for this day if it exists
       const dayMood = moods.find(m => {
         const moodDate = new Date(m.date);
         return format(moodDate, "yyyy-MM-dd") === dateStr;
       });
       
+      // Find journal entries with sentiment analysis for this day
+      const dayEntries = entries.filter(entry => {
+        const entryDate = new Date(entry.date);
+        return format(entryDate, "yyyy-MM-dd") === dateStr && 
+               entry.sentiment && 
+               entry.sentiment.score !== undefined;
+      });
+      
+      // Calculate average sentiment score from journal entries for this day
+      let sentimentScore = 0;
+      if (dayEntries.length > 0) {
+        // Convert sentiment scores (typically -1 to 1 range) to mood scale (1-5)
+        // and calculate average
+        const totalScore = dayEntries.reduce((sum, entry) => {
+          // Assuming sentiment.score is between -1 and 1
+          // Convert to 1-5 scale: (score + 1) * 2 + 1
+          const moodScore = Math.round((entry.sentiment!.score + 1) * 2 + 1);
+          // Clamp between 1-5
+          return sum + Math.min(5, Math.max(1, moodScore));
+        }, 0);
+        
+        sentimentScore = totalScore / dayEntries.length;
+      }
+      
+      // Use self-reported mood if available, otherwise use derived sentiment score
+      const finalMoodScore = dayMood ? dayMood.rating : 
+                           (sentimentScore > 0 ? sentimentScore : 0);
+      
       chartData.push({
         date: dateStr,
-        mood: dayMood ? dayMood.rating : 0, // 0 means no mood recorded
-        label: dayLabel
+        mood: finalMoodScore, // 0 means no mood recorded
+        label: dayLabel,
+        // Include both sources so tooltip can show them
+        selfReportedMood: dayMood ? dayMood.rating : undefined,
+        sentimentMood: sentimentScore > 0 ? sentimentScore : undefined
       });
     }
   } else if (!isLoading) {
