@@ -291,8 +291,11 @@ export function JournalChat({ userId }: JournalChatProps) {
 
   // Instead of copying the prompt to the input field, directly trigger an AI response
   const handleSuggestedPrompt = (prompt: string) => {
+    // Add the special prefix to indicate this is a prompt that should be asked TO the user
+    const prefixedPrompt = `ASK_ME_ABOUT: ${prompt}`;
+    
     // Don't set the message state, just directly send the prompt to the AI
-    addEntryMutation.mutate(prompt);
+    addEntryMutation.mutate(prefixedPrompt);
     
     // Log to confirm this method is being called
     console.log("Direct AI prompt:", prompt);

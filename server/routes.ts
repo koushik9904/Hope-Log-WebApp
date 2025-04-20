@@ -142,41 +142,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (req.user?.id !== userId) return res.sendStatus(403);
     
     try {
-      // Check if it's a direct prompt marked with ASK_ME_ABOUT prefix
-      const isDirectPrompt = content.startsWith('ASK_ME_ABOUT:');
-      
-      // Or a multi-part prompt
-      const isMultiPartPrompt = content.startsWith('__MULTI_PART_PROMPT__:');
-      
-      // Process the content
-      let processedContent = content;
-      
-      if (isDirectPrompt) {
-        // Extract the actual prompt question from the prefix
-        processedContent = content.replace('ASK_ME_ABOUT:', '').trim();
-        console.log("Server received direct prompt:", processedContent);
-      } else if (isMultiPartPrompt) {
-        // Extract the actual prompt from the prefix
-        processedContent = content.replace('__MULTI_PART_PROMPT__:', '').trim();
-        console.log("Server received multi-part prompt:", processedContent);
-      }
-      
       // Convert history to the format expected by the OpenAI function
       const conversationHistory = history.map((entry: {role: string, content: string}) => ({
         role: entry.role as "user" | "ai",
         content: entry.content
       }));
+      
       let aiResponse;
       
-      // Now handle the appropriate response based on the content type
-      if (isMultiPartPrompt) {
-        // We already extracted the actual prompt above as processedContent
+      // Check for special prompt types
+      if (content.startsWith('__MULTI_PART_PROMPT__:')) {
+        // This is a multi-part prompt from the Journal Prompts section
+        // Extract the actual prompt from the prefix
+        const promptContent = content.replace('__MULTI_PART_PROMPT__:', '').trim();
+        console.log("Server received multi-part prompt:", promptContent);
         
-        // Create a special system message for multi-part prompts that prompts the AI
-        // to engage in a guided, step-by-step conversation
+        // Create a special system message for multi-part prompts
         const systemMessage = {
           role: "system" as "system", 
-          content: `You are helping the user with a multi-part journaling prompt: "${processedContent}". 
+          content: `You are helping the user with a multi-part journaling prompt: "${promptContent}". 
           
 This is not a simple question but a structured journaling exercise that requires detailed, reflective responses.
 
@@ -200,14 +184,53 @@ Example of good breakdown for "What are three things that went well today and wh
         
         // Generate the special AI response for multi-part prompts
         aiResponse = await generateAIResponse(
-          processedContent, 
+          promptContent, 
           enhancedHistory, 
           req.user.username, 
           userId,
           true // Flag that this is a multi-part prompt
         );
-      } else {
-        // Normal single prompt handling
+      } 
+      // Check if this is a direct one-shot prompt from suggested prompts
+      else if (content.startsWith('ASK_ME_ABOUT:')) {
+        // Remove the prefix to get the clean prompt
+        const promptContent = content.replace('ASK_ME_ABOUT:', '').trim();
+        console.log("Server received direct prompt:", promptContent);
+        
+        // Create a special system message that tells the AI to ask the user about this topic
+        const systemMessage = {
+          role: "system" as "system",
+          content: `You are a warm and empathetic journaling assistant. The user has selected a journaling topic: "${promptContent}".
+          
+IMPORTANT: Instead of answering this as if the user asked YOU this question, you need to turn this into a question FOR the user.
+
+For example:
+- If the topic is "How am I feeling today?" → Ask the user "How are you feeling today? I'd love to hear about your current emotions."
+- If the topic is "What's something I'm grateful for?" → Ask "What's something you're feeling grateful for today? It can be something small or significant."
+
+Your role is to:
+1. Turn the topic into an engaging question directed TO the user
+2. Make your question open-ended and inviting
+3. Sound warm, caring and genuinely interested
+4. Keep your response brief (1-2 sentences)
+5. Avoid answering the question yourself or making assumptions`
+        };
+        
+        // Create a conversation history with just our system message
+        const specialHistory = [systemMessage];
+        
+        // Generate a response that will be a question to the user about the topic
+        aiResponse = await generateAIResponse(
+          promptContent,
+          specialHistory,
+          req.user.username,
+          userId,
+          false
+        );
+      } 
+      // Regular conversation
+      else {
+        // Normal conversation handling
         aiResponse = await generateAIResponse(content, conversationHistory, req.user.username, userId);
       }
       

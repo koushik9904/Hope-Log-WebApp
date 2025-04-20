@@ -20,51 +20,60 @@ export default function HomePage() {
     if (chatTab) {
       chatTab.click();
       
-      // More direct approach to find the component and simulate input
       // Wait a moment for the tab to switch
       setTimeout(() => {
         try {
-          // Get direct access to the chat component's addEntryMutation
-          // Since we can't access the component directly, send the prompt directly via the API
-          fetch('/api/chat-response', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify({
-              content: prompt,
-              userId: user?.id,
-              history: [] 
-            })
-          })
-          .then(response => {
-            if (response.ok) {
-              // Since we can't directly update the chat UI, maybe we need to reload
-              console.log("Successfully sent prompt via API");
-              // Force reload the UI
-              window.location.reload();
-            } else {
-              console.error("Failed to send prompt");
+          // For multi-part prompts from the Journal Prompts section, we need to use a special approach
+          // We'll directly add both the user message and AI response to the chat history
+          
+          // Step 1: Add the user's selected prompt as a message
+          // Find the JournalChat component's input and form
+          const chatInput = document.querySelector('input[placeholder="Write your thoughts or ask a question..."]') as HTMLInputElement;
+          
+          if (chatInput) {
+            // Set the input value to our prompt
+            chatInput.value = prompt;
+            // Find the form and submit button
+            const chatForm = chatInput.closest('form');
+            if (chatForm) {
+              // Directly submit the form using the built-in method
+              chatForm.requestSubmit();
             }
-          })
-          .catch(error => {
-            console.error("Error sending prompt:", error);
-          });
+          } else {
+            console.error("Could not find chat input");
+            
+            // Fallback: try a direct API approach
+            fetch('/api/chat-response', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              credentials: 'include',
+              body: JSON.stringify({
+                content: prompt,
+                userId: user?.id,
+                history: [] 
+              })
+            })
+            .then(response => {
+              if (response.ok) {
+                console.log("Successfully sent prompt via API fallback");
+                // Give the API a moment to process, then reload
+                setTimeout(() => {
+                  window.location.reload();
+                }, 500);
+              } else {
+                console.error("Failed to send prompt via API fallback");
+              }
+            })
+            .catch(error => {
+              console.error("Error in API fallback:", error);
+            });
+          }
         } catch (error) {
           console.error("Error in handleSelectPrompt:", error);
-          
-          // Fallback to the old method
-          const input = document.querySelector('input[placeholder="Write your thoughts or ask a question..."]') as HTMLInputElement;
-          if (input) {
-            input.value = prompt;
-            const form = input.closest('form');
-            if (form) {
-              form.requestSubmit();
-            }
-          }
         }
-      }, 100);
+      }, 200); // Increased timeout to ensure tab switch completes
     }
   };
   
