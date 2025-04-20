@@ -25,6 +25,7 @@ export const journalEntries = pgTable("journal_entries", {
   date: timestamp("date", { mode: 'string' }).notNull(),
   isAiResponse: boolean("is_ai_response").notNull().default(false),
   isJournal: boolean("is_journal").notNull().default(false),
+  transcript: text("transcript"),  // For storing complete chat transcripts when saving
   sentiment: jsonb("sentiment").$type<{
     score: number;
     emotions: string[];

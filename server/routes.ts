@@ -34,7 +34,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Get recent chat entries that aren't already part of a saved journal
       const recentEntries = await storage.getRecentJournalEntriesByUserId(userId, 50);
-      const chatEntries = recentEntries.filter(entry => !(entry as any).isJournal);
+      const chatEntries = recentEntries.filter(entry => !entry.isJournal);
       
       if (chatEntries.length === 0) {
         return res.status(400).json({ error: "No chat entries to save" });
@@ -49,13 +49,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generate summary and analyze sentiment with goal extraction
       const sentiment = await analyzeSentiment(transcript);
       
-      // Create the journal entry with the complete transcript
+      // Create the journal entry as a permanent record (isJournal=true)
       const journalEntry = await storage.createJournalEntry({
         userId,
-        content: transcript,
+        content: chatEntries[chatEntries.length - 1].content, // Use the last message as the content
         date: new Date().toISOString(),
         isAiResponse: false,
-        isJournal: true
+        isJournal: true,
+        transcript: transcript // Store the full conversation transcript
       });
       
       // Update with sentiment analysis
@@ -96,7 +97,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storeEmbedding(journalEntry.id, transcript);
       
       // Delete individual chat entries to clear the chat
-      // This is optional - comment out if you want to keep the chat history
+      // This is necessary to avoid storing individual messages as separate journal entries
       for (const entry of chatEntries) {
         await storage.deleteJournalEntry(entry.id);
       }
@@ -115,75 +116,95 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (req.user?.id !== userId) return res.sendStatus(403);
     
     try {
-      // Save user's journal entry
-      const userEntry = await storage.createJournalEntry({
-        userId,
-        content,
-        date: new Date().toISOString(),
-        isAiResponse: false,
-        isJournal
-      });
-      
-      // Get sentiment analysis
-      const sentiment = await analyzeSentiment(content);
-      await storage.updateJournalEntrySentiment(userEntry.id, sentiment);
-      
-      // Process any goals from the journal entry
-      if (sentiment.goals && sentiment.goals.length > 0) {
-        for (const goal of sentiment.goals) {
-          if (goal.isNew) {
-            // Create a new goal
-            await storage.createGoal({
-              userId,
-              name: goal.name,
-              target: 100, // Default target
-              progress: 0,
-              unit: "%",
-              colorScheme: 1
-            });
-          } else if (goal.completion !== undefined) {
-            // Find the existing goal to update
-            const existingGoals = await storage.getGoalsByUserId(userId);
-            const matchingGoal = existingGoals.find(g => 
-              g.name.toLowerCase() === goal.name.toLowerCase()
-            );
-            
-            if (matchingGoal) {
-              // Update the goal progress
-              await storage.updateGoalProgress(matchingGoal.id, goal.completion);
+      // For regular message exchange (not saving as journal)
+      if (!isJournal) {
+        // Save user's chat message
+        const userEntry = await storage.createJournalEntry({
+          userId,
+          content,
+          date: new Date().toISOString(),
+          isAiResponse: false,
+          isJournal: false // This is a temporary chat message
+        });
+        
+        // Get recent conversation history
+        const recentEntries = await storage.getRecentJournalEntriesByUserId(userId, 10);
+        const conversationHistory = recentEntries
+          .filter(entry => !entry.isJournal) // Only include temporary chat messages
+          .map(entry => ({
+            role: entry.isAiResponse ? "ai" as const : "user" as const,
+            content: entry.content
+          }));
+        
+        // Generate AI response with RAG - include saved journal context
+        const aiResponse = await generateAIResponse(content, conversationHistory, req.user.username, userId);
+        
+        // Save AI response as temporary chat message
+        const aiEntry = await storage.createJournalEntry({
+          userId,
+          content: aiResponse,
+          date: new Date().toISOString(),
+          isAiResponse: true,
+          isJournal: false // This is a temporary chat message
+        });
+        
+        // Return both entries
+        res.status(201).json([userEntry, aiEntry]);
+      }
+      // For direct journal entry (long-form journal entry)
+      else {
+        // Save as permanent journal entry
+        const journalEntry = await storage.createJournalEntry({
+          userId,
+          content,
+          date: new Date().toISOString(),
+          isAiResponse: false,
+          isJournal: true, // This is a permanent journal entry
+          transcript: content // For long-form entries, the transcript is the content
+        });
+        
+        // Get sentiment analysis
+        const sentiment = await analyzeSentiment(content);
+        await storage.updateJournalEntrySentiment(journalEntry.id, sentiment);
+        
+        // Process any goals from the journal entry
+        if (sentiment.goals && sentiment.goals.length > 0) {
+          for (const goal of sentiment.goals) {
+            if (goal.isNew) {
+              // Create a new goal
+              await storage.createGoal({
+                userId,
+                name: goal.name,
+                target: 100, // Default target
+                progress: 0,
+                unit: "%",
+                colorScheme: 1
+              });
+            } else if (goal.completion !== undefined) {
+              // Find the existing goal to update
+              const existingGoals = await storage.getGoalsByUserId(userId);
+              const matchingGoal = existingGoals.find(g => 
+                g.name.toLowerCase() === goal.name.toLowerCase()
+              );
+              
+              if (matchingGoal) {
+                // Update the goal progress
+                await storage.updateGoalProgress(matchingGoal.id, goal.completion);
+              }
             }
           }
         }
+        
+        // Store embedding for RAG functionality
+        try {
+          await storeEmbedding(journalEntry.id, content);
+        } catch (embeddingError) {
+          console.error("Failed to store embedding, but continuing:", embeddingError);
+        }
+        
+        // Return the journal entry
+        res.status(201).json([journalEntry]);
       }
-      
-      // Store embedding for RAG functionality
-      try {
-        await storeEmbedding(userEntry.id, content);
-      } catch (embeddingError) {
-        console.error("Failed to store embedding, but continuing:", embeddingError);
-      }
-      
-      // Get recent conversation history
-      const recentEntries = await storage.getRecentJournalEntriesByUserId(userId, 10);
-      const conversationHistory = recentEntries.map(entry => ({
-        role: entry.isAiResponse ? "ai" as const : "user" as const,
-        content: entry.content
-      }));
-      
-      // Generate AI response with RAG
-      const aiResponse = await generateAIResponse(content, conversationHistory, req.user.username, userId);
-      
-      // Save AI response
-      const aiEntry = await storage.createJournalEntry({
-        userId,
-        content: aiResponse,
-        date: new Date().toISOString(),
-        isAiResponse: true,
-        isJournal
-      });
-      
-      // Return both entries
-      res.status(201).json([userEntry, aiEntry]);
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: "Failed to process journal entry" });
