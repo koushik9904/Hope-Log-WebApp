@@ -125,6 +125,14 @@ export function JournalChat({ userId }: JournalChatProps) {
       
       setNextId(prevId => prevId + 2);
       
+      // Focus the input element after receiving AI response
+      setTimeout(() => {
+        const inputElement = document.querySelector('input[placeholder="Write your thoughts or ask a question..."]') as HTMLInputElement;
+        if (inputElement) {
+          inputElement.focus();
+        }
+      }, 100);
+      
       return [userMessage, { id: nextId + 1, content: aiResponse.content, isAiResponse: true, date: new Date().toISOString() }];
     },
     onError: (error) => {
