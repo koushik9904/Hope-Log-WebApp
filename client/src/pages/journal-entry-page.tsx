@@ -62,7 +62,33 @@ export default function JournalEntryPage() {
         <Card>
           <CardHeader>
             <CardTitle>
-              {isLoading ? <Skeleton className="h-8 w-3/4" /> : "Journal Entry"}
+              {isLoading ? <Skeleton className="h-8 w-3/4" /> : (
+                entry?.content ? (() => {
+                  // Generate title from content
+                  const content = entry.content;
+                  if (!content || content.trim() === "") return "Untitled Entry";
+                  
+                  // Get first sentence or part of it
+                  const firstSentence = content.split(/[.!?]/)[0]?.trim();
+                  if (!firstSentence) return "Untitled Entry";
+                  
+                  // If sentence is short enough, use it directly
+                  if (firstSentence.length <= 50) {
+                    return firstSentence;
+                  }
+                  
+                  // Otherwise, get first 5-7 words
+                  const words = firstSentence.split(/\s+/).slice(0, 7);
+                  let title = words.join(" ");
+                  
+                  // Add ellipsis if we truncated
+                  if (words.length < firstSentence.split(/\s+/).length) {
+                    title += "...";
+                  }
+                  
+                  return title;
+                })() : "Journal Entry"
+              )}
             </CardTitle>
             <CardDescription>
               {isLoading ? (
@@ -83,7 +109,8 @@ export default function JournalEntryPage() {
                       <Clock className="h-3.5 w-3.5 mr-1" />
                       {new Date(entry.date).toLocaleTimeString([], { 
                         hour: '2-digit', 
-                        minute: '2-digit'
+                        minute: '2-digit',
+                        hour12: true // Ensures time is displayed in 12-hour format
                       })}
                     </span>
                   </div>

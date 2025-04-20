@@ -14,6 +14,7 @@ import {
   Plus,
   BookOpen
 } from "lucide-react";
+
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,6 +38,8 @@ export default function JournalPage() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [filterType, setFilterType] = useState<"all" | "user" | "ai">("all");
   const [activeTab, setActiveTab] = useState<string>("entries");
+
+
   
   if (!user) return null;
   
@@ -252,9 +255,40 @@ export default function JournalPage() {
                                 )}
                               </div>
                               <div className="text-xs text-gray-500">
-                                {new Date(entry.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                {new Date(entry.date).toLocaleTimeString([], { 
+                                  hour: '2-digit', 
+                                  minute: '2-digit',
+                                  hour12: true // Ensures time is displayed in 12-hour format
+                                })}
                               </div>
                             </div>
+                            <h4 className="font-medium text-lg mb-2">
+                              {(() => {
+                                // Generate title from content
+                                const content = entry.content;
+                                if (!content || content.trim() === "") return "Untitled Entry";
+                                
+                                // Get first sentence or part of it
+                                const firstSentence = content.split(/[.!?]/)[0]?.trim();
+                                if (!firstSentence) return "Untitled Entry";
+                                
+                                // If sentence is short enough, use it directly
+                                if (firstSentence.length <= 50) {
+                                  return firstSentence;
+                                }
+                                
+                                // Otherwise, get first 5-7 words
+                                const words = firstSentence.split(/\s+/).slice(0, 7);
+                                let title = words.join(" ");
+                                
+                                // Add ellipsis if we truncated
+                                if (words.length < firstSentence.split(/\s+/).length) {
+                                  title += "...";
+                                }
+                                
+                                return title;
+                              })()}
+                            </h4>
                             <p className="text-gray-700 line-clamp-2 mb-3">{entry.content}</p>
                             
                             {entry.sentiment && entry.sentiment.emotions && entry.sentiment.emotions.length > 0 && (
@@ -282,12 +316,104 @@ export default function JournalPage() {
           </TabsContent>
           
           <TabsContent value="calendar">
-            <div className="bg-white border border-gray-200 rounded-lg p-8 text-center py-16">
-              <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium mb-2">Calendar View Coming Soon</h3>
-              <p className="text-gray-500 mb-4">
-                The calendar view is under development and will be available soon.
-              </p>
+            <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-medium">Calendar View</h3>
+                <div className="text-sm text-muted-foreground">
+                  {entries.length} total entries
+                </div>
+              </div>
+              
+              {isLoading ? (
+                <div className="flex justify-center items-center h-64">
+                  <div className="pi-thinking-dots">
+                    <div className="pi-thinking-dot"></div>
+                    <div className="pi-thinking-dot"></div>
+                    <div className="pi-thinking-dot"></div>
+                  </div>
+                </div>
+              ) : entries.length === 0 ? (
+                <div className="text-center py-8">
+                  <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500">No journal entries found</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {/* Get unique months from entries */}
+                  {Array.from(new Set(entries.map(entry => {
+                    const date = new Date(entry.date);
+                    return `${date.getFullYear()}-${date.getMonth() + 1}`;
+                  }))).sort((a, b) => {
+                    // Sort by year and month (newest first)
+                    const [yearA, monthA] = a.split('-').map(Number);
+                    const [yearB, monthB] = b.split('-').map(Number);
+                    if (yearA !== yearB) return yearB - yearA;
+                    return monthB - monthA;
+                  }).map(monthKey => {
+                    const [year, month] = monthKey.split('-').map(Number);
+                    const monthName = new Date(year, month - 1, 1).toLocaleString('default', { month: 'long' });
+                    
+                    // Get entries for this month
+                    const monthEntries = entries.filter(entry => {
+                      const date = new Date(entry.date);
+                      return date.getFullYear() === year && date.getMonth() === month - 1;
+                    });
+                    
+                    // Group by day
+                    const entriesByDay = monthEntries.reduce((acc, entry) => {
+                      const day = new Date(entry.date).getDate();
+                      if (!acc[day]) acc[day] = [];
+                      acc[day].push(entry);
+                      return acc;
+                    }, {} as Record<number, JournalEntry[]>);
+                    
+                    return (
+                      <div key={monthKey} className="border border-border rounded-md overflow-hidden">
+                        <div className="bg-muted/50 px-4 py-2 font-medium">
+                          {monthName} {year}
+                        </div>
+                        <div className="p-3">
+                          {Object.entries(entriesByDay).sort((a, b) => Number(b[0]) - Number(a[0])).map(([day, dayEntries]) => (
+                            <div key={day} className="mb-3 last:mb-0">
+                              <div className="flex items-center mb-2">
+                                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                                  <span className="text-sm font-semibold text-primary">{day}</span>
+                                </div>
+                                <span className="ml-2 text-sm font-medium">{dayEntries.length} entries</span>
+                              </div>
+                              <div className="pl-10 space-y-1">
+                                {dayEntries.map(entry => (
+                                  <Link 
+                                    key={entry.id} 
+                                    href={`/journal/${entry.id}`}
+                                    className="flex items-center text-sm hover:underline py-1 text-muted-foreground hover:text-foreground"
+                                  >
+                                    <span className="w-12 text-xs">
+                                      {new Date(entry.date).toLocaleTimeString([], { 
+                                        hour: '2-digit', 
+                                        minute: '2-digit',
+                                        hour12: true
+                                      })}
+                                    </span>
+                                    <span className="ml-2 line-clamp-1">
+                                      {(() => {
+                                        // Get first ~30 chars of content
+                                        if (!entry.content) return "Untitled Entry";
+                                        const text = entry.content.trim();
+                                        return text.length > 30 ? `${text.substring(0, 30)}...` : text;
+                                      })()}
+                                    </span>
+                                  </Link>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </TabsContent>
           
