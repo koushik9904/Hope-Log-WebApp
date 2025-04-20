@@ -20,25 +20,48 @@ export default function HomePage() {
     if (chatTab) {
       chatTab.click();
       
+      // More direct approach to find the component and simulate input
       // Wait a moment for the tab to switch
       setTimeout(() => {
-        // Find the input field and submit button
-        const input = document.querySelector('input[placeholder="Write your thoughts or ask a question..."]') as HTMLInputElement;
-        const submitButton = input?.closest('form')?.querySelector('button[type="submit"]') as HTMLButtonElement;
-        
-        if (input && submitButton) {
-          // Set the input value to our prompt (which may already be formatted with __MULTI_PART_PROMPT__ prefix)
-          input.value = prompt;
+        try {
+          // Get direct access to the chat component's addEntryMutation
+          // Since we can't access the component directly, send the prompt directly via the API
+          fetch('/api/chat-response', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+              content: prompt,
+              userId: user?.id,
+              history: [] 
+            })
+          })
+          .then(response => {
+            if (response.ok) {
+              // Since we can't directly update the chat UI, maybe we need to reload
+              console.log("Successfully sent prompt via API");
+              // Force reload the UI
+              window.location.reload();
+            } else {
+              console.error("Failed to send prompt");
+            }
+          })
+          .catch(error => {
+            console.error("Error sending prompt:", error);
+          });
+        } catch (error) {
+          console.error("Error in handleSelectPrompt:", error);
           
-          // Directly submit the form to send the message to the AI
-          const form = input.closest('form');
-          if (form) {
-            // Create and dispatch a submit event
-            const submitEvent = new Event('submit', { cancelable: true, bubbles: true });
-            form.dispatchEvent(submitEvent);
-          } else {
-            // Fallback - click the submit button
-            submitButton.click();
+          // Fallback to the old method
+          const input = document.querySelector('input[placeholder="Write your thoughts or ask a question..."]') as HTMLInputElement;
+          if (input) {
+            input.value = prompt;
+            const form = input.closest('form');
+            if (form) {
+              form.requestSubmit();
+            }
           }
         }
       }, 100);
