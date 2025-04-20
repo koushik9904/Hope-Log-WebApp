@@ -51,7 +51,7 @@ export async function retrieveSimilarEntries(
   query: string, 
   userId: number, 
   limit: number = 3
-): Promise<{ id: number; content: string; similarity: number }[]> {
+): Promise<{ id: number; content: string; date: string; transcript?: string | null; similarity: number }[]> {
   try {
     // First, try the optimized version with embeddings if that table exists
     try {
@@ -62,6 +62,8 @@ export async function retrieveSimilarEntries(
       const userEntries = await db.select({
         id: journalEntries.id,
         content: journalEntries.content,
+        date: journalEntries.date,
+        transcript: journalEntries.transcript,
         embedding: journalEmbeddings.embeddingJson
       })
       .from(journalEntries)
@@ -72,7 +74,8 @@ export async function retrieveSimilarEntries(
       .where(
         and(
           eq(journalEntries.userId, userId),
-          eq(journalEntries.isAiResponse, false)
+          eq(journalEntries.isAiResponse, false),
+          eq(journalEntries.isJournal, true) // Only retrieve from permanent journal entries, not temporary chat messages
         )
       );
       
@@ -100,6 +103,8 @@ export async function retrieveSimilarEntries(
             return {
               id: entry.id,
               content: entry.content,
+              date: entry.date,
+              transcript: entry.transcript,
               similarity
             };
           })
@@ -117,12 +122,15 @@ export async function retrieveSimilarEntries(
     const userEntries = await db.select({
       id: journalEntries.id,
       content: journalEntries.content,
+      date: journalEntries.date,
+      transcript: journalEntries.transcript,
     })
     .from(journalEntries)
     .where(
       and(
         eq(journalEntries.userId, userId),
-        eq(journalEntries.isAiResponse, false)
+        eq(journalEntries.isAiResponse, false),
+        eq(journalEntries.isJournal, true) // Only use saved journal entries, not temporary chats
       )
     )
     .orderBy(desc(journalEntries.date))
@@ -137,6 +145,8 @@ export async function retrieveSimilarEntries(
       return userEntries.map((entry, index) => ({
         id: entry.id,
         content: entry.content,
+        date: entry.date,
+        transcript: entry.transcript,
         similarity: 1 - (index * 0.1) // Simple decreasing similarity 
       }));
     }
@@ -175,6 +185,8 @@ export async function retrieveSimilarEntries(
         .map((index: number, rank: number) => ({
           id: userEntries[index].id,
           content: userEntries[index].content,
+          date: userEntries[index].date,
+          transcript: userEntries[index].transcript,
           similarity: 1 - (rank * 0.1) // Arbitrary similarity score based on rank
         }))
         .slice(0, limit);
@@ -186,6 +198,8 @@ export async function retrieveSimilarEntries(
       return userEntries.slice(0, limit).map((entry, index) => ({
         id: entry.id,
         content: entry.content,
+        date: entry.date,
+        transcript: entry.transcript,
         similarity: 1 - (index * 0.1)
       }));
     }
@@ -211,7 +225,11 @@ export async function generateAIResponse(
         const similarEntries = await retrieveSimilarEntries(userMessage, userId);
         if (similarEntries.length > 0) {
           contextFromPastEntries = "Here are some relevant past journal entries that may provide context:\n\n" +
-            similarEntries.map(entry => `"${entry.content}"`).join("\n\n");
+            similarEntries.map(entry => {
+              // Use transcript field if available (from saved conversations) otherwise fall back to content
+              const entryText = entry.transcript || entry.content;
+              return `Past entry from ${new Date(entry.date).toDateString()}: "${entryText}"`;
+            }).join("\n\n");
         }
       } catch (error) {
         console.log("Error retrieving similar entries, continuing without RAG context:", error);
