@@ -1,10 +1,11 @@
+import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Clock } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { JournalEntry } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
@@ -25,13 +26,22 @@ export default function JournalEntryPage() {
     },
   });
   
-  if (error) {
-    toast({
-      variant: "destructive",
-      title: "Error",
-      description: "Unable to load journal entry. Please try again later."
-    });
-    navigate("/journal");
+  if (error && id !== "new") {
+    // Don't show toast or navigate on first render
+    const errorShown = React.useRef(false);
+    
+    React.useEffect(() => {
+      if (!errorShown.current) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Unable to load journal entry. Please try again later."
+        });
+        navigate("/journal");
+        errorShown.current = true;
+      }
+    }, [error, navigate, toast]);
+    
     return null;
   }
   
@@ -58,12 +68,26 @@ export default function JournalEntryPage() {
               {isLoading ? (
                 <Skeleton className="h-4 w-1/2" />
               ) : (
-                entry?.date ? new Date(entry.date).toLocaleDateString("en-US", {
-                  weekday: "long",
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                }) : "No date available"
+                entry?.date ? (
+                  <div className="flex items-center">
+                    <span>
+                      {new Date(entry.date).toLocaleDateString("en-US", {
+                        weekday: "long",
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </span>
+                    <span className="mx-2">•</span>
+                    <span className="flex items-center text-muted-foreground">
+                      <Clock className="h-3.5 w-3.5 mr-1" />
+                      {new Date(entry.date).toLocaleTimeString([], { 
+                        hour: '2-digit', 
+                        minute: '2-digit'
+                      })}
+                    </span>
+                  </div>
+                ) : "No date available"
               )}
             </CardDescription>
           </CardHeader>

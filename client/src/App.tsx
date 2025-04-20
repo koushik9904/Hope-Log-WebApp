@@ -10,6 +10,7 @@ import AuthPage from "@/pages/auth-page";
 import LandingPage from "@/pages/landing-page";
 import JournalPage from "@/pages/journal-page";
 import JournalEntryPage from "@/pages/journal-entry-page";
+import NewJournalEntryPage from "@/pages/new-journal-entry-page";
 import InsightsPage from "@/pages/insights-page";
 import GoalsPage from "@/pages/goals-page";
 import SettingsPage from "@/pages/settings-page";
@@ -33,6 +34,7 @@ function Router() {
         <Route path="/" component={LandingPage} />
         <Route path="/auth" component={AuthPage} />
         <ProtectedRoute path="/journal" component={JournalPage} />
+        <ProtectedRoute path="/journal/new" component={NewJournalEntryPage} />
         <ProtectedRoute path="/journal/:id" component={JournalEntryPage} />
         <ProtectedRoute path="/insights" component={InsightsPage} />
         <ProtectedRoute path="/goals" component={GoalsPage} />
@@ -52,6 +54,7 @@ function Router() {
     <Switch>
       <ProtectedRoute path="/" component={HomePage} />
       <ProtectedRoute path="/journal" component={JournalPage} />
+      <ProtectedRoute path="/journal/new" component={NewJournalEntryPage} />
       <ProtectedRoute path="/journal/:id" component={JournalEntryPage} />
       <ProtectedRoute path="/insights" component={InsightsPage} />
       <ProtectedRoute path="/goals" component={GoalsPage} />
