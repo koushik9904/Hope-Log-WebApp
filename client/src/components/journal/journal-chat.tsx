@@ -585,7 +585,13 @@ export function JournalChat({ userId }: JournalChatProps) {
                           Journal Entry
                         </div>
                         <div className="text-xs text-gray-500">
-                          {new Date(entry.date).toLocaleDateString()}
+                          {new Date(entry.date).toLocaleString(undefined, {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
                         </div>
                       </div>
                       <p className="text-sm text-gray-700 line-clamp-2">{entry.content}</p>

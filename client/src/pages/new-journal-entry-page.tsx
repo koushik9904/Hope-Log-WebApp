@@ -82,46 +82,13 @@ export default function NewJournalEntryPage() {
           </Button>
         </div>
         
-        {/* AI-Powered Chat Interface */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-2">
-            {user && (
-              <div className="relative">
-                <JournalChat userId={user.id} />
-              </div>
-            )}
-          </div>
-          
-          <div className="md:col-span-1">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Sparkle className="h-5 w-5 mr-2 text-primary" />
-                  Traditional Journal
-                </CardTitle>
-              </CardHeader>
-              
-              <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <Textarea
-                    placeholder="Write a traditional journal entry here..."
-                    className="min-h-[200px]"
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                  />
-                  
-                  <div className="flex justify-end">
-                    <Button 
-                      type="submit" 
-                      disabled={createJournalMutation.isPending || !content.trim()}
-                    >
-                      {createJournalMutation.isPending ? "Saving..." : "Save Entry"}
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
-          </div>
+        {/* AI-Powered Chat Interface - Full Width */}
+        <div className="w-full">
+          {user && (
+            <div className="relative">
+              <JournalChat userId={user.id} />
+            </div>
+          )}
         </div>
       </div>
     </DashboardLayout>
