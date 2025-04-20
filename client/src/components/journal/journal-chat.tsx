@@ -114,15 +114,22 @@ export function JournalChat({ userId }: JournalChatProps) {
         .map(entry => `${entry.isAiResponse ? 'Hope Log: ' : 'You: '}${entry.content}`)
         .join('\n\n');
       
-      // Get the most recent message (usually the user's last message or AI's response)
-      const lastMessageContent = chatHistory.length > 0 
-        ? chatHistory[chatHistory.length - 1].content
-        : "";
+      // Create a summary from the chat content - combine all user messages
+      const userMessages = chatHistory
+        .filter(entry => !entry.isAiResponse)
+        .map(entry => entry.content);
+      
+      // Use the last user message or a summary if multiple messages
+      const summaryContent = userMessages.length > 0 
+        ? userMessages.length === 1 
+            ? userMessages[0] 
+            : userMessages.join('\n\n')
+        : "Journal entry from chat";
       
       // Use the regular journal entry endpoint but specify this is a journal entry (not chat)
       const res = await apiRequest("POST", "/api/journal-entries", {
         userId,
-        content: lastMessageContent,
+        content: summaryContent,
         transcript: transcript,
         isJournal: true
       });
@@ -226,17 +233,9 @@ export function JournalChat({ userId }: JournalChatProps) {
   };
 
   const handleSaveChat = () => {
-    if (chatHistory.length > 0) {
-      // Create transcript from chatHistory
-      const transcript = chatHistory
-        .map(entry => `${entry.isAiResponse ? 'Hope Log: ' : 'You: '}${entry.content}`)
-        .join('\n\n');
-        
+    if (chatHistory.length > 0) {        
       // Save the combined chat as a single journal entry
       saveChatMutation.mutate();
-      
-      // Clear chat history after saving
-      setChatHistory([]);
     } else {
       toast({
         title: "No entries to save",

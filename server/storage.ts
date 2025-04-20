@@ -242,10 +242,17 @@ export class DatabaseStorage implements IStorage {
   async createOrUpdateSummary(summary: InsertSummary): Promise<Summary> {
     const existingSummary = await this.getSummaryByUserId(summary.userId);
     
+    // Ensure arrays are properly formatted
+    const formattedSummary = {
+      ...summary,
+      topEmotions: Array.isArray(summary.topEmotions) ? summary.topEmotions : [],
+      commonThemes: Array.isArray(summary.commonThemes) ? summary.commonThemes : []
+    };
+    
     if (existingSummary) {
       const result = await db
         .update(summaries)
-        .set(summary)
+        .set(formattedSummary)
         .where(eq(summaries.userId, summary.userId))
         .returning();
         
@@ -253,7 +260,7 @@ export class DatabaseStorage implements IStorage {
     } else {
       const result = await db
         .insert(summaries)
-        .values(summary)
+        .values(formattedSummary)
         .returning();
         
       return result[0];

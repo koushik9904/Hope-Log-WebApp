@@ -142,8 +142,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (req.user?.id !== userId) return res.sendStatus(403);
     
     try {
+      const conversationHistory = history.map((entry: {role: string, content: string}) => ({
+        role: entry.role as "user" | "ai",
+        content: entry.content
+      }));
+      
       // Generate AI response with RAG and include saved journal context
-      const aiResponse = await generateAIResponse(content, history, req.user.username, userId);
+      const aiResponse = await generateAIResponse(content, conversationHistory, req.user.username, userId);
       
       // Return only the AI response
       res.status(200).json({ content: aiResponse });
