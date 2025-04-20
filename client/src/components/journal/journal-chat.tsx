@@ -273,8 +273,10 @@ export function JournalChat({ userId }: JournalChatProps) {
     }
   };
 
+  // Instead of copying the prompt to the input field, directly trigger an AI response
   const handleSuggestedPrompt = (prompt: string) => {
-    setMessage(prompt);
+    // Send the prompt directly to the AI without setting it in the input field
+    addEntryMutation.mutate(prompt);
   };
 
   const handleSaveChat = () => {

@@ -142,13 +142,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (req.user?.id !== userId) return res.sendStatus(403);
     
     try {
+      // Convert history to the format expected by the OpenAI function
       const conversationHistory = history.map((entry: {role: string, content: string}) => ({
         role: entry.role as "user" | "ai",
         content: entry.content
       }));
       
-      // Generate AI response with RAG and include saved journal context
-      const aiResponse = await generateAIResponse(content, conversationHistory, req.user.username, userId);
+      // Check if this is a special multi-part prompt (from journal prompts section)
+      const isMultiPartPrompt = content.startsWith('__MULTI_PART_PROMPT__:');
+      let aiResponse;
+      
+      if (isMultiPartPrompt) {
+        // Extract the actual prompt
+        const actualPrompt = content.replace('__MULTI_PART_PROMPT__:', '').trim();
+        
+        // Create a special system message for multi-part prompts that prompts the AI
+        // to engage in a guided, step-by-step conversation
+        const systemMessage = {
+          role: "system" as "system", 
+          content: `You are helping the user with a multi-part journaling prompt: "${actualPrompt}". 
+          
+This is not a simple question but a structured journaling exercise that requires detailed, reflective responses.
+
+For this exercise:
+1. Break down the prompt into individual questions or parts
+2. Ask the user about each part ONE AT A TIME, waiting for their response before moving to the next part
+3. If the prompt requires listing multiple items (like "three things that went well"), ask about each item separately
+4. Encourage deep reflection by asking follow-up questions about WHY or HOW
+5. After the user has completed all parts, provide a brief summary of their responses
+6. Your tone should be warm, supportive and encouraging
+          
+Example of good breakdown for "What are three things that went well today and why?":
+- First ask: "Let's reflect on your day. What's one thing that went well today?"
+- After they respond, ask: "That's wonderful. And why do you think that particular thing went well?"
+- Then: "Great reflection. What's a second thing that went well today?"
+- And so on until all three items and their "why" explanations are explored.`
+        };
+        
+        // Add the system message to guide the AI's response strategy
+        const enhancedHistory = [systemMessage, ...conversationHistory];
+        
+        // Generate the special AI response for multi-part prompts
+        aiResponse = await generateAIResponse(
+          actualPrompt, 
+          enhancedHistory, 
+          req.user.username, 
+          userId,
+          true // Flag that this is a multi-part prompt
+        );
+      } else {
+        // Normal single prompt handling
+        aiResponse = await generateAIResponse(content, conversationHistory, req.user.username, userId);
+      }
       
       // Return only the AI response
       res.status(200).json({ content: aiResponse });
