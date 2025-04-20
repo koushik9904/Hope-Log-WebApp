@@ -384,13 +384,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         const weeklySummary = await generateWeeklySummary(formattedEntries);
         
-        summary = await storage.createOrUpdateSummary({
+        // Ensure arrays are properly formatted
+        const formattedSummary = {
           userId,
-          topEmotions: weeklySummary.topEmotions,
-          commonThemes: weeklySummary.commonThemes,
+          topEmotions: Array.isArray(weeklySummary.topEmotions) ? weeklySummary.topEmotions : [],
+          commonThemes: Array.isArray(weeklySummary.commonThemes) ? weeklySummary.commonThemes : [],
           insights: weeklySummary.insights,
           updatedAt: new Date().toISOString()
-        });
+        };
+        
+        summary = await storage.createOrUpdateSummary(formattedSummary);
       }
       
       res.json(summary);
