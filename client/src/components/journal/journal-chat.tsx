@@ -69,18 +69,32 @@ export function JournalChat({ userId }: JournalChatProps) {
       
       // Process content based on type
       let processedContent = content;
+      let displayContent = content; // What to show in the chat UI
       
-      // If it's a one-shot prompt from suggestions, reformat it to encourage the AI to ask questions
+      // Handle special prompt types
       if (isFromSuggestions) {
-        // Convert "How am I feeling today?" to "ASK:How am I feeling today?" to signal the AI this is a prompt
+        // Convert to ASK_ME_ABOUT format to signal the AI to ask questions
         processedContent = `ASK_ME_ABOUT: ${content}`;
         console.log("Reformatted one-shot prompt:", processedContent);
+      } 
+      else if (isMultiPartPrompt) {
+        // For multi-part prompts, extract the actual prompt from the format prefix
+        displayContent = content.replace('__MULTI_PART_PROMPT__:', '').trim();
+        console.log("Reformatted multi-part prompt. Display:", displayContent, "Process:", processedContent);
+        
+        // For display purposes, show it as "I'd like to reflect on: [prompt]"
+        displayContent = `I'd like to reflect on: ${displayContent}`;
       }
       
-      // Add user message to local chat history - show the original content to the user
+      // Set active tab to chat for multi-part prompts (in case we're on journal tab)
+      if (isMultiPartPrompt) {
+        setActiveTab("chat");
+      }
+      
+      // Add user message to local chat history - using the display content
       const userMessage = {
         id: nextId,
-        content, // original content shown to user
+        content: displayContent, // show the display version to the user
         isAiResponse: false,
         date: new Date().toISOString()
       };
