@@ -14,8 +14,11 @@ export function JournalPrompts({ userId, onSelectPrompt }: JournalPromptsProps) 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const queryClient = useQueryClient();
   
+  // Use a random seed to force refresh of prompts
+  const [promptsSeed, setPromptsSeed] = useState(Date.now());
+  
   const { data: prompts = [], isLoading } = useQuery<Prompt[]>({
-    queryKey: ["/api/prompts"],
+    queryKey: ["/api/prompts", promptsSeed],
   });
   
   // Create a handler that bypasses the home page logic
@@ -134,14 +137,17 @@ export function JournalPrompts({ userId, onSelectPrompt }: JournalPromptsProps) 
       <button 
         onClick={() => {
           setIsRefreshing(true);
-          // Calculate new offset
-          const newOffset = (promptsOffset + 3) % (prompts.length > 3 ? prompts.length - 2 : 3);
-          setPromptsOffset(newOffset);
+          
+          // Set a new seed value to force a refresh of prompts
+          setPromptsSeed(Date.now());
+          
+          // Reset offset to 0
+          setPromptsOffset(0);
           
           // Add a short delay to make the refresh animation visible
           setTimeout(() => {
             setIsRefreshing(false);
-          }, 500);
+          }, 800);
         }} 
         className="w-full py-3 text-primary font-medium flex items-center justify-center hover:underline"
       >
