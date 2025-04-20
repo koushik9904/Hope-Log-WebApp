@@ -142,25 +142,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (req.user?.id !== userId) return res.sendStatus(403);
     
     try {
+      // Check if it's a direct prompt marked with ASK_ME_ABOUT prefix
+      const isDirectPrompt = content.startsWith('ASK_ME_ABOUT:');
+      
+      // Or a multi-part prompt
+      const isMultiPartPrompt = content.startsWith('__MULTI_PART_PROMPT__:');
+      
+      // Process the content
+      let processedContent = content;
+      
+      if (isDirectPrompt) {
+        // Extract the actual prompt question from the prefix
+        processedContent = content.replace('ASK_ME_ABOUT:', '').trim();
+        console.log("Server received direct prompt:", processedContent);
+      } else if (isMultiPartPrompt) {
+        // Extract the actual prompt from the prefix
+        processedContent = content.replace('__MULTI_PART_PROMPT__:', '').trim();
+        console.log("Server received multi-part prompt:", processedContent);
+      }
+      
       // Convert history to the format expected by the OpenAI function
       const conversationHistory = history.map((entry: {role: string, content: string}) => ({
         role: entry.role as "user" | "ai",
         content: entry.content
       }));
-      
-      // Check if this is a special multi-part prompt (from journal prompts section)
-      const isMultiPartPrompt = content.startsWith('__MULTI_PART_PROMPT__:');
       let aiResponse;
       
+      // Now handle the appropriate response based on the content type
       if (isMultiPartPrompt) {
-        // Extract the actual prompt
-        const actualPrompt = content.replace('__MULTI_PART_PROMPT__:', '').trim();
+        // We already extracted the actual prompt above as processedContent
         
         // Create a special system message for multi-part prompts that prompts the AI
         // to engage in a guided, step-by-step conversation
         const systemMessage = {
           role: "system" as "system", 
-          content: `You are helping the user with a multi-part journaling prompt: "${actualPrompt}". 
+          content: `You are helping the user with a multi-part journaling prompt: "${processedContent}". 
           
 This is not a simple question but a structured journaling exercise that requires detailed, reflective responses.
 
@@ -184,7 +200,7 @@ Example of good breakdown for "What are three things that went well today and wh
         
         // Generate the special AI response for multi-part prompts
         aiResponse = await generateAIResponse(
-          actualPrompt, 
+          processedContent, 
           enhancedHistory, 
           req.user.username, 
           userId,

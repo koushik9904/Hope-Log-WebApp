@@ -61,10 +61,26 @@ export function JournalChat({ userId }: JournalChatProps) {
   // Simulate adding a new chat message and get AI response without saving to DB
   const addEntryMutation = useMutation({
     mutationFn: async (content: string) => {
-      // Add user message to local chat history
+      // Check if it's a one-shot prompt from the suggestions
+      const isFromSuggestions = SUGGESTED_PROMPTS.includes(content);
+      
+      // Check if it's a multi-part prompt
+      const isMultiPartPrompt = content.startsWith('__MULTI_PART_PROMPT__:');
+      
+      // Process content based on type
+      let processedContent = content;
+      
+      // If it's a one-shot prompt from suggestions, reformat it to encourage the AI to ask questions
+      if (isFromSuggestions) {
+        // Convert "How am I feeling today?" to "ASK:How am I feeling today?" to signal the AI this is a prompt
+        processedContent = `ASK_ME_ABOUT: ${content}`;
+        console.log("Reformatted one-shot prompt:", processedContent);
+      }
+      
+      // Add user message to local chat history - show the original content to the user
       const userMessage = {
         id: nextId,
-        content,
+        content, // original content shown to user
         isAiResponse: false,
         date: new Date().toISOString()
       };
@@ -72,9 +88,9 @@ export function JournalChat({ userId }: JournalChatProps) {
       setChatHistory(prev => [...prev, userMessage]);
       setNextId(prevId => prevId + 1);
       
-      // Get AI response through the API
+      // Get AI response through the API - send the processed content to the AI
       const res = await apiRequest("POST", "/api/chat-response", {
-        content,
+        content: processedContent, // send the processed version to the AI
         userId,
         // Send recent chat history for context
         history: chatHistory.slice(-5).map(entry => ({
