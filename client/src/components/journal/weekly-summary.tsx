@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Summary } from "@shared/schema";
 import { BarChart4, Calendar, Sparkles, Brain, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Link } from "wouter";
 
 type WeeklySummaryProps = {
   userId: number;
@@ -86,9 +87,9 @@ export function WeeklySummary({ userId }: WeeklySummaryProps) {
         </div>
       )}
       
-      <button className="w-full py-3 text-primary font-medium flex items-center justify-center">
+      <Link to="/insights" className="w-full py-3 text-primary font-medium flex items-center justify-center hover:underline">
         View Full Report <ChevronRight className="h-4 w-4 ml-1" />
-      </button>
+      </Link>
     </div>
   );
 }

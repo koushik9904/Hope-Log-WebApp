@@ -7,6 +7,7 @@ import { format, subDays } from "date-fns";
 import { User, Mood, JournalEntry } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LineChart, Heart, Smile, BarChart2, ChevronRight, Info } from "lucide-react";
+import { Link } from "wouter";
 
 type MoodTrackerProps = {
   userId: number;
@@ -129,9 +130,9 @@ export function MoodTracker({ userId }: MoodTrackerProps) {
             <p className="text-sm text-gray-500">Track your emotional patterns</p>
           </div>
         </div>
-        <button className="text-[#9AAB63] flex items-center text-sm font-medium">
+        <Link to="/insights" className="text-[#9AAB63] flex items-center text-sm font-medium hover:underline">
           <BarChart2 className="h-4 w-4 mr-1" /> More stats
-        </button>
+        </Link>
       </div>
       
       {/* Mood Chart with insights */}
@@ -166,9 +167,9 @@ export function MoodTracker({ userId }: MoodTrackerProps) {
                       From journal
                     </span>
                   </div>
-                  <button className="text-sm text-[#9AAB63] font-medium mt-2 flex items-center hover:text-[#B6CAEB]">
+                  <Link to="/insights" className="text-sm text-[#9AAB63] font-medium mt-2 flex items-center hover:text-[#B6CAEB] hover:underline">
                     See pattern analysis <ChevronRight className="h-3 w-3 ml-1" />
-                  </button>
+                  </Link>
                 </div>
               </div>
             ) : null}

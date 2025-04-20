@@ -4,6 +4,7 @@ import { Goal } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { Target, PlusCircle, ChevronRight } from "lucide-react";
+import { Link } from "wouter";
 
 type GoalsHabitsProps = {
   userId: number;
