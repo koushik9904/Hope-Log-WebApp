@@ -15,66 +15,30 @@ export default function HomePage() {
   const handleSelectPrompt = (prompt: string) => {
     console.log("Home page received prompt:", prompt);
     
-    // First, click on the chat tab to ensure we're in chat mode
-    const chatTab = document.querySelector('button[value="chat"]') as HTMLButtonElement;
-    if (chatTab) {
-      chatTab.click();
+    // Make a direct API call for the multi-part prompt
+    fetch('/api/chat-response', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        content: prompt, // This already has the __MULTI_PART_PROMPT__ prefix
+        userId: user?.id,
+        history: [] 
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log("Got response from API:", data);
       
-      // Wait a moment for the tab to switch
-      setTimeout(() => {
-        try {
-          // For multi-part prompts from the Journal Prompts section, we need to use a special approach
-          // We'll directly add both the user message and AI response to the chat history
-          
-          // Step 1: Add the user's selected prompt as a message
-          // Find the JournalChat component's input and form
-          const chatInput = document.querySelector('input[placeholder="Write your thoughts or ask a question..."]') as HTMLInputElement;
-          
-          if (chatInput) {
-            // Set the input value to our prompt
-            chatInput.value = prompt;
-            // Find the form and submit button
-            const chatForm = chatInput.closest('form');
-            if (chatForm) {
-              // Directly submit the form using the built-in method
-              chatForm.requestSubmit();
-            }
-          } else {
-            console.error("Could not find chat input");
-            
-            // Fallback: try a direct API approach
-            fetch('/api/chat-response', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              credentials: 'include',
-              body: JSON.stringify({
-                content: prompt,
-                userId: user?.id,
-                history: [] 
-              })
-            })
-            .then(response => {
-              if (response.ok) {
-                console.log("Successfully sent prompt via API fallback");
-                // Give the API a moment to process, then reload
-                setTimeout(() => {
-                  window.location.reload();
-                }, 500);
-              } else {
-                console.error("Failed to send prompt via API fallback");
-              }
-            })
-            .catch(error => {
-              console.error("Error in API fallback:", error);
-            });
-          }
-        } catch (error) {
-          console.error("Error in handleSelectPrompt:", error);
-        }
-      }, 200); // Increased timeout to ensure tab switch completes
-    }
+      // Force reload the page to see the new message in chat
+      window.location.href = "/?refresh=" + new Date().getTime();
+    })
+    .catch(error => {
+      console.error("Error sending multi-part prompt:", error);
+      alert("There was an error processing your prompt. Please try again.");
+    });
   };
   
   if (!user) return null;

@@ -13,6 +13,69 @@ export function JournalPrompts({ userId, onSelectPrompt }: JournalPromptsProps) 
     queryKey: ["/api/prompts"],
   });
   
+  // Create a handler that bypasses the home page logic
+  const handlePromptClick = (promptText: string) => {
+    console.log("Direct handling of multi-part prompt:", promptText);
+    
+    // Manually add the prompt to a chat message using the JournalChat component
+    
+    // 1. Switch to the chat tab
+    const chatTab = document.querySelector('button[value="chat"]') as HTMLButtonElement;
+    if (chatTab) {
+      chatTab.click();
+    }
+    
+    // 2. Wait a moment for the tab to switch
+    setTimeout(() => {
+      // 3. Create a user message element
+      const chatContainer = document.querySelector('.chat-messages .flex-col');
+      if (chatContainer) {
+        // Create a user message element
+        const userMessage = document.createElement('div');
+        userMessage.className = "max-w-[85%] px-4 py-3 journal-entry journal-entry-user self-end";
+        userMessage.innerHTML = `<p class="whitespace-pre-line text-[15px]">I'd like to reflect on: ${promptText}</p>`;
+        chatContainer.appendChild(userMessage);
+        
+        // Make the direct API call
+        fetch('/api/chat-response', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            content: `__MULTI_PART_PROMPT__: ${promptText}`,
+            userId: userId,
+            history: [] 
+          })
+        })
+        .then(response => response.json())
+        .then(data => {
+          console.log("Got response from API:", data);
+          
+          // Add the AI response
+          const aiMessage = document.createElement('div');
+          aiMessage.className = "max-w-[85%] px-4 py-3 journal-entry journal-entry-ai self-start";
+          aiMessage.innerHTML = `<p class="whitespace-pre-line text-[15px]">${data.content}</p>`;
+          chatContainer.appendChild(aiMessage);
+          
+          // Scroll to the bottom
+          const chatMessagesContainer = document.querySelector('.chat-messages');
+          if (chatMessagesContainer) {
+            chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+          }
+        })
+        .catch(error => {
+          console.error("Error sending multi-part prompt:", error);
+          alert("There was an error processing your prompt. Please try again.");
+        });
+      } else {
+        // Fallback to the original method
+        onSelectPrompt(`__MULTI_PART_PROMPT__: ${promptText}`);
+      }
+    }, 200);
+  };
+  
   return (
     <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
       <div className="flex justify-between items-start mb-4">
@@ -47,13 +110,7 @@ export function JournalPrompts({ userId, onSelectPrompt }: JournalPromptsProps) 
             <div 
               key={prompt.id}
               className="p-4 bg-[#F5D867]/10 hover:bg-[#F5D867]/20 rounded-2xl cursor-pointer transition-colors border border-[#F5D867]/20"
-              onClick={() => {
-                console.log("Multi-part prompt selected:", prompt.text);
-                
-                // Use the parent component's callback
-                // This is the simplest and most reliable approach
-                onSelectPrompt(`__MULTI_PART_PROMPT__: ${prompt.text}`);
-              }}
+              onClick={() => handlePromptClick(prompt.text)}
             >
               <p className="text-gray-800">{prompt.text}</p>
             </div>

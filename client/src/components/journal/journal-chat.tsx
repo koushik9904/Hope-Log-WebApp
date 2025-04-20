@@ -280,13 +280,34 @@ export function JournalChat({ userId }: JournalChatProps) {
     return matchesSearch && ((entry as any).isJournal === undefined || !(entry as any).isJournal);
   });
 
+  // Check URL query parameters to trigger a multi-part prompt
+  useEffect(() => {
+    // This adds support for direct prompting via URL refresh
+    const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.has('refresh') && chatHistory.length === 0) {
+      // This is a refresh triggered by a selected prompt
+      // Check localStorage for a stored prompt
+      const savedPrompt = localStorage.getItem('selected_prompt');
+      if (savedPrompt) {
+        // Clear it immediately to prevent multiple executions
+        localStorage.removeItem('selected_prompt');
+        
+        // Process the prompt
+        console.log("Executing stored prompt from localStorage:", savedPrompt);
+        setTimeout(() => {
+          addEntryMutation.mutate(savedPrompt);
+        }, 500); // Small delay to let the UI render first
+      }
+    }
+  }, []);
+
   // Scroll to bottom of chat when entries change
   useEffect(() => {
     if (chatContainerRef.current && activeTab === "chat") {
       // Scroll to the bottom
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
-  }, [entries, activeTab]);
+  }, [entries, activeTab, chatHistory]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
