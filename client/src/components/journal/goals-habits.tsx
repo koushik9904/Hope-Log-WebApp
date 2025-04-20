@@ -39,9 +39,9 @@ export function GoalsHabits({ userId }: GoalsHabitsProps) {
           <h2 className="text-xl font-semibold text-gray-800">Goals & Habits</h2>
           <p className="text-sm text-gray-500">Track your progress</p>
         </div>
-        <button className="bg-[#9AAB63] text-white p-2 rounded-full hover:bg-[#9AAB63]/90 transition-colors">
+        <Link to="/goals" className="bg-[#9AAB63] text-white p-2 rounded-full hover:bg-[#9AAB63]/90 transition-colors inline-flex">
           <PlusCircle className="h-5 w-5" />
-        </button>
+        </Link>
       </div>
       
       {isLoading ? (
@@ -88,9 +88,9 @@ export function GoalsHabits({ userId }: GoalsHabitsProps) {
         </div>
       )}
       
-      <button className="w-full py-3 text-[#9AAB63] font-medium flex items-center justify-center hover:text-[#9AAB63]/80 transition-colors">
+      <Link to="/goals" className="w-full py-3 text-[#9AAB63] font-medium flex items-center justify-center hover:text-[#9AAB63]/80 transition-colors hover:underline">
         View All Goals <ChevronRight className="h-4 w-4 ml-1" />
-      </button>
+      </Link>
     </div>
   );
 }
