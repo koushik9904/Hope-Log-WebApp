@@ -1,8 +1,8 @@
 import { User, InsertUser, JournalEntry, InsertJournalEntry, Mood, InsertMood, Goal, InsertGoal, Prompt, InsertPrompt, Summary, InsertSummary, users, journalEntries, moods, goals, prompts, summaries } from "@shared/schema";
 import session from "express-session";
-import connectPg from "connect-pg-simple";
 import { db, pool } from "./db";
 import { eq, and, gte, desc } from "drizzle-orm";
+import connectPgSimple from "connect-pg-simple";
 
 // Interfaces for storage methods
 export interface IStorage {
@@ -39,16 +39,15 @@ export interface IStorage {
   createOrUpdateSummary(summary: InsertSummary): Promise<Summary>;
   
   // Session store
-  sessionStore: session.SessionStore;
+  sessionStore: session.Store;
 }
 
-const PostgresSessionStore = connectPg(session);
-
 export class DatabaseStorage implements IStorage {
-  sessionStore: session.SessionStore;
+  sessionStore: session.Store;
   
   constructor() {
-    this.sessionStore = new PostgresSessionStore({ 
+    const PgSession = connectPgSimple(session);
+    this.sessionStore = new PgSession({ 
       pool, 
       createTableIfMissing: true,
       tableName: 'session', // Default table name
