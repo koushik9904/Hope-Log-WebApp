@@ -155,7 +155,7 @@ export function JournalChat({ userId }: JournalChatProps) {
                   asChild
                   className="mt-1 bg-white"
                 >
-                  <Link to={`/journal/${entryId}`}>
+                  <Link to={`/journal/entry/${entryId}`}>
                     View Journal Entry
                   </Link>
                 </Button>
@@ -208,7 +208,7 @@ export function JournalChat({ userId }: JournalChatProps) {
                   asChild
                   className="mt-1 bg-white"
                 >
-                  <Link to={`/journal/${entryId}`}>
+                  <Link to={`/journal/entry/${entryId}`}>
                     View Journal Entry
                   </Link>
                 </Button>
