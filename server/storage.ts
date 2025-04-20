@@ -50,7 +50,11 @@ export class DatabaseStorage implements IStorage {
   constructor() {
     this.sessionStore = new PostgresSessionStore({ 
       pool, 
-      createTableIfMissing: true 
+      createTableIfMissing: true,
+      tableName: 'session', // Default table name
+      schemaName: 'public', // Use public schema 
+      pruneSessionInterval: 60,  // Prune expired sessions every minute
+      errorLog: console.error.bind(console)
     });
     
     // Setup default prompts
