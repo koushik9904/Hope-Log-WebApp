@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Prompt } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LightbulbIcon, ChevronRight } from "lucide-react";
+import { Link } from "wouter";
 
 type JournalPromptsProps = {
   userId: number;
@@ -126,9 +127,9 @@ export function JournalPrompts({ userId, onSelectPrompt }: JournalPromptsProps) 
         )}
       </div>
       
-      <button className="w-full py-3 text-primary font-medium flex items-center justify-center">
+      <Link to="/journal" className="w-full py-3 text-primary font-medium flex items-center justify-center hover:underline">
         Get More Prompts <ChevronRight className="h-4 w-4 ml-1" />
-      </button>
+      </Link>
     </div>
   );
 }

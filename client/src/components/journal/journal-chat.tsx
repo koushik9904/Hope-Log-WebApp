@@ -20,6 +20,7 @@ import {
   Plus,
   Download,
   BarChart,
+  BarChart2,
   PenLine
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -446,9 +447,9 @@ export function JournalChat({ userId }: JournalChatProps) {
                   </div>
                   
                   <div className="pt-1">
-                    <button className="text-[#9AAB63] text-xs font-medium flex items-center hover:text-[#F5B8DB]">
-                      <Download className="h-3 w-3 mr-1" /> Download full analysis
-                    </button>
+                    <Link to="/insights" className="text-[#9AAB63] text-xs font-medium flex items-center hover:text-[#F5B8DB]">
+                      <BarChart className="h-3 w-3 mr-1" /> View full report
+                    </Link>
                   </div>
                 </div>
               )}
@@ -566,7 +567,17 @@ export function JournalChat({ userId }: JournalChatProps) {
           </div>
           
           <div className="flex justify-end items-center text-xs text-gray-600 px-1">
-            <button className="hover:text-[#F5B8DB] flex items-center">
+            <button 
+              className="hover:text-[#F5B8DB] flex items-center"
+              onClick={() => {
+                // Clear the chat history and start a new chat
+                setChatHistory([]);
+                toast({
+                  title: "New Chat Started",
+                  description: "Starting a fresh conversation",
+                });
+              }}
+            >
               <Plus className="h-3.5 w-3.5 mr-1" />
               <span>New Chat</span>
             </button>
