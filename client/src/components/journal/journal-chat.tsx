@@ -53,26 +53,80 @@ export function JournalChat({ userId }: JournalChatProps) {
     staleTime: 60000, // 1 minute
   });
 
-  // Add new journal entry and get AI response
+  // Local state to store chat messages (not saved to DB until "Save Chat" is clicked)
+  const [chatHistory, setChatHistory] = useState<Array<{id: number, isAiResponse: boolean, content: string, date: string}>>([]);
+  const [nextId, setNextId] = useState(1);
+  
+  // Simulate adding a new chat message and get AI response without saving to DB
   const addEntryMutation = useMutation({
     mutationFn: async (content: string) => {
-      const res = await apiRequest("POST", "/api/journal-entries", {
+      // Add user message to local chat history
+      const userMessage = {
+        id: nextId,
         content,
-        userId
+        isAiResponse: false,
+        date: new Date().toISOString()
+      };
+      
+      setChatHistory(prev => [...prev, userMessage]);
+      setNextId(prevId => prevId + 1);
+      
+      // Get AI response through the API
+      const res = await apiRequest("POST", "/api/chat-response", {
+        content,
+        userId,
+        // Send recent chat history for context
+        history: chatHistory.slice(-5).map(entry => ({
+          role: entry.isAiResponse ? "ai" : "user",
+          content: entry.content
+        }))
       });
-      return await res.json();
+      
+      const aiResponse = await res.json();
+      
+      // Add AI response to local chat history
+      setChatHistory(prev => [...prev, {
+        id: nextId + 1,
+        content: aiResponse.content,
+        isAiResponse: true,
+        date: new Date().toISOString()
+      }]);
+      
+      setNextId(prevId => prevId + 2);
+      
+      return [userMessage, { id: nextId + 1, content: aiResponse.content, isAiResponse: true, date: new Date().toISOString() }];
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/journal-entries/${userId}`] });
-    },
+    onError: (error) => {
+      console.error("Failed to get AI response:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to get AI response. Please try again."
+      });
+    }
   });
 
   // Save chat as journal entry with sentiment analysis and goal extraction
   const saveChatMutation = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/journal-entries/save-chat", {
-        userId
+      // Create a transcript from the chat history
+      const transcript = chatHistory
+        .map(entry => `${entry.isAiResponse ? 'Hope Log: ' : 'You: '}${entry.content}`)
+        .join('\n\n');
+      
+      // Get the most recent message (usually the user's last message or AI's response)
+      const lastMessageContent = chatHistory.length > 0 
+        ? chatHistory[chatHistory.length - 1].content
+        : "";
+      
+      // Use the regular journal entry endpoint but specify this is a journal entry (not chat)
+      const res = await apiRequest("POST", "/api/journal-entries", {
+        userId,
+        content: lastMessageContent,
+        transcript: transcript,
+        isJournal: true
       });
+      
       return await res.json();
     },
     onSuccess: () => {
@@ -80,12 +134,19 @@ export function JournalChat({ userId }: JournalChatProps) {
         title: "Chat saved",
         description: "Your chat has been saved as a journal entry with sentiment analysis"
       });
+      // Clear chat history after saving
+      setChatHistory([]);
+      // Refresh journal entries list
       queryClient.invalidateQueries({ queryKey: [`/api/journal-entries/${userId}`] });
-      // Refetch journal entries to clear the chat display
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: [`/api/journal-entries/${userId}`] });
-      }, 300);
     },
+    onError: (error) => {
+      console.error("Failed to save chat:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to save chat. Please try again."
+      });
+    }
   });
 
   // Save long-form journal entry
@@ -165,8 +226,17 @@ export function JournalChat({ userId }: JournalChatProps) {
   };
 
   const handleSaveChat = () => {
-    if (entries.length > 0) {
+    if (chatHistory.length > 0) {
+      // Create transcript from chatHistory
+      const transcript = chatHistory
+        .map(entry => `${entry.isAiResponse ? 'Hope Log: ' : 'You: '}${entry.content}`)
+        .join('\n\n');
+        
+      // Save the combined chat as a single journal entry
       saveChatMutation.mutate();
+      
+      // Clear chat history after saving
+      setChatHistory([]);
     } else {
       toast({
         title: "No entries to save",
@@ -270,7 +340,7 @@ export function JournalChat({ userId }: JournalChatProps) {
                   <div className="pi-thinking-dot"></div>
                 </div>
               </div>
-            ) : entries.length === 0 ? (
+            ) : chatHistory.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center p-4">
                 <div className="w-20 h-20 rounded-full bg-[#F5B8DB]/10 flex items-center justify-center mb-4">
                   <Sparkle className="h-8 w-8 text-[#F5B8DB]" />
@@ -294,13 +364,10 @@ export function JournalChat({ userId }: JournalChatProps) {
               </div>
             ) : (
               <>
-                {/* Chat container with flex-col-reverse to display newest messages at the bottom */}
+                {/* Chat container to display messages in order */}
                 <div className="flex flex-col space-y-3">
-                  {/* Filter only chat entries (not journal entries) and sort by date */}
-                  {[...entries]
-                    .filter(entry => !(entry as any).isJournal)
-                    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-                    .map((entry) => (
+                  {/* Display chat messages from local state */}
+                  {chatHistory.map((entry) => (
                     <div 
                       key={entry.id}
                       className={cn(
@@ -315,23 +382,17 @@ export function JournalChat({ userId }: JournalChatProps) {
                   ))}
                 </div>
                 
-                {/* Pi.ai style suggestions after AI responses - get the most recent entry */}
-                {entries.length > 0 && 
-                  // Find the most recent AI response
-                  [...entries]
-                    .filter(entry => !(entry as any).isJournal)
-                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]?.isAiResponse && 
-                  (
-                    <div className="pi-suggestions self-start ml-2 mt-1">
-                      <button className="pi-suggestion-chip flex items-center">
-                        Tell me more <ChevronRight className="h-3 w-3 ml-1" />
-                      </button>
-                      <button className="pi-suggestion-chip flex items-center">
-                        Why do I feel this way? <ChevronRight className="h-3 w-3 ml-1" />
-                      </button>
-                    </div>
-                  )
-                }
+                {/* Pi.ai style suggestions after AI responses - show only after most recent message is from AI */}
+                {chatHistory.length > 0 && chatHistory[chatHistory.length - 1].isAiResponse && (
+                  <div className="pi-suggestions self-start ml-2 mt-1">
+                    <button className="pi-suggestion-chip flex items-center">
+                      Tell me more <ChevronRight className="h-3 w-3 ml-1" />
+                    </button>
+                    <button className="pi-suggestion-chip flex items-center">
+                      Why do I feel this way? <ChevronRight className="h-3 w-3 ml-1" />
+                    </button>
+                  </div>
+                )}
                 
                 {/* Display when AI is thinking */}
                 {addEntryMutation.isPending && (
@@ -356,7 +417,7 @@ export function JournalChat({ userId }: JournalChatProps) {
           
           <div className="mt-3 flex flex-col gap-3">
             {/* Save Chat button at the bottom */}
-            {entries.filter(entry => !(entry as any).isJournal).length > 0 && (
+            {chatHistory.length > 0 && (
               <div className="w-full flex justify-center">
                 <Button 
                   variant="outline" 

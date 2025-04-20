@@ -134,102 +134,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/journal-entries", async (req, res) => {
+  // Endpoint for getting AI chat responses without saving to DB
+  app.post("/api/chat-response", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     
-    const { content, userId, isJournal = false } = req.body;
+    const { content, userId, history = [] } = req.body;
     if (req.user?.id !== userId) return res.sendStatus(403);
     
     try {
-      // For regular message exchange (not saving as journal)
-      if (!isJournal) {
-        // Save user's chat message
-        const userEntry = await storage.createJournalEntry({
-          userId,
-          content,
-          date: new Date().toISOString(),
-          isAiResponse: false,
-          isJournal: false // This is a temporary chat message
-        });
-        
-        // Get recent conversation history
-        const recentEntries = await storage.getRecentJournalEntriesByUserId(userId, 10);
-        const conversationHistory = recentEntries
-          .filter(entry => !entry.isJournal) // Only include temporary chat messages
-          .map(entry => ({
-            role: entry.isAiResponse ? "ai" as const : "user" as const,
-            content: entry.content
-          }));
-        
-        // Generate AI response with RAG - include saved journal context
-        const aiResponse = await generateAIResponse(content, conversationHistory, req.user.username, userId);
-        
-        // Save AI response as temporary chat message
-        const aiEntry = await storage.createJournalEntry({
-          userId,
-          content: aiResponse,
-          date: new Date().toISOString(),
-          isAiResponse: true,
-          isJournal: false // This is a temporary chat message
-        });
-        
-        // Return both entries
-        res.status(201).json([userEntry, aiEntry]);
-      }
-      // For direct journal entry (long-form journal entry)
-      else {
-        // Save as permanent journal entry
-        const journalEntry = await storage.createJournalEntry({
-          userId,
-          content,
-          date: new Date().toISOString(),
-          isAiResponse: false,
-          isJournal: true, // This is a permanent journal entry
-          transcript: content // For long-form entries, the transcript is the content
-        });
-        
-        // Get sentiment analysis
-        const sentiment = await analyzeSentiment(content);
-        await storage.updateJournalEntrySentiment(journalEntry.id, sentiment);
-        
-        // Process any goals from the journal entry
-        if (sentiment.goals && sentiment.goals.length > 0) {
-          for (const goal of sentiment.goals) {
-            if (goal.isNew) {
-              // Create a new goal
-              await storage.createGoal({
-                userId,
-                name: goal.name,
-                target: 100, // Default target
-                progress: 0,
-                unit: "%",
-                colorScheme: 1
-              });
-            } else if (goal.completion !== undefined) {
-              // Find the existing goal to update
-              const existingGoals = await storage.getGoalsByUserId(userId);
-              const matchingGoal = existingGoals.find(g => 
-                g.name.toLowerCase() === goal.name.toLowerCase()
-              );
-              
-              if (matchingGoal) {
-                // Update the goal progress
-                await storage.updateGoalProgress(matchingGoal.id, goal.completion);
-              }
+      // Generate AI response with RAG and include saved journal context
+      const aiResponse = await generateAIResponse(content, history, req.user.username, userId);
+      
+      // Return only the AI response
+      res.status(200).json({ content: aiResponse });
+    } catch (error) {
+      console.error("Error generating AI response:", error);
+      res.status(500).json({ error: "Failed to generate AI response" });
+    }
+  });
+
+  app.post("/api/journal-entries", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const { content, userId, transcript = null } = req.body;
+    if (req.user?.id !== userId) return res.sendStatus(403);
+    
+    try {
+      // This endpoint now only handles direct journal entries
+      // Chat messages are handled in memory and only saved when "Save Chat" is clicked
+      
+      // Save as permanent journal entry
+      const journalEntry = await storage.createJournalEntry({
+        userId,
+        content,
+        date: new Date().toISOString(),
+        isAiResponse: false,
+        isJournal: true, // This is a permanent journal entry
+        transcript: transcript || content // Use provided transcript if available, otherwise use content
+      });
+      
+      // Get sentiment analysis
+      const sentiment = await analyzeSentiment(content);
+      await storage.updateJournalEntrySentiment(journalEntry.id, sentiment);
+      
+      // Process any goals from the journal entry
+      if (sentiment.goals && sentiment.goals.length > 0) {
+        for (const goal of sentiment.goals) {
+          if (goal.isNew) {
+            // Create a new goal
+            await storage.createGoal({
+              userId,
+              name: goal.name,
+              target: 100, // Default target
+              progress: 0,
+              unit: "%",
+              colorScheme: 1
+            });
+          } else if (goal.completion !== undefined) {
+            // Find the existing goal to update
+            const existingGoals = await storage.getGoalsByUserId(userId);
+            const matchingGoal = existingGoals.find(g => 
+              g.name.toLowerCase() === goal.name.toLowerCase()
+            );
+            
+            if (matchingGoal) {
+              // Update the goal progress
+              await storage.updateGoalProgress(matchingGoal.id, goal.completion);
             }
           }
         }
-        
-        // Store embedding for RAG functionality
-        try {
-          await storeEmbedding(journalEntry.id, content);
-        } catch (embeddingError) {
-          console.error("Failed to store embedding, but continuing:", embeddingError);
-        }
-        
-        // Return the journal entry
-        res.status(201).json([journalEntry]);
       }
+      
+      // Store embedding for RAG functionality
+      try {
+        await storeEmbedding(journalEntry.id, content);
+      } catch (embeddingError) {
+        console.error("Failed to store embedding, but continuing:", embeddingError);
+      }
+      
+      // Return the journal entry
+      res.status(201).json([journalEntry]);
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: "Failed to process journal entry" });
