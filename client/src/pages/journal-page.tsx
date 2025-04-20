@@ -12,7 +12,8 @@ import {
   SortDesc,
   SortAsc,
   Plus,
-  BookOpen
+  BookOpen,
+  Clock
 } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
@@ -220,49 +221,56 @@ export default function JournalPage() {
               <div className="space-y-6">
                 {Object.entries(entriesByDate).map(([date, dateEntries]) => (
                   <div key={date} className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                    <div className="bg-gray-50 px-6 py-3 border-b border-gray-200">
+                    <div className="bg-gradient-to-r from-primary/10 to-primary/5 px-6 py-4 border-b border-gray-200">
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          <Calendar className="h-4 w-4 text-gray-500 mr-2" />
-                          <h3 className="font-medium">{date}</h3>
+                        <div className="flex flex-col">
+                          <div className="flex items-center">
+                            <Calendar className="h-4 w-4 text-primary mr-2" />
+                            <h3 className="font-semibold text-primary">
+                              {new Date(dateEntries[0].date).toLocaleDateString('en-US', {
+                                weekday: 'long',
+                                month: 'long', 
+                                day: 'numeric',
+                                year: 'numeric'
+                              })}
+                            </h3>
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1 ml-6">
+                            {dateEntries.length} {dateEntries.length === 1 ? 'entry' : 'entries'} in your journal
+                          </p>
                         </div>
-                        <Badge variant="outline">{dateEntries.length} entries</Badge>
+                        <Badge variant="secondary" className="text-xs">
+                          {dateEntries.length} {dateEntries.length === 1 ? 'entry' : 'entries'}
+                        </Badge>
                       </div>
                     </div>
                     
                     <div className="divide-y divide-gray-100">
                       {dateEntries.map((entry) => (
                         <div key={entry.id} className="p-6 hover:bg-gray-50 transition-colors">
-                          <Link href={`/journal/${entry.id}`}>
-                            <div className="flex justify-between items-start mb-2">
-                              <div className={`text-sm font-medium flex items-center ${entry.isAiResponse ? "text-blue-600" : "text-gray-700"}`}>
-                                {entry.isAiResponse ? (
-                                  <>
-                                    <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center mr-2">
-                                      <span className="text-xs font-bold text-blue-600">H</span>
-                                    </div>
-                                    Hope Log
-                                  </>
-                                ) : (
-                                  <>
-                                    <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center mr-2">
-                                      <span className="text-xs font-bold text-gray-600">
-                                        {user?.username.charAt(0).toUpperCase()}
-                                      </span>
-                                    </div>
-                                    You
-                                  </>
+                          <Link href={`/journal/${entry.id}`} className="block hover:bg-gray-50/50 -mx-6 -my-6 p-6 rounded-md transition-colors">
+                            <div className="flex justify-between items-center">
+                              <div className="flex items-end gap-2">
+                                <div className="text-xs uppercase text-primary-foreground font-medium px-2 py-0.5 rounded-sm bg-primary/80">
+                                  {new Date(entry.date).toLocaleDateString('en-US', { weekday: 'short' })}
+                                </div>
+                                {entry.isAiResponse && (
+                                  <div className="text-xs uppercase text-blue-700 font-medium px-2 py-0.5 rounded-sm bg-blue-100">
+                                    AI Response
+                                  </div>
                                 )}
                               </div>
-                              <div className="text-xs text-gray-500">
+                              <div className="text-xs text-gray-500 flex items-center">
+                                <Clock className="h-3 w-3 mr-1 text-gray-400" />
                                 {new Date(entry.date).toLocaleTimeString([], { 
                                   hour: '2-digit', 
                                   minute: '2-digit',
-                                  hour12: true // Ensures time is displayed in 12-hour format
+                                  hour12: true
                                 })}
                               </div>
                             </div>
-                            <h4 className="font-medium text-lg mb-2">
+                            
+                            <h4 className="font-medium text-xl mt-3 mb-2 text-gray-800">
                               {(() => {
                                 // Generate title from content
                                 const content = entry.content;
@@ -289,7 +297,10 @@ export default function JournalPage() {
                                 return title;
                               })()}
                             </h4>
-                            <p className="text-gray-700 line-clamp-2 mb-3">{entry.content}</p>
+                            
+                            <div className="mb-3 mt-2 pl-2 border-l-2 border-gray-200">
+                              <p className="text-gray-600 line-clamp-3 pl-2 italic font-light">{entry.content}</p>
+                            </div>
                             
                             {entry.sentiment && entry.sentiment.emotions && entry.sentiment.emotions.length > 0 && (
                               <div className="flex flex-wrap gap-1">
