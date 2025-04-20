@@ -4,7 +4,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { MoodChart, MoodData } from "@/components/ui/chart";
 import { MoodEmoji } from "@/components/ui/mood-emoji";
 import { format, subDays } from "date-fns";
-import { User, Mood } from "@shared/schema";
+import { User, Mood, JournalEntry } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LineChart, Heart, Smile, BarChart2, ChevronRight, Info } from "lucide-react";
 
@@ -16,7 +16,7 @@ export function MoodTracker({ userId }: MoodTrackerProps) {
   const [selectedMood, setSelectedMood] = useState<number | null>(null);
   
   // Fetch mood data for the past week
-  const { data: moods, isLoading } = useQuery<Mood[]>({
+  const { data: moods = [], isLoading } = useQuery<Mood[]>({
     queryKey: [`/api/moods/${userId}`],
   });
   
@@ -143,19 +143,35 @@ export function MoodTracker({ userId }: MoodTrackerProps) {
             <MoodChart data={chartData} height={180} />
             
             {/* Insight card */}
-            {moods && moods.length > 0 && (
+            {(moods && moods.length > 0) || (entries && entries.some(e => e.sentiment?.score !== undefined)) ? (
               <div className="mt-4 border border-[#B6CAEB]/30 rounded-lg p-3 bg-[#B6CAEB]/10 flex items-start">
                 <Info className="h-5 w-5 text-[#B6CAEB] mr-2 mt-0.5 shrink-0" />
                 <div>
                   <p className="text-sm text-gray-700">
-                    Your mood has been mostly positive this week. Your happiness levels tend to peak on weekends.
+                    {moods && moods.length > 0 && entries && entries.some(e => e.sentiment?.score !== undefined) ? (
+                      "Your mood tracker now combines both self-reported feelings and sentiment from your journal entries for a complete emotional picture."
+                    ) : moods && moods.length > 0 ? (
+                      "Your mood has been tracked based on your self-reports. Journal entries with sentiment analysis will also appear here."
+                    ) : (
+                      "Your mood is being tracked based on the sentiment in your journal entries. You can also record your mood directly."
+                    )}
                   </p>
-                  <button className="text-sm text-[#9AAB63] font-medium mt-1 flex items-center hover:text-[#B6CAEB]">
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    <span className="text-xs px-2 py-1 bg-[#F5B8DB]/10 rounded-full flex items-center">
+                      <span className="w-2 h-2 rounded-full bg-[#F5B8DB] mr-1"></span>
+                      Self-reported
+                    </span>
+                    <span className="text-xs px-2 py-1 bg-[#B6CAEB]/10 rounded-full flex items-center">
+                      <span className="w-2 h-2 rounded-full bg-[#B6CAEB] mr-1"></span>
+                      From journal
+                    </span>
+                  </div>
+                  <button className="text-sm text-[#9AAB63] font-medium mt-2 flex items-center hover:text-[#B6CAEB]">
                     See pattern analysis <ChevronRight className="h-3 w-3 ml-1" />
                   </button>
                 </div>
               </div>
-            )}
+            ) : null}
           </>
         )}
       </div>

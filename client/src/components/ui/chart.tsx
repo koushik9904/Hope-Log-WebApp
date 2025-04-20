@@ -15,6 +15,9 @@ export type MoodData = {
   date: string;
   mood: number;
   label: string;
+  // Optional properties for different mood sources
+  selfReportedMood?: number;
+  sentimentMood?: number;
 };
 
 type MoodChartProps = {
@@ -64,9 +67,10 @@ export function MoodChart({ data, height = 180 }: MoodChartProps) {
               borderRadius: "8px",
               border: "1px solid #E9ECF0",
               boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+              padding: "8px",
             }}
-            formatter={(value) => {
-              const moodValue = Number(value);
+            formatter={(value, name, props) => {
+              const dataPoint = props.payload as unknown as MoodData;
               const moodTexts = {
                 1: "Sad",
                 2: "Worried",
@@ -74,7 +78,38 @@ export function MoodChart({ data, height = 180 }: MoodChartProps) {
                 4: "Good",
                 5: "Great"
               };
-              return [moodTexts[moodValue as 1 | 2 | 3 | 4 | 5], "Mood"];
+              
+              // If this is the main mood value
+              if (name === "mood") {
+                const moodValue = Number(value);
+                if (moodValue === 0) return ["No mood recorded", "Overall"];
+                
+                // Check if we have both types of mood data
+                if (dataPoint.selfReportedMood && dataPoint.sentimentMood) {
+                  return [
+                    <div className="space-y-1">
+                      <div className="font-semibold">{moodTexts[moodValue as 1 | 2 | 3 | 4 | 5]}</div>
+                      <div className="text-xs flex items-center">
+                        <span className="inline-block w-2 h-2 rounded-full bg-[#F5B8DB] mr-1"></span>
+                        Self-rated: {moodTexts[dataPoint.selfReportedMood as 1 | 2 | 3 | 4 | 5]}
+                      </div>
+                      <div className="text-xs flex items-center">
+                        <span className="inline-block w-2 h-2 rounded-full bg-[#B6CAEB] mr-1"></span>
+                        From journal: {moodTexts[Math.round(dataPoint.sentimentMood) as 1 | 2 | 3 | 4 | 5]}
+                      </div>
+                    </div>, 
+                    "Mood"
+                  ];
+                } else if (dataPoint.selfReportedMood) {
+                  return [`${moodTexts[moodValue as 1 | 2 | 3 | 4 | 5]} (self-rated)`, "Mood"];
+                } else if (dataPoint.sentimentMood) {
+                  return [`${moodTexts[moodValue as 1 | 2 | 3 | 4 | 5]} (from journal)`, "Mood"];
+                }
+                
+                return [moodTexts[moodValue as 1 | 2 | 3 | 4 | 5], "Mood"];
+              }
+              
+              return [value, name];
             }}
             labelFormatter={(label) => label}
           />
