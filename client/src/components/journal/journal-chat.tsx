@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { User, JournalEntry } from "@shared/schema";
+import { Link } from "wouter";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -136,11 +137,34 @@ export function JournalChat({ userId }: JournalChatProps) {
       
       return await res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Get the entry ID from the response
+      const entryId = data && data.length > 0 ? data[0].id : null;
+      
+      // Show successful save message with view option
       toast({
         title: "Chat saved",
-        description: "Your chat has been saved as a journal entry with sentiment analysis"
+        description: (
+          <div>
+            <p>Your chat has been saved as a journal entry with sentiment analysis</p>
+            {entryId && (
+              <p className="mt-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  asChild
+                  className="mt-1 bg-white"
+                >
+                  <Link to={`/journal/entry/${entryId}`}>
+                    View Journal Entry
+                  </Link>
+                </Button>
+              </p>
+            )}
+          </div>
+        )
       });
+      
       // Clear chat history after saving
       setChatHistory([]);
       // Refresh journal entries list
@@ -167,10 +191,31 @@ export function JournalChat({ userId }: JournalChatProps) {
       });
       return await res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Get the entry ID from the response
+      const entryId = data && data.length > 0 ? data[0].id : null;
+      
       toast({
         title: "Journal entry saved",
-        description: "Your journal entry has been saved with sentiment analysis"
+        description: (
+          <div>
+            <p>Your journal entry has been saved with sentiment analysis</p>
+            {entryId && (
+              <p className="mt-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  asChild
+                  className="mt-1 bg-white"
+                >
+                  <Link to={`/journal/entry/${entryId}`}>
+                    View Journal Entry
+                  </Link>
+                </Button>
+              </p>
+            )}
+          </div>
+        )
       });
       setJournalEntry("");
       queryClient.invalidateQueries({ queryKey: [`/api/journal-entries/${userId}`] });
@@ -384,10 +429,24 @@ export function JournalChat({ userId }: JournalChatProps) {
                 {/* Pi.ai style suggestions after AI responses - show only after most recent message is from AI */}
                 {chatHistory.length > 0 && chatHistory[chatHistory.length - 1].isAiResponse && (
                   <div className="pi-suggestions self-start ml-2 mt-1">
-                    <button className="pi-suggestion-chip flex items-center">
+                    <button 
+                      className="pi-suggestion-chip flex items-center"
+                      onClick={() => {
+                        setMessage("Tell me more about what you just said");
+                        addEntryMutation.mutate("Tell me more about what you just said");
+                        setMessage("");
+                      }}
+                    >
                       Tell me more <ChevronRight className="h-3 w-3 ml-1" />
                     </button>
-                    <button className="pi-suggestion-chip flex items-center">
+                    <button 
+                      className="pi-suggestion-chip flex items-center"
+                      onClick={() => {
+                        setMessage("Why might I feel this way?");
+                        addEntryMutation.mutate("Why might I feel this way?");
+                        setMessage("");
+                      }}
+                    >
                       Why do I feel this way? <ChevronRight className="h-3 w-3 ml-1" />
                     </button>
                   </div>
