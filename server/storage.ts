@@ -2,7 +2,7 @@ import { User, InsertUser, JournalEntry, InsertJournalEntry, Mood, InsertMood, G
 import session from "express-session";
 import { db, pool } from "./db";
 import { eq, and, gte, desc } from "drizzle-orm";
-import connectPgSimple from "connect-pg-simple";
+import createMemoryStore from "memorystore";
 
 // Interfaces for storage methods
 export interface IStorage {
@@ -46,14 +46,9 @@ export class DatabaseStorage implements IStorage {
   sessionStore: session.Store;
   
   constructor() {
-    const PgSession = connectPgSimple(session);
-    this.sessionStore = new PgSession({ 
-      pool, 
-      createTableIfMissing: true,
-      tableName: 'session', // Default table name
-      schemaName: 'public', // Use public schema 
-      pruneSessionInterval: 60,  // Prune expired sessions every minute
-      errorLog: console.error.bind(console)
+    const MemoryStore = createMemoryStore(session);
+    this.sessionStore = new MemoryStore({
+      checkPeriod: 86400000 // Prune expired entries every 24h
     });
     
     // Setup default prompts
