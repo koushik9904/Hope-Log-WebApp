@@ -36,6 +36,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -93,7 +94,18 @@ const goalSchema = z.object({
   description: z.string().max(200, {
     message: "Description must not be longer than 200 characters."
   }).optional(),
-  targetDate: z.string().optional(),
+  targetDate: z.string()
+    .refine(
+      (date) => {
+        if (!date) return true; // Optional, so empty is fine
+        // Check if the date is in the future or today
+        return new Date(date) >= new Date(new Date().setHours(0, 0, 0, 0));
+      },
+      {
+        message: "Target date must be today or in the future."
+      }
+    )
+    .optional(),
   category: z.string(),
   target: z.number().default(100),
   progress: z.number().default(0),
@@ -227,6 +239,24 @@ export default function GoalsPage() {
     enabled: !!user?.id,
     staleTime: 60000, // 1 minute
   });
+  
+  // Filter AI-suggested goals to remove any that already exist in the user's goals list
+  const [filteredAiSuggestedGoals, setFilteredAiSuggestedGoals] = useState<typeof AI_SUGGESTED_GOALS>([]);
+  
+  useEffect(() => {
+    if (goals.length > 0) {
+      // Filter out AI goals that already exist in the user's goals
+      const filtered = AI_SUGGESTED_GOALS.filter(aiGoal => 
+        !goals.some(userGoal => 
+          // Case-insensitive name comparison
+          userGoal.name.toLowerCase() === aiGoal.name.toLowerCase()
+        )
+      );
+      setFilteredAiSuggestedGoals(filtered);
+    } else {
+      setFilteredAiSuggestedGoals(AI_SUGGESTED_GOALS);
+    }
+  }, [goals]);
   
   // Add goal mutation
   const addGoalMutation = useMutation({
@@ -367,6 +397,21 @@ export default function GoalsPage() {
   // Habits (using example data for now)
   const [habits, setHabits] = useState(EXAMPLE_HABITS);
   const [aiSuggestedHabits, setAiSuggestedHabits] = useState(AI_SUGGESTED_HABITS);
+  const [filteredAiSuggestedHabits, setFilteredAiSuggestedHabits] = useState<typeof AI_SUGGESTED_HABITS>([]);
+  const [habitToEdit, setHabitToEdit] = useState<typeof EXAMPLE_HABITS[0] | null>(null);
+  const [showEditHabitDialog, setShowEditHabitDialog] = useState(false);
+  
+  // Filter AI-suggested habits to remove any that already exist in the user's habits list
+  useEffect(() => {
+    // Filter out AI habits that already exist in the user's habits
+    const filtered = AI_SUGGESTED_HABITS.filter(aiHabit => 
+      !habits.some(userHabit => 
+        // Case-insensitive title comparison
+        userHabit.title.toLowerCase() === aiHabit.title.toLowerCase()
+      )
+    );
+    setFilteredAiSuggestedHabits(filtered);
+  }, [habits]);
   
   // Function to toggle habit completion
   const toggleHabitCompletion = (habitId: number) => {
@@ -382,6 +427,26 @@ export default function GoalsPage() {
         return 0;
       })
     );
+  };
+  
+  // Delete habit handler
+  const deleteHabit = (habitId: number) => {
+    setHabits(prev => prev.filter(habit => habit.id !== habitId));
+  };
+  
+  // Edit habit handler
+  const updateHabit = (updatedHabit: typeof EXAMPLE_HABITS[0]) => {
+    setHabits(prev => 
+      prev.map(habit => 
+        habit.id === updatedHabit.id ? updatedHabit : habit
+      ).sort((a, b) => {
+        // Sort to put uncompleted habits on top
+        if (a.completedToday && !b.completedToday) return 1;
+        if (!a.completedToday && b.completedToday) return -1;
+        return 0;
+      })
+    );
+    setShowEditHabitDialog(false);
   };
   
   // Handler for adopting AI-suggested habits
@@ -654,7 +719,7 @@ export default function GoalsPage() {
           
           <TabsContent value="goals">
             {/* AI-suggested goals section */}
-            {aiSuggestedGoals.length > 0 && (
+            {filteredAiSuggestedGoals.length > 0 && (
               <Card className="bg-white border-0 shadow-sm mb-8">
                 <CardHeader className="border-b border-gray-100">
                   <CardTitle className="font-['Montserrat_Variable'] flex items-center gap-2">
@@ -667,7 +732,7 @@ export default function GoalsPage() {
                 </CardHeader>
                 <CardContent className="pt-6">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {aiSuggestedGoals.map(goal => (
+                    {filteredAiSuggestedGoals.map(goal => (
                       <div key={goal.id} className="bg-[#fbf1f7] p-4 rounded-xl border border-[#F5B8DB] border-opacity-30">
                         <h4 className="font-medium text-gray-800 mb-2">{goal.name}</h4>
                         <p className="text-sm text-gray-600 mb-3">{goal.description}</p>
@@ -1016,9 +1081,96 @@ export default function GoalsPage() {
           </TabsContent>
           
           <TabsContent value="habits">
+            {/* Edit Habit Dialog */}
+            <Dialog open={showEditHabitDialog} onOpenChange={setShowEditHabitDialog}>
+              <DialogContent className="sm:max-w-[500px] bg-white">
+                <DialogHeader>
+                  <DialogTitle className="font-['Montserrat_Variable']">Edit Habit</DialogTitle>
+                  <DialogDescription>
+                    Update this habit's details.
+                  </DialogDescription>
+                </DialogHeader>
+                
+                {habitToEdit && (
+                  <form 
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const formData = new FormData(e.currentTarget);
+                      const title = formData.get('title') as string;
+                      const description = formData.get('description') as string;
+                      const frequency = formData.get('frequency') as string;
+                      
+                      if (!title || !frequency) return;
+                      
+                      updateHabit({
+                        ...habitToEdit,
+                        title,
+                        description,
+                        frequency: frequency as "daily" | "weekly" | "monthly"
+                      });
+                    }} 
+                    className="space-y-6 py-4"
+                  >
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="title">Habit Name</Label>
+                        <Input 
+                          id="title" 
+                          name="title" 
+                          defaultValue={habitToEdit.title} 
+                          placeholder="Enter habit name"
+                          className="bg-white"
+                          required
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="description">Description (optional)</Label>
+                        <Input 
+                          id="description" 
+                          name="description" 
+                          defaultValue={habitToEdit.description || ""} 
+                          placeholder="Describe this habit"
+                          className="bg-white"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="frequency">Frequency</Label>
+                        <Select name="frequency" defaultValue={habitToEdit.frequency}>
+                          <SelectTrigger className="bg-white">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="daily">Daily</SelectItem>
+                            <SelectItem value="weekly">Weekly</SelectItem>
+                            <SelectItem value="monthly">Monthly</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    
+                    <DialogFooter>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={() => setShowEditHabitDialog(false)}
+                        className="bg-white"
+                      >
+                        Cancel
+                      </Button>
+                      <Button type="submit" className="bg-[#F5B8DB] hover:bg-[#f096c9] text-white">
+                        Update Habit
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                )}
+              </DialogContent>
+            </Dialog>
+            
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               {/* AI-suggested habits section */}
-              {aiSuggestedHabits.length > 0 && (
+              {filteredAiSuggestedHabits.length > 0 && (
                 <Card className="md:col-span-4 bg-white border-0 shadow-sm mb-6">
                   <CardHeader className="border-b border-gray-100">
                     <CardTitle className="font-['Montserrat_Variable'] flex items-center gap-2">
@@ -1114,11 +1266,19 @@ export default function GoalsPage() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent className="bg-white">
-                                <DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    setHabitToEdit(habit);
+                                    setShowEditHabitDialog(true);
+                                  }}
+                                >
                                   <Edit className="h-4 w-4 mr-2" />
                                   <span>Edit</span>
                                 </DropdownMenuItem>
-                                <DropdownMenuItem className="text-red-600">
+                                <DropdownMenuItem 
+                                  onClick={() => deleteHabit(habit.id)}
+                                  className="text-red-600"
+                                >
                                   <Trash className="h-4 w-4 mr-2" />
                                   <span>Delete</span>
                                 </DropdownMenuItem>
