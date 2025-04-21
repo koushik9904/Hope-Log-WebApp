@@ -16,7 +16,9 @@ import {
   Sun,
   Download,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  ExternalLink,
+  Info
 } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { HopeLogLogo } from "@/components/ui/hope-log-logo";
@@ -110,6 +112,28 @@ export function Sidebar() {
           href="/goals" 
           icon={<Target className="w-full h-full" />} 
           label="Goals & Habits" 
+        />
+        
+        <div className="px-6 py-3 mt-2">
+          <span className="text-xs text-gray-500 uppercase tracking-wider font-medium">Resources</span>
+        </div>
+        
+        <a 
+          href="https://jazeeljabbar.substack.com/" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="flex items-center px-6 py-3 text-gray-400 hover:bg-gray-800 hover:text-white transition-colors"
+        >
+          <div className="w-5 h-5 mr-3">
+            <ExternalLink className="w-full h-full" />
+          </div>
+          <span className="font-medium">Blog</span>
+        </a>
+        
+        <NavLink 
+          href="/about-us" 
+          icon={<Info className="w-full h-full" />} 
+          label="About Us" 
         />
         
         {/* Settings section with sub-navigation */}
