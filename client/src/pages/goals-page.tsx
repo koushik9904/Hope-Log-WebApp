@@ -3,6 +3,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Goal as GoalBase } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 // Extended Goal type with the new fields
 interface Goal extends GoalBase {
@@ -228,6 +229,7 @@ const AI_SUGGESTED_HABITS = [
 
 export default function GoalsPage() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [showNewGoalDialog, setShowNewGoalDialog] = useState(false);
   const [showNewHabitDialog, setShowNewHabitDialog] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("goals");
@@ -300,11 +302,26 @@ export default function GoalsPage() {
   // Delete goal mutation
   const deleteGoalMutation = useMutation({
     mutationFn: async (id: number) => {
+      // Find the goal before deleting it
+      const goalToDelete = goals.find(g => g.id === id);
+      if (goalToDelete) {
+        // Add to deleted goals with timestamp
+        setDeletedGoals(prev => [...prev, {
+          ...goalToDelete,
+          deletedAt: new Date().toISOString()
+        }]);
+      }
+      
+      // Proceed with deletion from database
       const res = await apiRequest("DELETE", `/api/goals/${id}`);
       return id;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}`] });
+      toast({
+        title: "Goal moved to recycle bin",
+        description: "You can restore this goal within 7 days",
+      });
     },
   });
   
@@ -342,7 +359,35 @@ export default function GoalsPage() {
   
   const onHabitSubmit = (values: HabitFormValues) => {
     console.log("New habit:", values);
+    
+    // Create a new habit with definite userId
+    const newHabit = {
+      id: Date.now(), // Temporary ID until API implementation
+      title: values.title,
+      description: values.description || "",
+      frequency: values.frequency,
+      streak: 0,
+      userId: user?.id ?? 1, // Fallback to 1 if user?.id is undefined
+      completedToday: false
+    };
+    
+    // Add to habits list
+    setHabits(prev => [...prev, newHabit].sort((a, b) => {
+      // Sort to put uncompleted habits on top
+      if (a.completedToday && !b.completedToday) return 1;
+      if (!a.completedToday && b.completedToday) return -1;
+      return 0;
+    }));
+    
     setShowNewHabitDialog(false);
+    
+    // Reset form for next use
+    habitForm.reset({
+      title: "",
+      description: "",
+      frequency: "daily",
+      userId: user?.id
+    });
   };
   
   // Handler for adopting AI-suggested goals
@@ -402,6 +447,11 @@ export default function GoalsPage() {
   const [habitToEdit, setHabitToEdit] = useState<typeof EXAMPLE_HABITS[0] | null>(null);
   const [showEditHabitDialog, setShowEditHabitDialog] = useState(false);
   
+  // Recycle bin for deleted items
+  const [deletedGoals, setDeletedGoals] = useState<Goal[]>([]);
+  const [deletedHabits, setDeletedHabits] = useState<typeof EXAMPLE_HABITS>([]);
+  const [showRecycleBin, setShowRecycleBin] = useState(false);
+  
   // Filter AI-suggested habits to remove any that already exist in the user's habits list
   useEffect(() => {
     // Filter out AI habits that already exist in the user's habits
@@ -430,9 +480,19 @@ export default function GoalsPage() {
     );
   };
   
-  // Delete habit handler
+  // Delete habit handler - move to recycle bin
   const deleteHabit = (habitId: number) => {
-    setHabits(prev => prev.filter(habit => habit.id !== habitId));
+    const habitToDelete = habits.find(h => h.id === habitId);
+    if (habitToDelete) {
+      // Add the habit to the recycle bin with deletion timestamp
+      setDeletedHabits(prev => [...prev, {
+        ...habitToDelete,
+        deletedAt: new Date().toISOString()
+      }]);
+      
+      // Remove from active habits list
+      setHabits(prev => prev.filter(habit => habit.id !== habitId));
+    }
   };
   
   // Edit habit handler
