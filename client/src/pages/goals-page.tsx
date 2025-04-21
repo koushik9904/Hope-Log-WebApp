@@ -363,6 +363,7 @@ export default function GoalsPage() {
     
     // Remove the goal from suggestions after adopting
     setAiSuggestedGoals(prev => prev.filter(g => g.id !== aiGoal.id));
+    setFilteredAiSuggestedGoals(prev => prev.filter(g => g.id !== aiGoal.id));
   };
   
   // Group goals by category
@@ -474,6 +475,7 @@ export default function GoalsPage() {
     
     // Remove from suggestions
     setAiSuggestedHabits(prev => prev.filter(h => h.id !== aiHabit.id));
+    setFilteredAiSuggestedHabits(prev => prev.filter(h => h.id !== aiHabit.id));
   };
   
   const completedHabitsToday = habits.filter(habit => habit.completedToday).length;
@@ -748,7 +750,10 @@ export default function GoalsPage() {
                           </Button>
                           <Button 
                             variant="outline"
-                            onClick={() => setAiSuggestedGoals(prev => prev.filter(g => g.id !== goal.id))}
+                            onClick={() => {
+                              setAiSuggestedGoals(prev => prev.filter(g => g.id !== goal.id));
+                              setFilteredAiSuggestedGoals(prev => prev.filter(g => g.id !== goal.id));
+                            }}
                             className="text-gray-500 text-xs px-2 border-gray-300 bg-white"
                             size="sm"
                           >
@@ -1183,7 +1188,7 @@ export default function GoalsPage() {
                   </CardHeader>
                   <CardContent className="pt-6">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {aiSuggestedHabits.map(habit => (
+                      {filteredAiSuggestedHabits.map(habit => (
                         <div key={habit.id} className="bg-[#f4f7ec] p-4 rounded-xl border border-[#9AAB63] border-opacity-30">
                           <h4 className="font-medium text-gray-800 mb-2">{habit.title}</h4>
                           <p className="text-sm text-gray-600 mb-3">{habit.description}</p>
@@ -1204,7 +1209,10 @@ export default function GoalsPage() {
                             </Button>
                             <Button 
                               variant="outline"
-                              onClick={() => setAiSuggestedHabits(prev => prev.filter(h => h.id !== habit.id))}
+                              onClick={() => {
+                                setAiSuggestedHabits(prev => prev.filter(h => h.id !== habit.id));
+                                setFilteredAiSuggestedHabits(prev => prev.filter(h => h.id !== habit.id));
+                              }}
                               className="text-gray-500 text-xs px-2 border-gray-300 bg-white"
                               size="sm"
                             >
