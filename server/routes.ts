@@ -629,6 +629,163 @@ Your role is to:
     }
   });
 
+  // ------------------------
+  // Notification System API
+  // ------------------------
+  
+  // Get all notifications for the current user
+  app.get("/api/notifications", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const notifications = await storage.getNotificationsByUserId(req.user.id);
+      res.json(notifications);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      res.status(500).json({ error: "Failed to fetch notifications" });
+    }
+  });
+  
+  // Get only unread notifications for the current user
+  app.get("/api/notifications/unread", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const unreadNotifications = await storage.getUnreadNotificationsByUserId(req.user.id);
+      res.json(unreadNotifications);
+    } catch (error) {
+      console.error("Error fetching unread notifications:", error);
+      res.status(500).json({ error: "Failed to fetch unread notifications" });
+    }
+  });
+  
+  // Create a new notification (admin or system use)
+  app.post("/api/notifications", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const notification = await storage.createNotification({
+        ...req.body,
+        userId: req.user.id
+      });
+      res.status(201).json(notification);
+    } catch (error) {
+      console.error("Error creating notification:", error);
+      res.status(500).json({ error: "Failed to create notification" });
+    }
+  });
+  
+  // Update notification status (mark as read/dismissed)
+  app.patch("/api/notifications/:id", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const notificationId = Number(req.params.id);
+    
+    try {
+      const notification = await storage.getNotificationById(notificationId);
+      
+      if (!notification) {
+        return res.status(404).json({ error: "Notification not found" });
+      }
+      
+      if (notification.userId !== req.user.id) {
+        return res.status(403).json({ error: "Not authorized to update this notification" });
+      }
+      
+      const updatedNotification = await storage.updateNotificationStatus(
+        notificationId, 
+        req.body.status
+      );
+      
+      res.json(updatedNotification);
+    } catch (error) {
+      console.error("Error updating notification:", error);
+      res.status(500).json({ error: "Failed to update notification" });
+    }
+  });
+  
+  // Delete a single notification
+  app.delete("/api/notifications/:id", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const notificationId = Number(req.params.id);
+    
+    try {
+      const notification = await storage.getNotificationById(notificationId);
+      
+      if (!notification) {
+        return res.status(404).json({ error: "Notification not found" });
+      }
+      
+      if (notification.userId !== req.user.id) {
+        return res.status(403).json({ error: "Not authorized to delete this notification" });
+      }
+      
+      await storage.deleteNotification(notificationId);
+      res.status(204).end();
+    } catch (error) {
+      console.error("Error deleting notification:", error);
+      res.status(500).json({ error: "Failed to delete notification" });
+    }
+  });
+  
+  // Delete all notifications for the current user
+  app.delete("/api/notifications", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      await storage.deleteAllNotificationsByUserId(req.user.id);
+      res.status(204).end();
+    } catch (error) {
+      console.error("Error deleting all notifications:", error);
+      res.status(500).json({ error: "Failed to delete all notifications" });
+    }
+  });
+  
+  // Get notification preferences for the current user
+  app.get("/api/notification-preferences", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const preferences = await storage.getNotificationPreferencesByUserId(req.user.id);
+      
+      if (!preferences) {
+        // Create default preferences if none exist
+        const defaultPreferences = await storage.createOrUpdateNotificationPreferences({
+          userId: req.user.id,
+          journalReminders: true,
+          goalReminders: true,
+          weeklyDigest: true,
+          emailNotifications: true,
+          browserNotifications: true,
+          reminderTime: "09:00"
+        });
+        return res.json(defaultPreferences);
+      }
+      
+      res.json(preferences);
+    } catch (error) {
+      console.error("Error fetching notification preferences:", error);
+      res.status(500).json({ error: "Failed to fetch notification preferences" });
+    }
+  });
+  
+  // Update notification preferences for the current user
+  app.patch("/api/notification-preferences", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const preferences = await storage.createOrUpdateNotificationPreferences({
+        ...req.body,
+        userId: req.user.id
+      });
+      res.json(preferences);
+    } catch (error) {
+      console.error("Error updating notification preferences:", error);
+      res.status(500).json({ error: "Failed to update notification preferences" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
