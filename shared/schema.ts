@@ -71,9 +71,12 @@ export const goals = pgTable("goals", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
   name: text("name").notNull(),
+  description: text("description"),
+  category: text("category").notNull().default("Personal"),
+  targetDate: text("target_date"),
   target: integer("target").notNull(),
   progress: integer("progress").notNull().default(0),
-  unit: text("unit").notNull().default("days"),
+  unit: text("unit").notNull().default("%"),
   colorScheme: integer("color_scheme").notNull().default(1),
 });
 

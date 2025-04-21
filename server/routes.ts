@@ -360,13 +360,16 @@ Your role is to:
   app.post("/api/goals", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     
-    const { userId, name, target, unit, colorScheme } = req.body;
+    const { userId, name, description, category, targetDate, target, unit, colorScheme } = req.body;
     if (req.user?.id !== userId) return res.sendStatus(403);
     
     try {
       const goal = await storage.createGoal({
         userId,
         name,
+        description,
+        category,
+        targetDate,
         target,
         progress: 0,
         unit,
@@ -374,6 +377,7 @@ Your role is to:
       });
       res.status(201).json(goal);
     } catch (error) {
+      console.error("Goal creation error:", error);
       res.status(500).json({ error: "Failed to create goal" });
     }
   });

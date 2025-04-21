@@ -73,7 +73,7 @@ import * as z from "zod";
 
 // Form schema for creating/editing goals
 const goalSchema = z.object({
-  title: z.string().min(2, {
+  name: z.string().min(2, {
     message: "Title must be at least 2 characters."
   }).max(50, {
     message: "Title must not be longer than 50 characters."
@@ -83,6 +83,10 @@ const goalSchema = z.object({
   }).optional(),
   targetDate: z.string().optional(),
   category: z.string(),
+  target: z.number().default(100),
+  progress: z.number().default(0),
+  unit: z.string().default("%"),
+  colorScheme: z.number().default(1),
   userId: z.number()
 });
 
@@ -173,7 +177,7 @@ export default function GoalsPage() {
   // Update goal progress mutation
   const updateGoalProgressMutation = useMutation({
     mutationFn: async ({ id, progress }: { id: number; progress: number }) => {
-      const res = await apiRequest("PATCH", `/api/goals/${id}/progress`, { progress });
+      const res = await apiRequest("PATCH", `/api/goals/${id}`, { progress });
       return await res.json();
     },
     onSuccess: () => {
@@ -196,10 +200,14 @@ export default function GoalsPage() {
   const goalForm = useForm<GoalFormValues>({
     resolver: zodResolver(goalSchema),
     defaultValues: {
-      title: "",
+      name: "",
       description: "",
       targetDate: "",
       category: "Personal",
+      target: 100,
+      progress: 0,
+      unit: "%",
+      colorScheme: 1,
       userId: user?.id
     },
   });
@@ -275,7 +283,7 @@ export default function GoalsPage() {
                     <form onSubmit={goalForm.handleSubmit(onGoalSubmit)} className="space-y-6 py-4">
                       <FormField
                         control={goalForm.control}
-                        name="title"
+                        name="name"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Title</FormLabel>
@@ -507,7 +515,7 @@ export default function GoalsPage() {
                             {categoryGoals.map(goal => (
                               <div key={goal.id} className="bg-[#FFF8E8] p-4 rounded-xl">
                                 <div className="flex justify-between items-start mb-2">
-                                  <h4 className="font-medium text-gray-800">{goal.title}</h4>
+                                  <h4 className="font-medium text-gray-800">{goal.name}</h4>
                                   <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                       <Button variant="ghost" className="h-8 w-8 p-0">
