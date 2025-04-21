@@ -16,10 +16,15 @@ import {
   ChevronRight,
   Clock,
   Edit,
+  Lightbulb,
   Plus,
+  PencilLine,
+  PlusCircle,
+  Sparkles,
   Star,
   Target,
   Trash,
+  Trash2,
   TrendingUp,
   CheckCircle,
   Calendar,
@@ -1017,7 +1022,7 @@ export default function GoalsPage() {
                 <Card className="md:col-span-4 bg-white border-0 shadow-sm mb-6">
                   <CardHeader className="border-b border-gray-100">
                     <CardTitle className="font-['Montserrat_Variable'] flex items-center gap-2">
-                      <Sparkles className="h-5 w-5 text-[#F5D867]" />
+                      <Star className="h-5 w-5 text-[#F5D867]" />
                       AI Suggested Habits
                     </CardTitle>
                     <CardDescription>
@@ -1034,7 +1039,7 @@ export default function GoalsPage() {
                             <Badge className="bg-[#9AAB63] text-white">{habit.frequency}</Badge>
                           </div>
                           <div className="text-xs text-gray-500 italic mb-3">
-                            <LightbulbIcon className="h-3 w-3 inline mr-1" />
+                            <Lightbulb className="h-3 w-3 inline mr-1" />
                             {habit.source}
                           </div>
                           <div className="flex items-center gap-2">
