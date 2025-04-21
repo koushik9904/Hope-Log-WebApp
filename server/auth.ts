@@ -211,7 +211,15 @@ export function setupAuth(app: Express) {
   app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     if (req.url.startsWith('/auth/google')) {
       console.error("Google OAuth error:", err);
-      return res.redirect("/auth?error=" + encodeURIComponent(err.message || "Authentication failed"));
+      let errorMessage = err.message || "Authentication failed";
+      
+      // Add troubleshooting hint for common OAuth errors
+      if (errorMessage.includes("redirect_uri_mismatch") || errorMessage.includes("invalid_request")) {
+        errorMessage += ". This usually means the callback URL in Google Cloud Console doesn't match the one used by this application. Please ensure the following URL is added to your Google Cloud Console authorized redirect URIs: " + 
+        (process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}/auth/google/callback` : 'http://localhost:5000/auth/google/callback');
+      }
+      
+      return res.redirect("/auth?error=" + encodeURIComponent(errorMessage));
     }
     next(err);
   });

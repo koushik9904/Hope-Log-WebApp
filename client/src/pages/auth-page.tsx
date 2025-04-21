@@ -46,6 +46,8 @@ export default function AuthPage() {
     const errorMsg = params.get('error');
     if (errorMsg) {
       setError(errorMsg);
+      // Log the error for debugging
+      console.error("Authentication error:", decodeURIComponent(errorMsg));
       // Show toast for error
       toast({
         variant: "destructive",
