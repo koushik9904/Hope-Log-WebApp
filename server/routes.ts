@@ -242,6 +242,33 @@ Your role is to:
     }
   });
 
+  // Delete a journal entry
+  app.delete("/api/journal-entries/:id", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const entryId = Number(req.params.id);
+    
+    try {
+      // Get the entry before deleting to verify it exists and belongs to the user
+      const entry = await storage.getJournalEntryById(entryId);
+      
+      if (!entry) {
+        return res.status(404).json({ error: "Journal entry not found" });
+      }
+      
+      // Ensure the entry belongs to the authenticated user
+      if (entry.userId !== req.user?.id) {
+        return res.status(403).json({ error: "You don't have permission to delete this entry" });
+      }
+      
+      await storage.deleteJournalEntry(entryId);
+      res.status(200).json({ message: "Journal entry deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting journal entry:", error);
+      res.status(500).json({ error: "Failed to delete journal entry" });
+    }
+  });
+
   app.post("/api/journal-entries", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     
