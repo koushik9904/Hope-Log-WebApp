@@ -361,6 +361,7 @@ export default function GoalsPage() {
   
   // Habits (using example data for now)
   const [habits, setHabits] = useState(EXAMPLE_HABITS);
+  const [aiSuggestedHabits, setAiSuggestedHabits] = useState(AI_SUGGESTED_HABITS);
   
   // Function to toggle habit completion
   const toggleHabitCompletion = (habitId: number) => {
@@ -376,6 +377,33 @@ export default function GoalsPage() {
         return 0;
       })
     );
+  };
+  
+  // Handler for adopting AI-suggested habits
+  const adoptAiHabit = (aiHabit: typeof AI_SUGGESTED_HABITS[0]) => {
+    if (!user?.id) return;
+    
+    // Create a new habit from the AI suggestion
+    const newHabit = {
+      id: Date.now(), // Temporary ID until API implementation
+      title: aiHabit.title,
+      description: aiHabit.description || "",
+      frequency: aiHabit.frequency,
+      streak: 0,
+      userId: user.id,
+      completedToday: false
+    };
+    
+    // Add to habits list
+    setHabits(prev => [...prev, newHabit].sort((a, b) => {
+      // Sort to put uncompleted habits on top
+      if (a.completedToday && !b.completedToday) return 1;
+      if (!a.completedToday && b.completedToday) return -1;
+      return 0;
+    }));
+    
+    // Remove from suggestions
+    setAiSuggestedHabits(prev => prev.filter(h => h.id !== aiHabit.id));
   };
   
   const completedHabitsToday = habits.filter(habit => habit.completedToday).length;
@@ -984,6 +1012,55 @@ export default function GoalsPage() {
           
           <TabsContent value="habits">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              {/* AI-suggested habits section */}
+              {aiSuggestedHabits.length > 0 && (
+                <Card className="md:col-span-4 bg-white border-0 shadow-sm mb-6">
+                  <CardHeader className="border-b border-gray-100">
+                    <CardTitle className="font-['Montserrat_Variable'] flex items-center gap-2">
+                      <Sparkles className="h-5 w-5 text-[#F5D867]" />
+                      AI Suggested Habits
+                    </CardTitle>
+                    <CardDescription>
+                      Personalized habit recommendations based on your journal entries and health patterns
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {aiSuggestedHabits.map(habit => (
+                        <div key={habit.id} className="bg-[#f4f7ec] p-4 rounded-xl border border-[#9AAB63] border-opacity-30">
+                          <h4 className="font-medium text-gray-800 mb-2">{habit.title}</h4>
+                          <p className="text-sm text-gray-600 mb-3">{habit.description}</p>
+                          <div className="flex items-center gap-2 mb-3">
+                            <Badge className="bg-[#9AAB63] text-white">{habit.frequency}</Badge>
+                          </div>
+                          <div className="text-xs text-gray-500 italic mb-3">
+                            <LightbulbIcon className="h-3 w-3 inline mr-1" />
+                            {habit.source}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button 
+                              onClick={() => adoptAiHabit(habit)}
+                              className="bg-[#9AAB63] hover:bg-[#8a9a58] text-white text-xs px-3 flex-1"
+                              size="sm"
+                            >
+                              <Check className="h-3.5 w-3.5 mr-1.5" /> Add to Habits
+                            </Button>
+                            <Button 
+                              variant="outline"
+                              onClick={() => setAiSuggestedHabits(prev => prev.filter(h => h.id !== habit.id))}
+                              className="text-gray-500 text-xs px-2 border-gray-300 bg-white"
+                              size="sm"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+              
               <Card className="md:col-span-3 bg-white border-0 shadow-sm">
                 <CardHeader className="border-b border-gray-100">
                   <CardTitle className="font-['Montserrat_Variable']">Your Habits</CardTitle>
