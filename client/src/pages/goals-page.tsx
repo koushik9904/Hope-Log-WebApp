@@ -1,8 +1,15 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Goal } from "@shared/schema";
+import { Goal as GoalBase } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+
+// Extended Goal type with the new fields
+interface Goal extends GoalBase {
+  description?: string;
+  category?: string;
+  targetDate?: string;
+}
 import { 
   AlertCircle,
   Check,
