@@ -83,24 +83,8 @@ export default function AuthPage() {
 
   const handleSocialLogin = (provider: string) => {
     if (provider === 'google') {
-      // Use window.open for popup to avoid cross-site issues
-      const width = 600;
-      const height = 600;
-      const left = window.innerWidth / 2 - width / 2;
-      const top = window.innerHeight / 2 - height / 2;
-      
-      const popup = window.open(
-        '/auth/google',
-        'oauth',
-        `width=${width},height=${height},left=${left},top=${top}`
-      );
-      
-      // Check if popup was blocked
-      if (!popup || popup.closed || typeof popup.closed === 'undefined') {
-        console.error('Popup was blocked');
-        // Fallback to redirect
-        window.location.href = '/auth/google';
-      }
+      // Use direct redirect instead of popup to avoid cross-site issues
+      window.location.href = '/auth/google';
     } else if (provider === 'apple') {
       window.location.href = '/auth/apple';
     }
@@ -204,6 +188,14 @@ export default function AuthPage() {
                 <FcGoogle size={20} />
                 <span>Continue with Google</span>
               </Button>
+              
+              {/* Direct link for testing */}
+              <a 
+                href="/auth/google" 
+                className="block text-center text-xs text-blue-500 hover:underline mt-1"
+              >
+                Click here for direct Google login link
+              </a>
               <Button 
                 variant="outline" 
                 className="w-full bg-white hover:bg-gray-50 border border-gray-200 flex items-center justify-center gap-2 opacity-50 cursor-not-allowed"

@@ -222,7 +222,7 @@ export function setupAuth(app: Express) {
   app.get(
     "/auth/apple/callback",
     passport.authenticate("apple", { failureRedirect: "/auth" }),
-    (req, res) => {
+    (req: Request, res: Response) => {
       res.redirect("/");
     }
   );
