@@ -11,6 +11,22 @@ interface Goal extends GoalBase {
   category: string;
   targetDate: string | null;
 }
+
+// Extended types for items in the recycle bin
+interface DeletedGoal extends Goal {
+  deletedAt: string;
+}
+
+interface DeletedHabit {
+  id: number;
+  title: string;
+  description: string;
+  frequency: string;
+  streak: number;
+  userId: number;
+  completedToday: boolean;
+  deletedAt: string;
+}
 import { 
   AlertCircle,
   Check,
@@ -448,9 +464,13 @@ export default function GoalsPage() {
   const [showEditHabitDialog, setShowEditHabitDialog] = useState(false);
   
   // Recycle bin for deleted items
-  const [deletedGoals, setDeletedGoals] = useState<Goal[]>([]);
-  const [deletedHabits, setDeletedHabits] = useState<typeof EXAMPLE_HABITS>([]);
+  const [deletedGoals, setDeletedGoals] = useState<DeletedGoal[]>([]);
+  const [deletedHabits, setDeletedHabits] = useState<DeletedHabit[]>([]);
   const [showRecycleBin, setShowRecycleBin] = useState(false);
+  
+  // User's premium status - for determining retention period
+  // In a real app, this would be part of the user object from the database
+  const isPremiumUser = user?.id === 1; // For demo purposes, assume user 1 is premium
   
   // Filter AI-suggested habits to remove any that already exist in the user's habits list
   useEffect(() => {
@@ -538,6 +558,86 @@ export default function GoalsPage() {
     setFilteredAiSuggestedHabits(prev => prev.filter(h => h.id !== aiHabit.id));
   };
   
+  // Restore goal from recycle bin
+  const restoreGoal = (goalId: number) => {
+    // Find the goal in deleted goals
+    const goalToRestore = deletedGoals.find(g => g.id === goalId);
+    if (!goalToRestore) return;
+    
+    // Add goal back to database
+    const { deletedAt, ...goalData } = goalToRestore;
+    
+    // Use the add goal mutation to restore the goal
+    addGoalMutation.mutate({
+      name: goalData.name,
+      description: goalData.description || "",
+      targetDate: goalData.targetDate || "",
+      category: goalData.category,
+      target: goalData.target,
+      progress: goalData.progress,
+      unit: goalData.unit || "%",
+      colorScheme: goalData.colorScheme || 1,
+      userId: goalData.userId
+    });
+    
+    // Remove from deleted goals
+    setDeletedGoals(prev => prev.filter(g => g.id !== goalId));
+    
+    toast({
+      title: "Goal restored",
+      description: `${goalData.name} has been restored to your goals`,
+    });
+  };
+  
+  // Permanently delete goal from recycle bin
+  const permanentlyDeleteGoal = (goalId: number) => {
+    // Remove from deleted goals list
+    setDeletedGoals(prev => prev.filter(g => g.id !== goalId));
+    
+    toast({
+      title: "Goal deleted permanently",
+      description: "This goal has been permanently removed",
+      variant: "destructive"
+    });
+  };
+  
+  // Restore habit from recycle bin
+  const restoreHabit = (habitId: number) => {
+    // Find the habit in deleted habits
+    const habitToRestore = deletedHabits.find(h => h.id === habitId);
+    if (!habitToRestore) return;
+    
+    // Remove the deletedAt property
+    const { deletedAt, ...habitData } = habitToRestore;
+    
+    // Add habit back to habits list
+    setHabits(prev => [...prev, habitData].sort((a, b) => {
+      if (a.completedToday && !b.completedToday) return 1;
+      if (!a.completedToday && b.completedToday) return -1;
+      return 0;
+    }));
+    
+    // Remove from deleted habits
+    setDeletedHabits(prev => prev.filter(h => h.id !== habitId));
+    
+    toast({
+      title: "Habit restored",
+      description: `${habitData.title} has been restored to your habits`,
+    });
+  };
+  
+  // Permanently delete habit from recycle bin
+  const permanentlyDeleteHabit = (habitId: number) => {
+    // Remove from deleted habits list
+    setDeletedHabits(prev => prev.filter(h => h.id !== habitId));
+    
+    toast({
+      title: "Habit deleted permanently",
+      description: "This habit has been permanently removed",
+      variant: "destructive"
+    });
+  };
+  
   const completedHabitsToday = habits.filter(habit => habit.completedToday).length;
   const habitCompletionRate = habits.length > 0 ? Math.round((completedHabitsToday / habits.length) * 100) : 0;
   
@@ -555,6 +655,19 @@ export default function GoalsPage() {
           </div>
           
           <div className="flex items-center gap-3">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowRecycleBin(!showRecycleBin)}
+              className={`${showRecycleBin ? 'bg-[#f5d867] text-gray-700' : 'bg-white'} gap-2`}
+            >
+              <Trash2 className="h-4 w-4" /> Recycle Bin
+              {(deletedGoals.length > 0 || deletedHabits.length > 0) && (
+                <Badge className="ml-1 bg-[#f096c9] text-white">
+                  {deletedGoals.length + deletedHabits.length}
+                </Badge>
+              )}
+            </Button>
+            
             {activeTab === "goals" ? (
               <Dialog open={showNewGoalDialog} onOpenChange={setShowNewGoalDialog}>
                 <DialogTrigger asChild>
@@ -773,6 +886,120 @@ export default function GoalsPage() {
           </div>
         </div>
         
+        {/* Recycle Bin */}
+        {showRecycleBin && (
+          <Card className="bg-white border-0 shadow-sm mb-6">
+            <CardHeader className="border-b border-gray-100">
+              <CardTitle className="font-['Montserrat_Variable'] flex items-center gap-2">
+                <Trash2 className="h-5 w-5 text-gray-700" />
+                Recycle Bin
+              </CardTitle>
+              <CardDescription>
+                Items deleted within the last {isPremiumUser ? '30' : '7'} days can be restored
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6 divide-y">
+              {deletedGoals.length === 0 && deletedHabits.length === 0 && (
+                <div className="py-8 text-center text-gray-500">
+                  <p>Recycle bin is empty</p>
+                </div>
+              )}
+              
+              {/* Deleted Goals */}
+              {deletedGoals.length > 0 && (
+                <div className="pb-4">
+                  <h3 className="font-semibold mb-3 text-gray-700">Deleted Goals</h3>
+                  <div className="space-y-3">
+                    {deletedGoals.map(goal => {
+                      // Calculate days remaining before permanent deletion
+                      const deletedAt = new Date(goal.deletedAt);
+                      const expiresIn = isPremiumUser ? 30 : 7; // days
+                      const expirationDate = new Date(deletedAt.getTime() + expiresIn * 24 * 60 * 60 * 1000);
+                      const daysRemaining = Math.ceil((expirationDate.getTime() - new Date().getTime()) / (24 * 60 * 60 * 1000));
+                      
+                      return (
+                        <div key={goal.id} className="bg-gray-50 p-3 rounded-lg flex justify-between items-center">
+                          <div>
+                            <div className="font-medium">{goal.name}</div>
+                            <div className="text-sm text-gray-500">
+                              <span className="mr-2">{goal.category}</span>
+                              <span>{daysRemaining} days until permanent deletion</span>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              className="bg-[#B6CAEB] text-white border-0 hover:bg-[#95b9e5]"
+                              onClick={() => restoreGoal(goal.id)}
+                            >
+                              Restore
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              className="bg-red-100 text-red-500 border-0 hover:bg-red-200"
+                              onClick={() => permanentlyDeleteGoal(goal.id)}
+                            >
+                              Delete Forever
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              
+              {/* Deleted Habits */}
+              {deletedHabits.length > 0 && (
+                <div className="pt-4">
+                  <h3 className="font-semibold mb-3 text-gray-700">Deleted Habits</h3>
+                  <div className="space-y-3">
+                    {deletedHabits.map(habit => {
+                      // Calculate days remaining before permanent deletion
+                      const deletedAt = new Date(habit.deletedAt);
+                      const expiresIn = isPremiumUser ? 30 : 7; // days
+                      const expirationDate = new Date(deletedAt.getTime() + expiresIn * 24 * 60 * 60 * 1000);
+                      const daysRemaining = Math.ceil((expirationDate.getTime() - new Date().getTime()) / (24 * 60 * 60 * 1000));
+                      
+                      return (
+                        <div key={habit.id} className="bg-gray-50 p-3 rounded-lg flex justify-between items-center">
+                          <div>
+                            <div className="font-medium">{habit.title}</div>
+                            <div className="text-sm text-gray-500">
+                              <span className="mr-2">{habit.frequency}</span>
+                              <span>{daysRemaining} days until permanent deletion</span>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              className="bg-[#B6CAEB] text-white border-0 hover:bg-[#95b9e5]"
+                              onClick={() => restoreHabit(habit.id)}
+                            >
+                              Restore
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              className="bg-red-100 text-red-500 border-0 hover:bg-red-200"
+                              onClick={() => permanentlyDeleteHabit(habit.id)}
+                            >
+                              Delete Forever
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="mb-6 bg-[#333] text-white">
             <TabsTrigger value="goals" className="data-[state=active]:bg-[#F5B8DB] data-[state=active]:text-white data-[state=inactive]:text-white">Goals</TabsTrigger>
