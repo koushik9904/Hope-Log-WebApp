@@ -63,8 +63,8 @@ export default function LandingPage() {
               <a href="#features" className="text-gray-600 hover:text-gray-900">Features</a>
               <a href="#pricing" className="text-gray-600 hover:text-gray-900">Pricing</a>
               <a href="#testimonials" className="text-gray-600 hover:text-gray-900">Testimonials</a>
-              <a href="#blog" className="text-gray-600 hover:text-gray-900">Blog</a>
-              <a href="#about" className="text-gray-600 hover:text-gray-900">About Us</a>
+              <a href="https://jazeeljabbar.substack.com/" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-gray-900">Blog</a>
+              <Link href="/about-us" className="text-gray-600 hover:text-gray-900">About Us</Link>
             </div>
             <div className="flex items-center space-x-4">
               {user ? (
@@ -815,7 +815,7 @@ export default function LandingPage() {
             <div>
               <h3 className="font-bold text-lg mb-4 text-white">Resources</h3>
               <ul className="space-y-3">
-                <li><a href="#blog" className="text-gray-400 hover:text-white">Blog</a></li>
+                <li><a href="https://jazeeljabbar.substack.com/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white">Blog</a></li>
                 <li><a href="#" className="text-gray-400 hover:text-white">Help Center</a></li>
                 <li><a href="#" className="text-gray-400 hover:text-white">Community</a></li>
                 <li><a href="#" className="text-gray-400 hover:text-white">Mental Health Resources</a></li>
@@ -825,7 +825,7 @@ export default function LandingPage() {
             <div>
               <h3 className="font-bold text-lg mb-4 text-white">Company</h3>
               <ul className="space-y-3">
-                <li><a href="#about" className="text-gray-400 hover:text-white">About Us</a></li>
+                <li><Link href="/about-us" className="text-gray-400 hover:text-white">About Us</Link></li>
                 <li><a href="#" className="text-gray-400 hover:text-white">Careers</a></li>
                 <li><a href="#" className="text-gray-400 hover:text-white">Privacy Policy</a></li>
                 <li><a href="#" className="text-gray-400 hover:text-white">Terms of Service</a></li>
