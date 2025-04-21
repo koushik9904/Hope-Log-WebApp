@@ -186,18 +186,14 @@ export default function AuthPage() {
                 variant="outline" 
                 className="w-full bg-white hover:bg-gray-50 border border-gray-200 flex items-center justify-center gap-2"
                 onClick={() => handleSocialLogin('google')}
+                title="Google OAuth may take time to configure"
               >
                 <FcGoogle size={20} />
                 <span>Continue with Google</span>
               </Button>
-              
-              {/* Direct link for testing */}
-              <a 
-                href="/auth/google" 
-                className="block text-center text-xs text-blue-500 hover:underline mt-1"
-              >
-                Click here for direct Google login link
-              </a>
+              <p className="text-center text-xs text-muted-foreground mt-1">
+                Google OAuth setup may take time to fully configure
+              </p>
               <Button 
                 variant="outline" 
                 className="w-full bg-white hover:bg-gray-50 border border-gray-200 flex items-center justify-center gap-2 opacity-50 cursor-not-allowed"

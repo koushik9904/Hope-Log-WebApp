@@ -137,3 +137,48 @@ export const insertJournalEmbeddingSchema = createInsertSchema(journalEmbeddings
 
 export type InsertJournalEmbedding = z.infer<typeof insertJournalEmbeddingSchema>;
 export type JournalEmbedding = typeof journalEmbeddings.$inferSelect;
+
+// Notifications table
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  type: text("type").notNull(), // 'reminder', 'goal', 'streak', 'system'
+  status: text("status").default("unread").notNull(), // 'unread', 'read', 'dismissed'
+  scheduledFor: timestamp("scheduled_for", { mode: 'string' }), // For scheduled notifications/reminders
+  createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
+  updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
+  metadata: jsonb("metadata").$type<Record<string, any>>().default({}),
+  isRecurring: boolean("is_recurring").default(false).notNull(),
+  recurringPattern: text("recurring_pattern"), // 'daily', 'weekly', 'monthly', or cron syntax
+});
+
+export const insertNotificationSchema = createInsertSchema(notifications)
+  .omit({ id: true, createdAt: true, updatedAt: true })
+  .extend({
+    scheduledFor: z.string().datetime().optional(),
+  });
+
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+export type Notification = typeof notifications.$inferSelect;
+
+// User preferences for notifications
+export const notificationPreferences = pgTable("notification_preferences", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  journalReminders: boolean("journal_reminders").default(true).notNull(),
+  goalReminders: boolean("goal_reminders").default(true).notNull(),
+  weeklyDigest: boolean("weekly_digest").default(true).notNull(),
+  emailNotifications: boolean("email_notifications").default(true).notNull(),
+  browserNotifications: boolean("browser_notifications").default(true).notNull(),
+  reminderTime: text("reminder_time").default("09:00").notNull(), // Default time for daily reminders (24hr format)
+  createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
+  updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
+});
+
+export const insertNotificationPreferencesSchema = createInsertSchema(notificationPreferences)
+  .omit({ id: true, createdAt: true, updatedAt: true });
+
+export type InsertNotificationPreferences = z.infer<typeof insertNotificationPreferencesSchema>;
+export type NotificationPreferences = typeof notificationPreferences.$inferSelect;
