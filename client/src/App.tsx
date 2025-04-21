@@ -22,6 +22,10 @@ import SettingsAppearancePage from "@/pages/settings-appearance-page";
 import SettingsDataPage from "@/pages/settings-data-page";
 import NotFound from "@/pages/not-found";
 import AboutUsPage from "@/pages/about-us-page";
+import ApiAccessPage from "@/pages/api-access-page";
+import IntegrationsPage from "@/pages/integrations-page";
+import PrivacyPolicyPage from "@/pages/privacy-policy-page";
+import TermsOfServicePage from "@/pages/terms-of-service-page";
 import { useAuth } from "@/hooks/use-auth";
 
 function Router() {
@@ -46,6 +50,10 @@ function Router() {
         <ProtectedRoute path="/settings/data" component={SettingsDataPage} />
         <ProtectedRoute path="/settings" component={SettingsPage} />
         <Route path="/about-us" component={AboutUsPage} />
+        <Route path="/api-access" component={ApiAccessPage} />
+        <Route path="/integrations" component={IntegrationsPage} />
+        <Route path="/privacy-policy" component={PrivacyPolicyPage} />
+        <Route path="/terms-of-service" component={TermsOfServicePage} />
         <Route path="/" component={LandingPage} />
         <Route component={NotFound} />
       </Switch>
@@ -68,6 +76,10 @@ function Router() {
       <ProtectedRoute path="/settings" component={SettingsPage} />
       <ProtectedRoute path="/" component={HomePage} />
       <Route path="/about-us" component={AboutUsPage} />
+      <Route path="/api-access" component={ApiAccessPage} />
+      <Route path="/integrations" component={IntegrationsPage} />
+      <Route path="/privacy-policy" component={PrivacyPolicyPage} />
+      <Route path="/terms-of-service" component={TermsOfServicePage} />
       <Route path="/auth" component={AuthPage} />
       <Route component={NotFound} />
     </Switch>
