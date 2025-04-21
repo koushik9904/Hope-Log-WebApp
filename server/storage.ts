@@ -1,7 +1,7 @@
 import { User, InsertUser, JournalEntry, InsertJournalEntry, Mood, InsertMood, Goal, InsertGoal, Prompt, InsertPrompt, Summary, InsertSummary, users, journalEntries, moods, goals, prompts, summaries } from "@shared/schema";
 import session from "express-session";
 import { db, pool } from "./db";
-import { eq, and, gte, desc } from "drizzle-orm";
+import { eq, and, gte, desc, sql } from "drizzle-orm";
 import createMemoryStore from "memorystore";
 
 // Interfaces for storage methods
@@ -19,6 +19,9 @@ export interface IStorage {
   createJournalEntry(entry: InsertJournalEntry): Promise<JournalEntry>;
   updateJournalEntrySentiment(id: number, sentiment: { score: number; emotions: string[]; themes: string[] }): Promise<JournalEntry>;
   deleteJournalEntry(id: number): Promise<void>;
+  getDeletedJournalEntriesByUserId(userId: number): Promise<JournalEntry[]>;
+  restoreJournalEntry(id: number): Promise<JournalEntry>;
+  permanentlyDeleteJournalEntry(id: number): Promise<void>;
   
   // Mood methods
   getMoodsByUserId(userId: number): Promise<Mood[]>;
@@ -76,7 +79,12 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(journalEntries)
-      .where(eq(journalEntries.userId, userId))
+      .where(
+        and(
+          eq(journalEntries.userId, userId),
+          sql`${journalEntries.deletedAt} IS NULL`
+        )
+      )
       .orderBy(desc(journalEntries.date));
   }
   
@@ -93,7 +101,12 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(journalEntries)
-      .where(eq(journalEntries.userId, userId))
+      .where(
+        and(
+          eq(journalEntries.userId, userId),
+          eq(journalEntries.deletedAt, null)
+        )
+      )
       .orderBy(desc(journalEntries.date))
       .limit(limit);
   }
@@ -108,6 +121,7 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(journalEntries.userId, userId),
+          eq(journalEntries.deletedAt, null),
           gte(journalEntries.date, oneWeekAgo.toISOString())
         )
       )
@@ -144,6 +158,42 @@ export class DatabaseStorage implements IStorage {
   }
   
   async deleteJournalEntry(id: number): Promise<void> {
+    // Soft delete - set deletedAt to current date
+    await db
+      .update(journalEntries)
+      .set({ deletedAt: new Date().toISOString() })
+      .where(eq(journalEntries.id, id));
+  }
+  
+  async getDeletedJournalEntriesByUserId(userId: number): Promise<JournalEntry[]> {
+    return await db
+      .select()
+      .from(journalEntries)
+      .where(
+        and(
+          eq(journalEntries.userId, userId),
+          // Is not null check
+          sql`${journalEntries.deletedAt} IS NOT NULL`
+        )
+      )
+      .orderBy(desc(journalEntries.date));
+  }
+  
+  async restoreJournalEntry(id: number): Promise<JournalEntry> {
+    const result = await db
+      .update(journalEntries)
+      .set({ deletedAt: null })
+      .where(eq(journalEntries.id, id))
+      .returning();
+      
+    if (result.length === 0) {
+      throw new Error(`Journal entry with id ${id} not found`);
+    }
+    
+    return result[0];
+  }
+  
+  async permanentlyDeleteJournalEntry(id: number): Promise<void> {
     await db
       .delete(journalEntries)
       .where(eq(journalEntries.id, id));

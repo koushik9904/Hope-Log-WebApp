@@ -31,6 +31,7 @@ export const journalEntries = pgTable("journal_entries", {
     emotions: string[];
     themes: string[];
   }>(),
+  deletedAt: timestamp("deleted_at", { mode: 'string' }),  // For recycle bin/soft delete functionality
 });
 
 export const insertJournalEntrySchema = createInsertSchema(journalEntries)
