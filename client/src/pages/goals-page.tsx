@@ -1001,9 +1001,9 @@ export default function GoalsPage() {
         )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="mb-6 bg-[#333] text-white">
-            <TabsTrigger value="goals" className="data-[state=active]:bg-[#F5B8DB] data-[state=active]:text-white data-[state=inactive]:text-white">Goals</TabsTrigger>
-            <TabsTrigger value="habits" className="data-[state=active]:bg-[#F5B8DB] data-[state=active]:text-white data-[state=inactive]:text-white">Habits</TabsTrigger>
+          <TabsList className="mb-6">
+            <TabsTrigger value="goals">Goals</TabsTrigger>
+            <TabsTrigger value="habits">Habits</TabsTrigger>
           </TabsList>
           
           <TabsContent value="goals">
