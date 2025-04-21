@@ -102,15 +102,70 @@ export default function InsightsPage() {
     }
   }
 
+  // Helper function to get date in YYYY-MM-DD format for comparison
+  const formatDateForComparison = (date: Date): string => {
+    return date.toISOString().split('T')[0];
+  };
+
   // Calculate streak information
   const hasEntryToday = entries.some(entry => {
-    const today = new Date().toLocaleDateString();
-    const entryDate = new Date(entry.date).toLocaleDateString();
+    const today = formatDateForComparison(new Date());
+    const entryDate = formatDateForComparison(new Date(entry.date));
     return entryDate === today && !entry.isAiResponse;
   });
   
-  // Get current streak (this would be more complex in a real implementation)
-  const currentStreak = hasEntryToday ? 1 : 0;
+  // Calculate current streak
+  const calculateStreak = () => {
+    if (entries.length === 0) return 0;
+    
+    // Filter to only user-created entries and sort by date (newest first)
+    const userEntries = entries
+      .filter(entry => !entry.isAiResponse)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    
+    if (userEntries.length === 0) return 0;
+    
+    // Get unique dates (one entry per day)
+    const entryDates = userEntries.map(entry => 
+      formatDateForComparison(new Date(entry.date))
+    );
+    const uniqueDates = Array.from(new Set(entryDates));
+    
+    // If the most recent entry is not from today, check if it's from yesterday
+    const today = formatDateForComparison(new Date());
+    let currentDate = new Date();
+    let streak = 0;
+    
+    // Start counting from today or most recent entry date
+    if (uniqueDates[0] === today) {
+      streak = 1;
+      // Move to yesterday for next check
+      currentDate.setDate(currentDate.getDate() - 1);
+    } else {
+      // Start from the most recent entry date
+      currentDate = new Date(uniqueDates[0] + 'T00:00:00');
+    }
+    
+    // Start from index 1 if most recent entry is today
+    const startIndex = uniqueDates[0] === today ? 1 : 0;
+    
+    // Check for consecutive days
+    for (let i = startIndex; i < uniqueDates.length; i++) {
+      const expectedDate = formatDateForComparison(currentDate);
+      if (uniqueDates[i] === expectedDate) {
+        streak++;
+        // Move to the previous day
+        currentDate.setDate(currentDate.getDate() - 1);
+      } else {
+        break; // Streak broken
+      }
+    }
+    
+    return streak;
+  };
+  
+  // Get current streak
+  const currentStreak = calculateStreak();
   
   // Get all emotions from entries
   const emotions = new Set<string>();
@@ -414,7 +469,7 @@ export default function InsightsPage() {
                                   </Badge>
                                 </td>
                                 <td className="px-6 py-4 text-sm text-gray-600">
-                                  {mood.notes || '—'}
+                                  —
                                 </td>
                               </tr>
                             ))}
