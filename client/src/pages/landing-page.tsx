@@ -816,9 +816,9 @@ export default function LandingPage() {
               <h3 className="font-bold text-lg mb-4 text-white">Resources</h3>
               <ul className="space-y-3">
                 <li><a href="https://jazeeljabbar.substack.com/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white">Blog</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white">Help Center</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white">Community</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white">Mental Health Resources</a></li>
+                <li><Link href="/help-center" className="text-gray-400 hover:text-white">Help Center</Link></li>
+                <li><Link href="/community" className="text-gray-400 hover:text-white">Community</Link></li>
+                <li><Link href="/mental-health-resources" className="text-gray-400 hover:text-white">Mental Health Resources</Link></li>
               </ul>
             </div>
             

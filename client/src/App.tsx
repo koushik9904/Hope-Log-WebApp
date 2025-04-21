@@ -26,6 +26,9 @@ import ApiAccessPage from "@/pages/api-access-page";
 import IntegrationsPage from "@/pages/integrations-page";
 import PrivacyPolicyPage from "@/pages/privacy-policy-page";
 import TermsOfServicePage from "@/pages/terms-of-service-page";
+import HelpCenterPage from "@/pages/help-center-page";
+import CommunityPage from "@/pages/community-page";
+import MentalHealthResourcesPage from "@/pages/mental-health-resources-page";
 import { useAuth } from "@/hooks/use-auth";
 
 function Router() {
@@ -54,6 +57,9 @@ function Router() {
         <Route path="/integrations" component={IntegrationsPage} />
         <Route path="/privacy-policy" component={PrivacyPolicyPage} />
         <Route path="/terms-of-service" component={TermsOfServicePage} />
+        <Route path="/help-center" component={HelpCenterPage} />
+        <Route path="/community" component={CommunityPage} />
+        <Route path="/mental-health-resources" component={MentalHealthResourcesPage} />
         <Route path="/" component={LandingPage} />
         <Route component={NotFound} />
       </Switch>
@@ -80,6 +86,9 @@ function Router() {
       <Route path="/integrations" component={IntegrationsPage} />
       <Route path="/privacy-policy" component={PrivacyPolicyPage} />
       <Route path="/terms-of-service" component={TermsOfServicePage} />
+      <Route path="/help-center" component={HelpCenterPage} />
+      <Route path="/community" component={CommunityPage} />
+      <Route path="/mental-health-resources" component={MentalHealthResourcesPage} />
       <Route path="/auth" component={AuthPage} />
       <Route component={NotFound} />
     </Switch>

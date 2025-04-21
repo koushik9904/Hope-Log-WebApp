@@ -132,7 +132,7 @@ export default function AboutUsPage() {
         <div className="text-center mt-10">
           <Link href="/">
             <Button className="bg-[#F5B8DB] hover:bg-[#F5B8DB]/90">
-              Return to Dashboard
+              Return to Home
             </Button>
           </Link>
         </div>
