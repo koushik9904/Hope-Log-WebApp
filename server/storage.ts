@@ -104,7 +104,7 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(journalEntries.userId, userId),
-          eq(journalEntries.deletedAt, null)
+          sql`${journalEntries.deletedAt} IS NULL`
         )
       )
       .orderBy(desc(journalEntries.date))
@@ -121,7 +121,7 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(journalEntries.userId, userId),
-          eq(journalEntries.deletedAt, null),
+          sql`${journalEntries.deletedAt} IS NULL`,
           gte(journalEntries.date, oneWeekAgo.toISOString())
         )
       )

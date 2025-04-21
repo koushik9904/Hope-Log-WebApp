@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { JournalEntry } from "@shared/schema";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
@@ -13,7 +13,10 @@ import {
   SortAsc,
   Plus,
   BookOpen,
-  Clock
+  Clock,
+  Trash2,
+  RotateCcw,
+  Trash
 } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
@@ -32,15 +35,28 @@ import {
 } from "@/components/ui/hover-card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 export default function JournalPage() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [filterType, setFilterType] = useState<"all" | "user" | "ai">("all");
   const [activeTab, setActiveTab] = useState<string>("entries");
-
-
+  const [showDeleted, setShowDeleted] = useState(false); // Toggle to show/hide deleted entries
   
   if (!user) return null;
   
@@ -49,6 +65,83 @@ export default function JournalPage() {
     queryKey: [`/api/journal-entries/${user?.id}`],
     enabled: !!user?.id,
     staleTime: 60000, // 1 minute
+  });
+  
+  // Fetch deleted journal entries for recycle bin
+  const { data: deletedEntries = [], isLoading: isLoadingDeleted } = useQuery<JournalEntry[]>({
+    queryKey: [`/api/journal-entries/${user?.id}/deleted`],
+    enabled: !!user?.id && showDeleted,
+    staleTime: 60000, // 1 minute
+  });
+  
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (entryId: number) => {
+      const response = await apiRequest("DELETE", `/api/journal-entries/${entryId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Journal entry moved to recycle bin",
+        description: "The entry will be permanently deleted after 7 days.",
+      });
+      // Refetch entries
+      queryClient.invalidateQueries({ queryKey: [`/api/journal-entries/${user?.id}`] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error deleting journal entry",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Restore mutation
+  const restoreMutation = useMutation({
+    mutationFn: async (entryId: number) => {
+      const response = await apiRequest("POST", `/api/journal-entries/${entryId}/restore`);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Journal entry restored",
+        description: "The entry has been restored to your journal.",
+      });
+      // Refetch entries and deleted entries
+      queryClient.invalidateQueries({ queryKey: [`/api/journal-entries/${user?.id}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/journal-entries/${user?.id}/deleted`] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error restoring journal entry",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Permanently delete mutation
+  const permanentDeleteMutation = useMutation({
+    mutationFn: async (entryId: number) => {
+      const response = await apiRequest("DELETE", `/api/journal-entries/${entryId}/permanent`);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Journal entry permanently deleted",
+        description: "The entry has been permanently removed.",
+      });
+      // Refetch deleted entries
+      queryClient.invalidateQueries({ queryKey: [`/api/journal-entries/${user?.id}/deleted`] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error deleting journal entry",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
   });
   
   // Filter entries based on search term and filter type
@@ -148,6 +241,12 @@ export default function JournalPage() {
             <TabsTrigger value="entries">All Entries</TabsTrigger>
             <TabsTrigger value="calendar">Calendar View</TabsTrigger>
             <TabsTrigger value="emotions">Emotions</TabsTrigger>
+            <TabsTrigger value="recycle-bin" onClick={() => setShowDeleted(true)}>
+              <div className="flex items-center">
+                <Trash2 className="h-4 w-4 mr-2" />
+                Recycle Bin
+              </div>
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="entries">
@@ -247,7 +346,33 @@ export default function JournalPage() {
                     
                     <div className="divide-y divide-gray-100">
                       {dateEntries.map((entry) => (
-                        <div key={entry.id} className="p-6 hover:bg-gray-50 transition-colors">
+                        <div key={entry.id} className="p-6 hover:bg-gray-50 transition-colors relative group">
+                          <div className="absolute right-3 top-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                  <Trash2 className="h-4 w-4 text-gray-400 hover:text-red-500 transition-colors" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Move to Recycle Bin?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    This will move the journal entry to the recycle bin. Items in the recycle bin are automatically deleted after 7 days.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction 
+                                    onClick={() => deleteMutation.mutate(entry.id)}
+                                    className="bg-red-500 hover:bg-red-600"
+                                  >
+                                    Move to Recycle Bin
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
                           <Link href={`/journal/${entry.id}`} className="block hover:bg-gray-50/50 -mx-6 -my-6 p-6 rounded-md transition-colors">
                             <div className="flex justify-between items-center">
                               <div className="flex items-end gap-2">
