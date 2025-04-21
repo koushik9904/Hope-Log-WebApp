@@ -807,8 +807,8 @@ export default function LandingPage() {
               <ul className="space-y-3">
                 <li><a href="#features" className="text-gray-400 hover:text-white">Features</a></li>
                 <li><a href="#pricing" className="text-gray-400 hover:text-white">Pricing</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white">API Access</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white">Integrations</a></li>
+                <li><Link href="/api-access" className="text-gray-400 hover:text-white">API Access</Link></li>
+                <li><Link href="/integrations" className="text-gray-400 hover:text-white">Integrations</Link></li>
               </ul>
             </div>
             
@@ -827,8 +827,8 @@ export default function LandingPage() {
               <ul className="space-y-3">
                 <li><Link href="/about-us" className="text-gray-400 hover:text-white">About Us</Link></li>
                 <li><a href="#" className="text-gray-400 hover:text-white">Careers</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white">Privacy Policy</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white">Terms of Service</a></li>
+                <li><Link href="/privacy-policy" className="text-gray-400 hover:text-white">Privacy Policy</Link></li>
+                <li><Link href="/terms-of-service" className="text-gray-400 hover:text-white">Terms of Service</Link></li>
               </ul>
             </div>
           </div>
