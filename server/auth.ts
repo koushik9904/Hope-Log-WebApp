@@ -1,5 +1,7 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
+import { Strategy as GoogleStrategy } from "passport-google-oauth20";
+import { Strategy as AppleStrategy } from "passport-apple";
 import { Express } from "express";
 import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
@@ -58,6 +60,74 @@ export function setupAuth(app: Express) {
       }
     }),
   );
+  
+  // Google OAuth
+  if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    passport.use(
+      new GoogleStrategy(
+        {
+          clientID: process.env.GOOGLE_CLIENT_ID,
+          clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          callbackURL: "/auth/google/callback",
+        },
+        async (accessToken, refreshToken, profile, done) => {
+          try {
+            // Check if user already exists
+            let user = await storage.getUserByUsername(`google-${profile.id}`);
+            
+            if (!user) {
+              // Create a new user if they don't exist
+              user = await storage.createUser({
+                username: `google-${profile.id}`,
+                password: await hashPassword(randomBytes(16).toString('hex')),
+                firstName: profile.name?.givenName || '',
+                lastName: profile.name?.familyName || '',
+              });
+            }
+            
+            return done(null, user);
+          } catch (error) {
+            return done(error as Error);
+          }
+        }
+      )
+    );
+  }
+  
+  // Apple OAuth
+  if (process.env.APPLE_CLIENT_ID && process.env.APPLE_TEAM_ID && process.env.APPLE_KEY_ID && process.env.APPLE_PRIVATE_KEY) {
+    passport.use(
+      new AppleStrategy(
+        {
+          clientID: process.env.APPLE_CLIENT_ID,
+          teamID: process.env.APPLE_TEAM_ID,
+          keyID: process.env.APPLE_KEY_ID,
+          privateKeyLocation: process.env.APPLE_PRIVATE_KEY,
+          callbackURL: "/auth/apple/callback",
+        },
+        async (accessToken, refreshToken, profile, done) => {
+          try {
+            // Check if user already exists
+            let user = await storage.getUserByUsername(`apple-${profile.id}`);
+            
+            if (!user) {
+              // Create a new user if they don't exist
+              user = await storage.createUser({
+                username: `apple-${profile.id}`,
+                password: await hashPassword(randomBytes(16).toString('hex')),
+                firstName: profile.name?.firstName || '',
+                lastName: profile.name?.lastName || '',
+              });
+            }
+            
+            return done(null, user);
+          } catch (error) {
+            return done(error as Error);
+          }
+        }
+      )
+    );
+  }
 
   passport.serializeUser((user, done) => done(null, user.id));
   passport.deserializeUser(async (id: number, done) => {
@@ -97,4 +167,26 @@ export function setupAuth(app: Express) {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     res.json(req.user);
   });
+  
+  // Google OAuth routes
+  app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
+  
+  app.get(
+    "/auth/google/callback",
+    passport.authenticate("google", { failureRedirect: "/auth" }),
+    (req, res) => {
+      res.redirect("/");
+    }
+  );
+  
+  // Apple OAuth routes
+  app.get("/auth/apple", passport.authenticate("apple"));
+  
+  app.get(
+    "/auth/apple/callback",
+    passport.authenticate("apple", { failureRedirect: "/auth" }),
+    (req, res) => {
+      res.redirect("/");
+    }
+  );
 }
