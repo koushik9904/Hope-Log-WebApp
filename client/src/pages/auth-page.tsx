@@ -62,8 +62,11 @@ export default function AuthPage() {
   };
 
   const handleSocialLogin = (provider: string) => {
-    // In a real implementation, this would redirect to OAuth provider
-    console.log(`Logging in with ${provider}`);
+    if (provider === 'google') {
+      window.location.href = '/auth/google';
+    } else if (provider === 'apple') {
+      window.location.href = '/auth/apple';
+    }
   };
 
   // Redirect if already logged in
@@ -158,11 +161,12 @@ export default function AuthPage() {
               </Button>
               <Button 
                 variant="outline" 
-                className="w-full bg-white hover:bg-gray-50 border border-gray-200 flex items-center justify-center gap-2" 
-                onClick={() => handleSocialLogin('apple')}
+                className="w-full bg-white hover:bg-gray-50 border border-gray-200 flex items-center justify-center gap-2 opacity-50 cursor-not-allowed"
+                disabled
+                title="Coming soon"
               >
                 <SiApple size={20} />
-                <span>Continue with Apple</span>
+                <span>Continue with Apple (Coming Soon)</span>
               </Button>
             </div>
             

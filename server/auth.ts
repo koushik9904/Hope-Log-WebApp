@@ -82,6 +82,10 @@ export function setupAuth(app: Express) {
                 password: await hashPassword(randomBytes(16).toString('hex')),
                 firstName: profile.name?.givenName || '',
                 lastName: profile.name?.familyName || '',
+                email: profile.emails?.[0]?.value || '',
+                avatar: profile.photos?.[0]?.value || '',
+                provider: 'google',
+                providerId: profile.id
               });
             }
             
@@ -117,6 +121,9 @@ export function setupAuth(app: Express) {
                 password: await hashPassword(randomBytes(16).toString('hex')),
                 firstName: profile.name?.firstName || '',
                 lastName: profile.name?.lastName || '',
+                email: profile.emails?.[0]?.value || '',
+                provider: 'apple',
+                providerId: profile.id
               });
             }
             
@@ -144,6 +151,7 @@ export function setupAuth(app: Express) {
     const user = await storage.createUser({
       ...req.body,
       password: await hashPassword(req.body.password),
+      provider: 'local'
     });
 
     req.login(user, (err) => {
