@@ -156,11 +156,37 @@ const EXAMPLE_HABITS = [
   }
 ];
 
+// Example AI-suggested goals
+const AI_SUGGESTED_GOALS = [
+  {
+    id: "ai-1",
+    name: "Meditate for 10 minutes daily",
+    description: "Practice mindfulness meditation to reduce stress",
+    category: "Health",
+    targetDate: null
+  },
+  {
+    id: "ai-2",
+    name: "Learn a new programming language",
+    description: "Expand your technical skills by learning a new language",
+    category: "Learning",
+    targetDate: null
+  },
+  {
+    id: "ai-3",
+    name: "Read 20 books this year",
+    description: "Cultivate knowledge through regular reading",
+    category: "Personal",
+    targetDate: null
+  }
+];
+
 export default function GoalsPage() {
   const { user } = useAuth();
   const [showNewGoalDialog, setShowNewGoalDialog] = useState(false);
   const [showNewHabitDialog, setShowNewHabitDialog] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("goals");
+  const [aiSuggestedGoals, setAiSuggestedGoals] = useState(AI_SUGGESTED_GOALS);
   
   // Fetch goals data
   const { data: goals = [], isLoading } = useQuery<Goal[]>({
@@ -256,6 +282,26 @@ export default function GoalsPage() {
     setShowNewHabitDialog(false);
   };
   
+  // Handler for adopting AI-suggested goals
+  const adoptAiGoal = (aiGoal: typeof AI_SUGGESTED_GOALS[0]) => {
+    if (!user?.id) return;
+    
+    addGoalMutation.mutate({
+      name: aiGoal.name,
+      description: aiGoal.description || "",
+      targetDate: aiGoal.targetDate || "",
+      category: aiGoal.category,
+      target: 100,
+      progress: 0,
+      unit: "%",
+      colorScheme: 1,
+      userId: user.id
+    });
+    
+    // Remove the goal from suggestions after adopting
+    setAiSuggestedGoals(prev => prev.filter(g => g.id !== aiGoal.id));
+  };
+  
   // Group goals by category
   const goalsByCategory = goals.reduce<Record<string, Goal[]>>((acc, goal) => {
     const category = goal.category || "Other";
@@ -286,7 +332,24 @@ export default function GoalsPage() {
   const completionRate = goals.length > 0 ? Math.round((completedGoals / goals.length) * 100) : 0;
   
   // Habits (using example data for now)
-  const habits = EXAMPLE_HABITS;
+  const [habits, setHabits] = useState(EXAMPLE_HABITS);
+  
+  // Function to toggle habit completion
+  const toggleHabitCompletion = (habitId: number) => {
+    setHabits(prev => 
+      prev.map(habit => 
+        habit.id === habitId 
+          ? { ...habit, completedToday: !habit.completedToday }
+          : habit
+      ).sort((a, b) => {
+        // Sort to put uncompleted habits on top
+        if (a.completedToday && !b.completedToday) return 1;
+        if (!a.completedToday && b.completedToday) return -1;
+        return 0;
+      })
+    );
+  };
+  
   const completedHabitsToday = habits.filter(habit => habit.completedToday).length;
   const habitCompletionRate = habits.length > 0 ? Math.round((completedHabitsToday / habits.length) * 100) : 0;
   
@@ -523,12 +586,56 @@ export default function GoalsPage() {
         </div>
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="mb-6 bg-black">
-            <TabsTrigger value="goals">Goals</TabsTrigger>
-            <TabsTrigger value="habits">Habits</TabsTrigger>
+          <TabsList className="mb-6 bg-[#333] text-white">
+            <TabsTrigger value="goals" className="data-[state=active]:bg-[#F5B8DB] data-[state=active]:text-white data-[state=inactive]:text-white">Goals</TabsTrigger>
+            <TabsTrigger value="habits" className="data-[state=active]:bg-[#F5B8DB] data-[state=active]:text-white data-[state=inactive]:text-white">Habits</TabsTrigger>
           </TabsList>
           
           <TabsContent value="goals">
+            {/* AI-suggested goals section */}
+            {aiSuggestedGoals.length > 0 && (
+              <Card className="bg-white border-0 shadow-sm mb-8">
+                <CardHeader className="border-b border-gray-100">
+                  <CardTitle className="font-['Montserrat_Variable'] flex items-center gap-2">
+                    <AlertCircle className="h-5 w-5 text-[#F5B8DB]" />
+                    AI Suggested Goals
+                  </CardTitle>
+                  <CardDescription>
+                    Personalized goal recommendations based on your journal entries
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {aiSuggestedGoals.map(goal => (
+                      <div key={goal.id} className="bg-[#fbf1f7] p-4 rounded-xl border border-[#F5B8DB] border-opacity-30">
+                        <h4 className="font-medium text-gray-800 mb-2">{goal.name}</h4>
+                        <p className="text-sm text-gray-600 mb-3">{goal.description}</p>
+                        <div className="flex items-center gap-2 mt-3">
+                          <Badge className="bg-[#F5B8DB] text-white">{goal.category}</Badge>
+                          <div className="flex-1"></div>
+                          <Button 
+                            onClick={() => adoptAiGoal(goal)}
+                            className="bg-[#9AAB63] hover:bg-[#8a9a58] text-white text-xs px-3"
+                            size="sm"
+                          >
+                            <Check className="h-3.5 w-3.5 mr-1.5" /> Add to Goals
+                          </Button>
+                          <Button 
+                            variant="outline"
+                            onClick={() => setAiSuggestedGoals(prev => prev.filter(g => g.id !== goal.id))}
+                            className="text-gray-500 text-xs px-2 border-gray-300 bg-white"
+                            size="sm"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
               {/* Edit Goal Dialog */}
               <Dialog open={showEditGoalDialog} onOpenChange={setShowEditGoalDialog}>
@@ -863,13 +970,16 @@ export default function GoalsPage() {
                         <div key={habit.id} className="bg-[#FFF8E8] p-4 rounded-xl">
                           <div className="flex items-start justify-between">
                             <div className="flex items-start gap-3">
-                              <div className={`mt-1 w-5 h-5 rounded border flex items-center justify-center ${
-                                habit.completedToday 
-                                  ? 'bg-[#9AAB63] border-[#9AAB63] text-white' 
-                                  : 'border-gray-300 bg-white'
-                              }`}>
+                              <button 
+                                onClick={() => toggleHabitCompletion(habit.id)}
+                                className={`mt-1 w-5 h-5 rounded border flex items-center justify-center transition-all duration-300 cursor-pointer hover:shadow-md ${
+                                  habit.completedToday 
+                                    ? 'bg-[#9AAB63] border-[#9AAB63] text-white animate-checkmark' 
+                                    : 'border-gray-300 bg-white hover:border-[#9AAB63]'
+                                }`}
+                              >
                                 {habit.completedToday && <Check className="h-3 w-3" />}
-                              </div>
+                              </button>
                               <div>
                                 <h4 className="font-medium text-gray-800">{habit.title}</h4>
                                 <p className="text-sm text-gray-600 mt-1">{habit.description}</p>
