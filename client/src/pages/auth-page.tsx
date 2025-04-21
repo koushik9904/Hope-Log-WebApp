@@ -1,9 +1,9 @@
 import { useAuth } from "@/hooks/use-auth";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Redirect } from "wouter";
+import { Redirect, useLocation, useSearch } from "wouter";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -13,8 +13,10 @@ import { insertUserSchema } from "@shared/schema";
 import { Separator } from "@/components/ui/separator";
 import { FcGoogle } from "react-icons/fc";
 import { SiApple } from "react-icons/si";
-import { Image, MessageCircle, Heart, BarChart, Lightbulb, Sparkles, BookOpen } from "lucide-react";
+import { Image, MessageCircle, Heart, BarChart, Lightbulb, Sparkles, BookOpen, AlertCircle } from "lucide-react";
 import { HopeLogLogo } from "@/components/ui/hope-log-logo";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useToast } from "@/hooks/use-toast";
 
 const loginSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -34,6 +36,24 @@ type RegisterData = z.infer<typeof registerSchema>;
 export default function AuthPage() {
   const { user, loginMutation, registerMutation } = useAuth();
   const [activeTab, setActiveTab] = useState<string>("login");
+  const [location] = useLocation();
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
+  
+  // Check for error in URL query params
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const errorMsg = params.get('error');
+    if (errorMsg) {
+      setError(errorMsg);
+      // Show toast for error
+      toast({
+        variant: "destructive",
+        title: "Authentication failed",
+        description: errorMsg
+      });
+    }
+  }, [location, toast]);
 
   const loginForm = useForm<LoginData>({
     resolver: zodResolver(loginSchema),
@@ -63,7 +83,24 @@ export default function AuthPage() {
 
   const handleSocialLogin = (provider: string) => {
     if (provider === 'google') {
-      window.location.href = '/auth/google';
+      // Use window.open for popup to avoid cross-site issues
+      const width = 600;
+      const height = 600;
+      const left = window.innerWidth / 2 - width / 2;
+      const top = window.innerHeight / 2 - height / 2;
+      
+      const popup = window.open(
+        '/auth/google',
+        'oauth',
+        `width=${width},height=${height},left=${left},top=${top}`
+      );
+      
+      // Check if popup was blocked
+      if (!popup || popup.closed || typeof popup.closed === 'undefined') {
+        console.error('Popup was blocked');
+        // Fallback to redirect
+        window.location.href = '/auth/google';
+      }
     } else if (provider === 'apple') {
       window.location.href = '/auth/apple';
     }
@@ -149,6 +186,14 @@ export default function AuthPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {/* Error message if present */}
+            {error && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            
             {/* Social Login Buttons */}
             <div className="space-y-3 mb-6">
               <Button 

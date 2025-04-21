@@ -2,7 +2,7 @@ import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { Strategy as AppleStrategy } from "passport-apple";
-import { Express } from "express";
+import { Express, Request, Response, NextFunction } from "express";
 import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
@@ -184,15 +184,37 @@ export function setupAuth(app: Express) {
   });
   
   // Google OAuth routes
-  app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
+  app.get("/auth/google", (req: Request, res: Response, next: NextFunction) => {
+    console.log("Starting Google OAuth flow");
+    passport.authenticate("google", { 
+      scope: ["profile", "email"],
+      prompt: "select_account"
+    })(req, res, next);
+  });
   
   app.get(
     "/auth/google/callback",
-    passport.authenticate("google", { failureRedirect: "/auth" }),
-    (req, res) => {
+    (req: Request, res: Response, next: NextFunction) => {
+      console.log("Google OAuth callback received:", req.url);
+      passport.authenticate("google", { 
+        failureRedirect: "/auth",
+        failWithError: true
+      })(req, res, next);
+    },
+    (req: Request, res: Response) => {
+      console.log("Google OAuth successful, redirecting to home page");
       res.redirect("/");
     }
   );
+  
+  // Error handler for Google OAuth
+  app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+    if (req.url.startsWith('/auth/google')) {
+      console.error("Google OAuth error:", err);
+      return res.redirect("/auth?error=" + encodeURIComponent(err.message || "Authentication failed"));
+    }
+    next(err);
+  });
   
   // Apple OAuth routes
   app.get("/auth/apple", passport.authenticate("apple"));
