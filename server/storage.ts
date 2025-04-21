@@ -30,6 +30,7 @@ export interface IStorage {
   getGoalById(id: number): Promise<Goal | undefined>;
   createGoal(goal: InsertGoal): Promise<Goal>;
   updateGoalProgress(id: number, progress: number): Promise<Goal>;
+  deleteGoal(id: number): Promise<void>;
   
   // Prompt methods
   getDefaultPrompts(): Promise<Prompt[]>;
@@ -214,6 +215,12 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
   
+  async deleteGoal(id: number): Promise<void> {
+    await db
+      .delete(goals)
+      .where(eq(goals.id, id));
+  }
+  
   async getDefaultPrompts(): Promise<Prompt[]> {
     return await db
       .select()
@@ -242,11 +249,13 @@ export class DatabaseStorage implements IStorage {
   async createOrUpdateSummary(summary: InsertSummary): Promise<Summary> {
     const existingSummary = await this.getSummaryByUserId(summary.userId);
     
-    // Ensure arrays are properly formatted
+    // Ensure arrays are properly formatted and convert to proper string arrays
     const formattedSummary = {
       ...summary,
-      topEmotions: Array.isArray(summary.topEmotions) ? summary.topEmotions : [],
-      commonThemes: Array.isArray(summary.commonThemes) ? summary.commonThemes : []
+      topEmotions: Array.isArray(summary.topEmotions) ? 
+        summary.topEmotions.map(emotion => String(emotion)) : [],
+      commonThemes: Array.isArray(summary.commonThemes) ? 
+        summary.commonThemes.map(theme => String(theme)) : []
     };
     
     if (existingSummary) {

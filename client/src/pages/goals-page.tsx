@@ -156,28 +156,56 @@ const EXAMPLE_HABITS = [
   }
 ];
 
-// Example AI-suggested goals
+// Example AI-suggested goals - derived both from generic goals and journal analysis
 const AI_SUGGESTED_GOALS = [
   {
     id: "ai-1",
     name: "Meditate for 10 minutes daily",
     description: "Practice mindfulness meditation to reduce stress",
     category: "Health",
-    targetDate: null
+    targetDate: null,
+    source: "Journal analysis identified stress as a recurring theme" // From journal analysis
   },
   {
     id: "ai-2",
     name: "Learn a new programming language",
     description: "Expand your technical skills by learning a new language",
     category: "Learning",
-    targetDate: null
+    targetDate: null,
+    source: "Based on your career interests" // Generic suggestion
   },
   {
     id: "ai-3",
     name: "Read 20 books this year",
     description: "Cultivate knowledge through regular reading",
     category: "Personal",
-    targetDate: null
+    targetDate: null,
+    source: "Journal mentioned interest in reading more frequently" // From journal analysis
+  }
+];
+
+// Example AI-suggested habits - derived from both generic habits and journal analysis
+const AI_SUGGESTED_HABITS = [
+  {
+    id: "ai-habit-1",
+    title: "Drink 8 glasses of water",
+    description: "Stay hydrated throughout the day",
+    frequency: "daily",
+    source: "General wellness recommendation" // Generic suggestion
+  },
+  {
+    id: "ai-habit-2",
+    title: "15-minute morning walk",
+    description: "Start your day with fresh air and light exercise",
+    frequency: "daily",
+    source: "Journal entries show improved mood after outdoor activities" // From journal analysis
+  },
+  {
+    id: "ai-habit-3",
+    title: "Phone-free hour before sleep",
+    description: "Improve sleep quality by reducing blue light exposure",
+    frequency: "daily",
+    source: "Journal mentioned trouble sleeping" // From journal analysis
   }
 ];
 

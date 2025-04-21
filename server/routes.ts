@@ -399,6 +399,24 @@ Your role is to:
       res.status(500).json({ error: "Failed to update goal" });
     }
   });
+  
+  app.delete("/api/goals/:goalId", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const goalId = Number(req.params.goalId);
+    
+    try {
+      const goal = await storage.getGoalById(goalId);
+      if (!goal) return res.status(404).json({ error: "Goal not found" });
+      if (goal.userId !== req.user?.id) return res.sendStatus(403);
+      
+      await storage.deleteGoal(goalId);
+      res.sendStatus(200);
+    } catch (error) {
+      console.error("Goal deletion error:", error);
+      res.status(500).json({ error: "Failed to delete goal" });
+    }
+  });
 
   // Prompts API
   app.get("/api/prompts", async (req, res) => {
