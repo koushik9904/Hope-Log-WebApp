@@ -174,11 +174,11 @@ export default function InsightsPage() {
         </div>
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="mb-6 bg-black">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="moods">Mood Tracker</TabsTrigger>
-            <TabsTrigger value="emotions">Emotions</TabsTrigger>
-            <TabsTrigger value="activity">Activity</TabsTrigger>
+          <TabsList className="mb-6 bg-primary text-white">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-white data-[state=active]:text-primary">Overview</TabsTrigger>
+            <TabsTrigger value="moods" className="data-[state=active]:bg-white data-[state=active]:text-primary">Mood Tracker</TabsTrigger>
+            <TabsTrigger value="emotions" className="data-[state=active]:bg-white data-[state=active]:text-primary">Emotions</TabsTrigger>
+            <TabsTrigger value="activity" className="data-[state=active]:bg-white data-[state=active]:text-primary">Activity</TabsTrigger>
           </TabsList>
           
           <TabsContent value="overview">
