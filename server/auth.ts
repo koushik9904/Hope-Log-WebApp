@@ -64,10 +64,11 @@ export function setupAuth(app: Express) {
   // Google OAuth
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     // Determine the correct callback URL based on environment
-    const hostname = process.env.REPL_SLUG
-      ? `https://${process.env.REPL_SLUG}.repl.co`
+    const hostname = process.env.REPLIT_DEV_DOMAIN
+      ? `https://${process.env.REPLIT_DEV_DOMAIN}`
       : 'http://localhost:5000';
     const googleCallbackURL = `${hostname}/auth/google/callback`;
+    console.log('Using Google callback URL:', googleCallbackURL);
     
     passport.use(
       new GoogleStrategy(
