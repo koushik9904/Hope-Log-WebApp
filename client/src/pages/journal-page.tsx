@@ -673,6 +673,142 @@ export default function JournalPage() {
               )}
             </div>
           </TabsContent>
+          
+          <TabsContent value="recycle-bin">
+            <div className="bg-white border border-gray-200 rounded-lg p-8">
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h3 className="text-lg font-medium">Recycle Bin</h3>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Deleted items are automatically removed after 7 days.
+                  </p>
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  {deletedEntries.length} deleted {deletedEntries.length === 1 ? 'entry' : 'entries'}
+                </div>
+              </div>
+              
+              {isLoadingDeleted ? (
+                <div className="flex justify-center items-center h-64">
+                  <div className="pi-thinking-dots">
+                    <div className="pi-thinking-dot"></div>
+                    <div className="pi-thinking-dot"></div>
+                    <div className="pi-thinking-dot"></div>
+                  </div>
+                </div>
+              ) : deletedEntries.length === 0 ? (
+                <div className="text-center py-16 bg-gray-50 rounded-lg">
+                  <Trash2 className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium mb-2">Recycle Bin is Empty</h3>
+                  <p className="text-gray-500 mb-4">
+                    Any deleted journal entries will appear here for 7 days before being permanently deleted.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {deletedEntries.map(entry => (
+                    <div 
+                      key={entry.id} 
+                      className="p-4 border border-gray-200 rounded-md hover:bg-gray-50 transition-colors relative group"
+                    >
+                      <div className="flex justify-between">
+                        <div className="w-full">
+                          <h4 className="font-medium text-lg mb-1 text-gray-700">
+                            {(() => {
+                              // Generate title from content
+                              const content = entry.content;
+                              if (!content || content.trim() === "") return "Untitled Entry";
+                              
+                              // Get first sentence or part of it
+                              const firstSentence = content.split(/[.!?]/)[0]?.trim();
+                              if (!firstSentence) return "Untitled Entry";
+                              
+                              // If sentence is short enough, use it directly
+                              if (firstSentence.length <= 50) {
+                                return firstSentence;
+                              }
+                              
+                              // Otherwise, get first 5-7 words
+                              const words = firstSentence.split(/\s+/).slice(0, 7);
+                              let title = words.join(" ");
+                              
+                              // Add ellipsis if we truncated
+                              if (words.length < firstSentence.split(/\s+/).length) {
+                                title += "...";
+                              }
+                              
+                              return title;
+                            })()}
+                          </h4>
+                          <div className="flex items-center gap-3 text-sm text-gray-500 mb-3">
+                            <div className="flex items-center">
+                              <Calendar className="h-3.5 w-3.5 mr-1.5 text-gray-400" />
+                              {new Date(entry.date).toLocaleDateString()}
+                            </div>
+                            <div className="flex items-center">
+                              <Clock className="h-3.5 w-3.5 mr-1.5 text-gray-400" />
+                              {new Date(entry.date).toLocaleTimeString([], { 
+                                hour: '2-digit', 
+                                minute: '2-digit',
+                                hour12: true
+                              })}
+                            </div>
+                            <div className="flex items-center text-amber-600">
+                              <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                              Deleted
+                            </div>
+                          </div>
+                          <p className="text-gray-600 line-clamp-2 mb-4">{entry.content}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex mt-4 justify-end gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-green-700 bg-green-50 border-green-200 hover:bg-green-100 hover:border-green-300"
+                          onClick={() => restoreMutation.mutate(entry.id)}
+                        >
+                          <RotateCcw className="h-3.5 w-3.5 mr-2" />
+                          Restore
+                        </Button>
+                        
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button 
+                              variant="outline"
+                              size="sm" 
+                              className="text-red-700 bg-red-50 border-red-200 hover:bg-red-100 hover:border-red-300"
+                            >
+                              <Trash className="h-3.5 w-3.5 mr-2" />
+                              Delete Permanently
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Permanently delete entry?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action cannot be undone. This will permanently delete your journal entry and remove all associated data.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction 
+                                onClick={() => permanentDeleteMutation.mutate(entry.id)}
+                                className="bg-red-500 hover:bg-red-600"
+                              >
+                                Delete Permanently
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </TabsContent>
         </Tabs>
       </div>
     </DashboardLayout>

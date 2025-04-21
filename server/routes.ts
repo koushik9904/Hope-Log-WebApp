@@ -268,6 +268,76 @@ Your role is to:
       res.status(500).json({ error: "Failed to delete journal entry" });
     }
   });
+  
+  // Get deleted journal entries (recycle bin)
+  app.get("/api/journal-entries/:userId/deleted", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const userId = Number(req.params.userId);
+    if (req.user?.id !== userId) return res.sendStatus(403);
+    
+    try {
+      const entries = await storage.getDeletedJournalEntriesByUserId(userId);
+      res.json(entries);
+    } catch (error) {
+      console.error("Error fetching deleted journal entries:", error);
+      res.status(500).json({ error: "Failed to fetch deleted journal entries" });
+    }
+  });
+  
+  // Restore journal entry from recycle bin
+  app.post("/api/journal-entries/:id/restore", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const entryId = Number(req.params.id);
+    
+    try {
+      // Get the entry before restoring to verify it exists and belongs to the user
+      const entry = await storage.getJournalEntryById(entryId);
+      
+      if (!entry) {
+        return res.status(404).json({ error: "Journal entry not found" });
+      }
+      
+      // Ensure the entry belongs to the authenticated user
+      if (entry.userId !== req.user?.id) {
+        return res.status(403).json({ error: "You don't have permission to restore this entry" });
+      }
+      
+      const restoredEntry = await storage.restoreJournalEntry(entryId);
+      res.json(restoredEntry);
+    } catch (error) {
+      console.error("Error restoring journal entry:", error);
+      res.status(500).json({ error: "Failed to restore journal entry" });
+    }
+  });
+  
+  // Permanently delete journal entry from recycle bin
+  app.delete("/api/journal-entries/:id/permanent", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const entryId = Number(req.params.id);
+    
+    try {
+      // Get the entry before permanently deleting to verify it exists and belongs to the user
+      const entry = await storage.getJournalEntryById(entryId);
+      
+      if (!entry) {
+        return res.status(404).json({ error: "Journal entry not found" });
+      }
+      
+      // Ensure the entry belongs to the authenticated user
+      if (entry.userId !== req.user?.id) {
+        return res.status(403).json({ error: "You don't have permission to delete this entry" });
+      }
+      
+      await storage.permanentlyDeleteJournalEntry(entryId);
+      res.status(200).json({ message: "Journal entry permanently deleted" });
+    } catch (error) {
+      console.error("Error permanently deleting journal entry:", error);
+      res.status(500).json({ error: "Failed to permanently delete journal entry" });
+    }
+  });
 
   app.post("/api/journal-entries", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
