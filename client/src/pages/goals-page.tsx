@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Goal as GoalBase } from "@shared/schema";
@@ -6,9 +6,9 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 
 // Extended Goal type with the new fields
 interface Goal extends GoalBase {
-  description?: string;
-  category?: string;
-  targetDate?: string;
+  description: string | null;
+  category: string;
+  targetDate: string | null;
 }
 import { 
   AlertCircle,
@@ -192,6 +192,22 @@ export default function GoalsPage() {
     },
   });
   
+  // Edit goal mutation
+  const [goalToEdit, setGoalToEdit] = useState<Goal | null>(null);
+  const [showEditGoalDialog, setShowEditGoalDialog] = useState(false);
+  
+  const editGoalMutation = useMutation({
+    mutationFn: async (goal: GoalFormValues & { id: number }) => {
+      const { id, ...data } = goal;
+      const res = await apiRequest("PUT", `/api/goals/${id}`, data);
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}`] });
+      setShowEditGoalDialog(false);
+    },
+  });
+  
   // Delete goal mutation
   const deleteGoalMutation = useMutation({
     mutationFn: async (id: number) => {
@@ -248,6 +264,23 @@ export default function GoalsPage() {
     return acc;
   }, {});
   
+  // Reset form when goalToEdit changes
+  useEffect(() => {
+    if (goalToEdit) {
+      goalForm.reset({
+        name: goalToEdit.name,
+        description: goalToEdit.description || "",
+        targetDate: goalToEdit.targetDate || "",
+        category: goalToEdit.category,
+        target: goalToEdit.target,
+        progress: goalToEdit.progress,
+        unit: goalToEdit.unit,
+        colorScheme: goalToEdit.colorScheme,
+        userId: user?.id
+      });
+    }
+  }, [goalToEdit, goalForm, user?.id]);
+
   // Calculate completion rates
   const completedGoals = goals.filter(goal => goal.progress === 100).length;
   const completionRate = goals.length > 0 ? Math.round((completedGoals / goals.length) * 100) : 0;
@@ -497,6 +530,130 @@ export default function GoalsPage() {
           
           <TabsContent value="goals">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+              {/* Edit Goal Dialog */}
+              <Dialog open={showEditGoalDialog} onOpenChange={setShowEditGoalDialog}>
+                <DialogContent className="sm:max-w-[500px] bg-white">
+                  <DialogHeader>
+                    <DialogTitle className="font-['Montserrat_Variable']">Edit Goal</DialogTitle>
+                    <DialogDescription>
+                      Update your goal details.
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  {goalToEdit && (
+                    <Form {...goalForm}>
+                      <form 
+                        onSubmit={goalForm.handleSubmit((values) => {
+                          editGoalMutation.mutate({
+                            ...values,
+                            id: goalToEdit.id
+                          });
+                        })} 
+                        className="space-y-6 py-4"
+                      >
+                        <FormField
+                          control={goalForm.control}
+                          name="name"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Title</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Enter goal title" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={goalForm.control}
+                          name="description"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Description (optional)</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Brief description of your goal" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={goalForm.control}
+                            name="category"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Category</FormLabel>
+                                <Select 
+                                  onValueChange={field.onChange} 
+                                  defaultValue={field.value}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger className="bg-white">
+                                      <SelectValue placeholder="Select a category" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {GOAL_CATEGORIES.map(category => (
+                                      <SelectItem key={category} value={category}>
+                                        {category}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={goalForm.control}
+                            name="targetDate"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Target Date (optional)</FormLabel>
+                                <FormControl>
+                                  <Input type="date" {...field} className="bg-white" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        
+                        <FormField
+                          control={goalForm.control}
+                          name="userId"
+                          render={({ field }) => (
+                            <input type="hidden" value={user?.id} />
+                          )}
+                        />
+                        
+                        <DialogFooter>
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            onClick={() => setShowEditGoalDialog(false)}
+                            className="bg-white"
+                          >
+                            Cancel
+                          </Button>
+                          <Button 
+                            type="submit" 
+                            className="bg-[#F5B8DB] hover:bg-[#f096c9] text-white"
+                            disabled={editGoalMutation.isPending}
+                          >
+                            {editGoalMutation.isPending ? "Updating..." : "Update Goal"}
+                          </Button>
+                        </DialogFooter>
+                      </form>
+                    </Form>
+                  )}
+                </DialogContent>
+              </Dialog>
+
               <Card className="md:col-span-3 bg-white border-0 shadow-sm">
                 <CardHeader className="border-b border-gray-100">
                   <CardTitle className="font-['Montserrat_Variable']">Your Goals</CardTitle>
@@ -530,7 +687,12 @@ export default function GoalsPage() {
                                       </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent className="bg-white">
-                                      <DropdownMenuItem>
+                                      <DropdownMenuItem
+                                        onClick={() => {
+                                          setGoalToEdit(goal);
+                                          setShowEditGoalDialog(true);
+                                        }}
+                                      >
                                         <Edit className="h-4 w-4 mr-2" />
                                         <span>Edit</span>
                                       </DropdownMenuItem>
