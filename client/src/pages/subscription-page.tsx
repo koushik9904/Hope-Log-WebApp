@@ -210,11 +210,29 @@ const SubscriptionPage = () => {
     const queryParams = new URLSearchParams(window.location.search);
     const orderId = queryParams.get("orderId");
     const planName = queryParams.get("planName");
+    const cancelled = queryParams.get("cancelled");
+    
+    // Clear query params immediately to prevent reprocessing on page refresh
+    if (orderId || planName || cancelled) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+    
+    if (cancelled === "true") {
+      // Handle cancellation
+      toast({
+        title: "Payment cancelled",
+        description: "Your payment process was cancelled. You can try again when you're ready.",
+        variant: "default"
+      });
+      setProcessingPayPal(false);
+      return;
+    }
     
     if (orderId && planName) {
       // Handle PayPal redirect with order ID
       const captureOrder = async () => {
         try {
+          setProcessingPayPal(true);
           const res = await apiRequest("POST", "/api/subscription/capture-order", { 
             orderId, 
             planName 
@@ -225,8 +243,7 @@ const SubscriptionPage = () => {
               title: "Payment successful!",
               description: "Your subscription has been activated. Thank you for your support!",
             });
-            // Clear query params and refetch data
-            window.history.replaceState({}, document.title, window.location.pathname);
+            // Refetch subscription data
             refetchSubscription();
             queryClient.invalidateQueries({ queryKey: ["/api/subscription/history"] });
             setCurrentTab("subscription");

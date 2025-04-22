@@ -1,6 +1,6 @@
 import checkoutNodeJssdk from '@paypal/checkout-server-sdk';
 import { db } from './db';
-import { subscriptionPlans, payments, subscriptions, users } from '@shared/schema';
+import { subscriptionPlans, payments, subscriptions, users, systemSettings } from '@shared/schema';
 import { eq, and } from 'drizzle-orm';
 
 // Helper function to convert Date to ISO string for database
@@ -61,8 +61,8 @@ class PayPalService {
         brand_name: 'Hope Log',
         landing_page: 'NO_PREFERENCE',
         user_action: 'PAY_NOW',
-        return_url: `${process.env.APP_URL || 'https://hopelog.ai'}/subscription/success`,
-        cancel_url: `${process.env.APP_URL || 'https://hopelog.ai'}/subscription/cancel`
+        return_url: `${process.env.APP_URL || 'https://hopelog.ai'}/subscription?planName=${encodeURIComponent(planName)}`,
+        cancel_url: `${process.env.APP_URL || 'https://hopelog.ai'}/subscription?cancelled=true`
       }
     });
 
