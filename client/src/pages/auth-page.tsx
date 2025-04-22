@@ -107,7 +107,7 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row">
+    <div className="min-h-screen max-w-full flex flex-col md:flex-row">
       {/* Hero Section */}
       <div className="hidden md:flex md:w-1/2 bg-black p-10 text-white flex-col justify-center">
         <div className="max-w-md mx-auto">
@@ -167,9 +167,9 @@ export default function AuthPage() {
       </div>
       
       {/* Auth Forms */}
-      <div className="w-full md:w-1/2 flex items-center justify-center p-4 md:p-10 bg-gray-900">
-        <Card className="w-full max-w-md shadow-lg border-0 rounded-xl bg-white">
-          <CardHeader className="space-y-1">
+      <div className="w-full md:w-1/2 flex items-center justify-center p-3 sm:p-4 md:p-10 bg-gray-900 min-h-screen md:min-h-0">
+        <Card className="w-full max-w-md shadow-lg border-0 rounded-xl bg-white overflow-hidden my-2 md:my-0">
+          <CardHeader className="space-y-1 px-4 py-4 sm:px-6">
             <div className="flex items-center justify-center md:hidden mb-4">
               <div className="bg-black rounded-xl p-2">
                 <HopeLogLogo size="md" withText className="w-auto" />
@@ -180,7 +180,7 @@ export default function AuthPage() {
               Continue your mental wellness journey
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 sm:px-6">
             {/* Error message if present */}
             {error && (
               <Alert variant="destructive" className="mb-4">
@@ -211,22 +211,22 @@ export default function AuthPage() {
               <div className="flex flex-col gap-2 mt-3">
                 <Button 
                   variant="outline" 
-                  className="w-full bg-white hover:bg-gray-50 border border-gray-300 flex items-center justify-center gap-2 opacity-60"
+                  className="w-full bg-white hover:bg-gray-50 border border-gray-300 flex items-center justify-center gap-2 opacity-60 text-sm"
                   disabled
                   title="Google Sign-In coming soon"
                 >
-                  <FcGoogle size={20} />
-                  <span>Google Sign-In (Coming Soon)</span>
+                  <FcGoogle size={18} />
+                  <span className="truncate">Google Sign-In (Coming Soon)</span>
                 </Button>
                 
                 <Button 
                   variant="outline" 
-                  className="w-full bg-white hover:bg-gray-50 border border-gray-300 flex items-center justify-center gap-2 opacity-60"
+                  className="w-full bg-white hover:bg-gray-50 border border-gray-300 flex items-center justify-center gap-2 opacity-60 text-sm"
                   disabled
                   title="Apple Sign-In coming soon"
                 >
-                  <SiApple size={20} />
-                  <span>Apple Sign-In (Coming Soon)</span>
+                  <SiApple size={18} />
+                  <span className="truncate">Apple Sign-In (Coming Soon)</span>
                 </Button>
               </div>
             </div>
@@ -248,17 +248,17 @@ export default function AuthPage() {
               
               <TabsContent value="login">
                 <Form {...loginForm}>
-                  <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
+                  <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-3 mb-1">
                     <FormField
                       control={loginForm.control}
                       name="username"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Username</FormLabel>
+                          <FormLabel className="text-sm">Username</FormLabel>
                           <FormControl>
-                            <Input className="pi-input" placeholder="Enter your username" {...field} />
+                            <Input className="pi-input h-9" placeholder="Enter your username" {...field} />
                           </FormControl>
-                          <FormMessage />
+                          <FormMessage className="text-xs" />
                         </FormItem>
                       )}
                     />
@@ -267,17 +267,17 @@ export default function AuthPage() {
                       name="password"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Password</FormLabel>
+                          <FormLabel className="text-sm">Password</FormLabel>
                           <FormControl>
-                            <Input className="pi-input" type="password" placeholder="Enter your password" {...field} />
+                            <Input className="pi-input h-9" type="password" placeholder="Enter your password" {...field} />
                           </FormControl>
-                          <FormMessage />
+                          <FormMessage className="text-xs" />
                         </FormItem>
                       )}
                     />
                     <Button
                       type="submit"
-                      className="w-full bg-black hover:bg-black/80 text-white"
+                      className="w-full bg-black hover:bg-black/80 text-white h-9 mt-1"
                       disabled={loginMutation.isPending}
                     >
                       {loginMutation.isPending ? "Logging in..." : "Login"}
@@ -288,17 +288,17 @@ export default function AuthPage() {
               
               <TabsContent value="register">
                 <Form {...registerForm}>
-                  <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
+                  <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-3 mb-1">
                     <FormField
                       control={registerForm.control}
                       name="username"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Username</FormLabel>
+                          <FormLabel className="text-sm">Username</FormLabel>
                           <FormControl>
-                            <Input className="pi-input" placeholder="Choose a username" {...field} />
+                            <Input className="pi-input h-9" placeholder="Choose a username" {...field} />
                           </FormControl>
-                          <FormMessage />
+                          <FormMessage className="text-xs" />
                         </FormItem>
                       )}
                     />
@@ -307,11 +307,11 @@ export default function AuthPage() {
                       name="password"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Password</FormLabel>
+                          <FormLabel className="text-sm">Password</FormLabel>
                           <FormControl>
-                            <Input className="pi-input" type="password" placeholder="Create a password" {...field} />
+                            <Input className="pi-input h-9" type="password" placeholder="Create a password" {...field} />
                           </FormControl>
-                          <FormMessage />
+                          <FormMessage className="text-xs" />
                         </FormItem>
                       )}
                     />
@@ -320,17 +320,17 @@ export default function AuthPage() {
                       name="confirmPassword"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Confirm Password</FormLabel>
+                          <FormLabel className="text-sm">Confirm Password</FormLabel>
                           <FormControl>
-                            <Input className="pi-input" type="password" placeholder="Confirm your password" {...field} />
+                            <Input className="pi-input h-9" type="password" placeholder="Confirm your password" {...field} />
                           </FormControl>
-                          <FormMessage />
+                          <FormMessage className="text-xs" />
                         </FormItem>
                       )}
                     />
                     <Button
                       type="submit"
-                      className="w-full bg-black hover:bg-black/80 text-white"
+                      className="w-full bg-black hover:bg-black/80 text-white h-9 mt-1"
                       disabled={registerMutation.isPending}
                     >
                       {registerMutation.isPending ? "Creating account..." : "Create Account"}
@@ -340,8 +340,8 @@ export default function AuthPage() {
               </TabsContent>
             </Tabs>
           </CardContent>
-          <CardFooter className="flex flex-col">
-            <p className="text-center text-xs text-muted-foreground mt-4">
+          <CardFooter className="flex flex-col px-4 sm:px-6 py-4">
+            <p className="text-center text-xs text-muted-foreground">
               By continuing, you agree to our Terms of Service and Privacy Policy.
             </p>
           </CardFooter>
