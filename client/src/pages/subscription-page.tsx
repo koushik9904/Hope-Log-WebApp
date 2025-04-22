@@ -172,9 +172,17 @@ const SubscriptionPage = () => {
       }
     },
     onError: (error: any) => {
+      console.error('[PayPal] Order creation error:', error);
+      
+      // Create a more detailed error message
+      let errorMessage = error.message || "Failed to create payment.";
+      
+      // Add sandbox testing information
+      errorMessage += " Note: For PayPal sandbox testing, please see our sandbox testing instructions.";
+      
       toast({
         title: "Error creating order",
-        description: error.message || "Failed to create payment. Please try again.",
+        description: errorMessage,
         variant: "destructive"
       });
       setProcessingPayPal(false);
@@ -258,9 +266,16 @@ const SubscriptionPage = () => {
           }
         } catch (error: any) {
           console.error('[PayPal] Capture error:', error);
+          
+          // Create a more detailed error message
+          let errorDescription = error.message || "There was an error processing your payment.";
+          
+          // Add helpful information about sandbox testing
+          errorDescription += " For PayPal sandbox testing, use test account credentials from the PayPal Developer Dashboard.";
+          
           toast({
             title: "Payment processing failed",
-            description: error.message || "There was an error processing your payment. Please try again.",
+            description: errorDescription,
             variant: "destructive"
           });
         } finally {
@@ -452,14 +467,37 @@ const SubscriptionPage = () => {
               </div>
             )}
             
-            <div className="mt-8 bg-muted p-4 rounded-lg">
-              <div className="flex items-start gap-3">
-                <ShieldCheck className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
-                <div>
-                  <h3 className="font-medium mb-1">Secure Subscription</h3>
-                  <p className="text-sm text-muted-foreground">
-                    All payments are processed securely through PayPal. Your subscription can be cancelled anytime from your account dashboard.
-                  </p>
+            <div className="mt-8 space-y-4">
+              <div className="bg-muted p-4 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <ShieldCheck className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
+                  <div>
+                    <h3 className="font-medium mb-1">Secure Subscription</h3>
+                    <p className="text-sm text-muted-foreground">
+                      All payments are processed securely through PayPal. Your subscription can be cancelled anytime from your account dashboard.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Sandbox testing info in development only */}
+              <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="h-6 w-6 text-blue-500 flex-shrink-0 mt-1" />
+                  <div>
+                    <h3 className="font-medium mb-1 text-blue-700">PayPal Sandbox Testing</h3>
+                    <p className="text-sm text-blue-600">
+                      This is running in PayPal sandbox mode. For testing, use a PayPal sandbox account or these test credit card details:
+                    </p>
+                    <ul className="text-sm text-blue-600 mt-2 list-disc pl-5 space-y-1">
+                      <li>Card: 4111 1111 1111 1111 (Visa)</li>
+                      <li>Expiry: Any future date</li>
+                      <li>CVV: Any 3 digits</li>
+                    </ul>
+                    <p className="text-sm text-blue-600 mt-2">
+                      <strong>Note:</strong> Real PayPal accounts and real credit cards will not work in sandbox mode.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
