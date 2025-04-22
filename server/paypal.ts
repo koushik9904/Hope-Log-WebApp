@@ -1,7 +1,7 @@
 import checkoutNodeJssdk from '@paypal/checkout-server-sdk';
 import { db } from './db';
 import { subscriptionPlans, payments, subscriptions, users } from '@shared/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 
 // Helper function to convert Date to ISO string for database
 function dateToISOString(date: Date): string {
@@ -69,9 +69,9 @@ class PayPalService {
     try {
       const order = await client().execute(request);
       return {
-        orderId: order.result.id,
-        status: order.result.status,
-        links: order.result.links
+        orderId: (order.result as any).id,
+        status: (order.result as any).status,
+        links: (order.result as any).links
       };
     } catch (err: any) {
       console.error('Error creating PayPal order:', err);
@@ -132,7 +132,7 @@ class PayPalService {
           paymentId: captureId,
           status: 'completed',
           paymentDate: dateToISOString(new Date()),
-          metadata: capture.result
+          metadata: JSON.stringify(capture.result) // Convert unknown to string for storage
         });
 
       // Update user's subscription status
@@ -175,8 +175,10 @@ class PayPalService {
     // Get the subscription
     const [subscription] = await db.select()
       .from(subscriptions)
-      .where(eq(subscriptions.id, subscriptionId))
-      .where(eq(subscriptions.userId, userId));
+      .where(and(
+        eq(subscriptions.id, subscriptionId),
+        eq(subscriptions.userId, userId)
+      ));
     
     if (!subscription) {
       throw new Error(`Subscription not found or does not belong to user`);
@@ -215,8 +217,10 @@ class PayPalService {
     })
       .from(subscriptions)
       .innerJoin(subscriptionPlans, eq(subscriptions.planId, subscriptionPlans.id))
-      .where(eq(subscriptions.userId, userId))
-      .where(eq(subscriptions.status, 'active'))
+      .where(and(
+        eq(subscriptions.userId, userId),
+        eq(subscriptions.status, 'active')
+      ))
       .orderBy(subscriptions.createdAt);
     
     return subscription || null;
