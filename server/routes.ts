@@ -10,7 +10,7 @@ import adminStatsRoutes from "./routes/admin-stats";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes
-  setupAuth(app);
+  await setupAuth(app);
 
   // Journal Entries API
   app.get("/api/journal-entries/:userId", async (req, res) => {

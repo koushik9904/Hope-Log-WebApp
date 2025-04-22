@@ -42,22 +42,37 @@ router.post("/update-oauth", async (req: Request, res: Response) => {
     // Validate input data
     const data = updateOAuthSchema.parse(req.body);
     
-    // This would normally update environment variables or database settings
-    // For demonstration, we'll log what would be updated
+    // Log settings being updated
     console.log("OAuth settings update requested:");
     console.log("- Enable Google Auth:", data.enableGoogleAuth);
     console.log("- Enable Apple Auth:", data.enableAppleAuth);
     
-    if (data.googleClientId) {
-      console.log("- New Google Client ID provided (hidden for security)");
-      // In a real implementation, we'd update the actual environment variable or settings store
-      process.env.GOOGLE_CLIENT_ID = data.googleClientId;
+    // Update Google settings
+    if (data.enableGoogleAuth) {
+      if (data.googleClientId) {
+        console.log("- New Google Client ID provided (hidden for security)");
+        // Update in both environment and database
+        process.env.GOOGLE_CLIENT_ID = data.googleClientId;
+        await storage.setSystemSetting("GOOGLE_CLIENT_ID", data.googleClientId);
+      }
+      
+      if (data.googleClientSecret) {
+        console.log("- New Google Client Secret provided (hidden for security)");
+        // Update in both environment and database
+        process.env.GOOGLE_CLIENT_SECRET = data.googleClientSecret;
+        await storage.setSystemSetting("GOOGLE_CLIENT_SECRET", data.googleClientSecret);
+      }
+    } else {
+      // If Google auth is disabled, clear the credentials
+      process.env.GOOGLE_CLIENT_ID = '';
+      process.env.GOOGLE_CLIENT_SECRET = '';
+      await storage.setSystemSetting("GOOGLE_CLIENT_ID", '');
+      await storage.setSystemSetting("GOOGLE_CLIENT_SECRET", '');
     }
     
-    if (data.googleClientSecret) {
-      console.log("- New Google Client Secret provided (hidden for security)");
-      // In a real implementation, we'd update the actual environment variable or settings store
-      process.env.GOOGLE_CLIENT_SECRET = data.googleClientSecret;
+    // Update Apple settings (similar approach could be used)
+    if (data.enableAppleAuth) {
+      // Implement Apple OAuth credential storage when needed
     }
     
     return res.json({ 
@@ -81,7 +96,11 @@ router.post("/test-oauth", async (req: Request, res: Response) => {
   
   if (provider === 'google') {
     try {
-      if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+      // Check both environment variables and database settings
+      const googleClientId = await storage.getSystemSetting("GOOGLE_CLIENT_ID") || process.env.GOOGLE_CLIENT_ID;
+      const googleClientSecret = await storage.getSystemSetting("GOOGLE_CLIENT_SECRET") || process.env.GOOGLE_CLIENT_SECRET;
+      
+      if (!googleClientId || !googleClientSecret) {
         return res.status(400).json({ 
           success: false, 
           message: "Google OAuth credentials not configured" 

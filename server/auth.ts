@@ -44,7 +44,14 @@ function getCallbackUrl(req: Request): string {
   return `${hostname}/auth/google/callback`;
 }
 
-export function setupAuth(app: Express) {
+export async function setupAuth(app: Express) {
+  // Check for OAuth credentials in database first, then environment variables
+  const googleClientId = await storage.getSystemSetting("GOOGLE_CLIENT_ID") || process.env.GOOGLE_CLIENT_ID;
+  const googleClientSecret = await storage.getSystemSetting("GOOGLE_CLIENT_SECRET") || process.env.GOOGLE_CLIENT_SECRET;
+  
+  // Update environment variables with database values for backward compatibility
+  if (googleClientId) process.env.GOOGLE_CLIENT_ID = googleClientId;
+  if (googleClientSecret) process.env.GOOGLE_CLIENT_SECRET = googleClientSecret;
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || "hopelog-secret-key",
     resave: false,
