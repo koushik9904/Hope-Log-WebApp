@@ -29,11 +29,6 @@ const navigationItems = [
     icon: KeySquare,
   },
   {
-    label: "User Settings",
-    href: "/admin/users",
-    icon: Settings,
-  },
-  {
     label: "Back to App",
     href: "/",
     icon: LogOut,
