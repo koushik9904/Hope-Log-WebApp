@@ -66,18 +66,18 @@ export default function LandingPage() {
               <a href="https://jazeeljabbar.substack.com/" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-gray-900">Blog</a>
               <Link href="/about-us" className="text-gray-600 hover:text-gray-900">About Us</Link>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               {user ? (
-                <Link href="/" className="pi-button">
+                <Link href="/" className="pi-button text-sm sm:text-base whitespace-nowrap">
                   Go to Dashboard
                 </Link>
               ) : (
                 <>
-                  <Link href="/auth" className="px-4 py-2 rounded-lg bg-black text-white font-medium hover:bg-gray-800 transition-colors">
+                  <Link href="/auth" className="px-3 py-2 sm:px-4 rounded-lg bg-black text-white font-medium hover:bg-gray-800 transition-colors text-sm sm:text-base whitespace-nowrap">
                     Login
                   </Link>
-                  <Link href="/auth?tab=register" className="pi-button">
-                    Sign Up Free
+                  <Link href="/auth?tab=register" className="pi-button text-sm sm:text-base whitespace-nowrap">
+                    Sign Up
                   </Link>
                 </>
               )}
@@ -105,15 +105,15 @@ export default function LandingPage() {
                 Journal with an AI that understands, track your mood patterns, and gain insights to improve your mental wellbeing.
               </p>
               
-              <div className="flex flex-col sm:flex-row gap-4 mb-10">
-                <Link href="/auth?tab=register" className="pi-button text-center">
+              <div className="flex flex-col sm:flex-row gap-4 mb-10 w-full max-w-full overflow-hidden">
+                <Link href="/auth?tab=register" className="pi-button text-center text-sm sm:text-base whitespace-nowrap">
                   Start Free Trial
                 </Link>
                 <a 
                   href="#demo-video" 
-                  className="flex items-center justify-center gap-2 text-center bg-white border border-gray-200 hover:bg-gray-50 text-gray-800 font-medium rounded-lg py-2.5 px-5"
+                  className="flex items-center justify-center gap-2 text-center bg-white border border-gray-200 hover:bg-gray-50 text-gray-800 font-medium rounded-lg py-2 px-3 sm:py-2.5 sm:px-5 text-sm sm:text-base whitespace-nowrap"
                 >
-                  <Play className="h-4 w-4 text-gray-600" /> See how it works
+                  <Play className="h-4 w-4 text-gray-600 flex-shrink-0" /> <span>See how it works</span>
                 </a>
               </div>
               
