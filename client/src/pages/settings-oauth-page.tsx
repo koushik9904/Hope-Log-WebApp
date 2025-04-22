@@ -156,10 +156,10 @@ export default function SettingsOAuthPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <Alert variant="warning" className="mb-4">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>OAuth Connection Issues</AlertTitle>
-              <AlertDescription className="text-xs">
+            <Alert className="mb-4 bg-amber-50 border-amber-200">
+              <AlertTriangle className="h-4 w-4 text-amber-600" />
+              <AlertTitle className="text-amber-600">OAuth Connection Issues</AlertTitle>
+              <AlertDescription className="text-xs text-amber-700">
                 Due to Replit's network restrictions, Google OAuth connections may fail with "refused to connect" errors.
                 Credentials are correct but the connection is being blocked. For production deployment, this limitation
                 won't exist.

@@ -787,6 +787,9 @@ Your role is to:
     }
   });
 
+  // OAuth settings API
+  app.use("/api/settings", oauthSettingsRoutes);
+
   const httpServer = createServer(app);
   return httpServer;
 }

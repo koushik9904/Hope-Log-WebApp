@@ -88,7 +88,7 @@ export default function AuthPage() {
     toast({
       title: "Social Login Unavailable",
       description: "OAuth login is temporarily unavailable. Please use username/password login instead.",
-      variant: "warning"
+      className: "bg-amber-50 border-amber-200"
     });
     
     // Original implementation (commented out)
