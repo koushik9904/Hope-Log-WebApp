@@ -83,23 +83,19 @@ export default function AuthPage() {
     registerMutation.mutate(userData);
   };
 
+  // This function is kept for future implementation but not currently used
+  // since both Google and Apple login buttons are disabled with "Coming Soon" status
   const handleSocialLogin = (provider: string) => {
     if (provider === 'google') {
-      // Show setup note before redirecting
       toast({
-        title: "Google OAuth Setup Note",
-        description: `If you encounter a 'refused to connect' error, add this domain to your Google OAuth credentials: ${window.location.origin}`,
-        duration: 10000,
+        title: "Google Sign-In Coming Soon",
+        description: "Google Sign-In is currently being configured and will be available soon.",
         className: "bg-blue-50 border-blue-200"
       });
-      
-      // Redirect to Google OAuth
-      window.location.href = '/auth/google';
     } else if (provider === 'apple') {
-      // Apple login not yet implemented
       toast({
         title: "Apple Sign-In Coming Soon",
-        description: "Apple Sign-In is not yet available. Please use Google or username/password login instead.",
+        description: "Apple Sign-In will be available in a future update.",
         className: "bg-amber-50 border-amber-200"
       });
     }
@@ -202,11 +198,11 @@ export default function AuthPage() {
               </Alert>
             )}
             
-            {/* Info Alert about OAuth Setup */}
+            {/* Info Alert about OAuth Status */}
             <Alert className="mb-4 bg-blue-50 border-blue-200 text-xs">
               <AlertCircle className="h-4 w-4 text-blue-500" />
               <AlertDescription className="text-blue-700">
-                <strong>Google login requires configuration:</strong> For Google Sign-In to work, you must add this Replit domain to your Google Cloud OAuth credentials.
+                <strong>Social login coming soon:</strong> Google and Apple Sign-In options will be available in a future update. Please use username/password login for now.
               </AlertDescription>
             </Alert>
 
@@ -215,11 +211,12 @@ export default function AuthPage() {
               <div className="flex flex-col gap-2 mt-3">
                 <Button 
                   variant="outline" 
-                  className="w-full bg-white hover:bg-gray-50 border border-gray-300 flex items-center justify-center gap-2"
-                  onClick={() => handleSocialLogin('google')}
+                  className="w-full bg-white hover:bg-gray-50 border border-gray-300 flex items-center justify-center gap-2 opacity-60"
+                  disabled
+                  title="Google Sign-In coming soon"
                 >
                   <FcGoogle size={20} />
-                  <span>Continue with Google</span>
+                  <span>Google Sign-In (Coming Soon)</span>
                 </Button>
                 
                 <Button 
