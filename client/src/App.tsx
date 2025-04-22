@@ -20,6 +20,7 @@ import SettingsNotificationsPage from "@/pages/settings-notifications-page";
 import SettingsPrivacyPage from "@/pages/settings-privacy-page";
 import SettingsAppearancePage from "@/pages/settings-appearance-page";
 import SettingsDataPage from "@/pages/settings-data-page";
+import SubscriptionPage from "@/pages/subscription-page";
 import AdminOAuthPage from "@/pages/admin-oauth-page";
 import AdminOpenAIPage from "@/pages/admin-openai-page";
 import AdminDashboardPage from "@/pages/admin-dashboard-page";
@@ -80,6 +81,7 @@ function Router() {
       <ProtectedRoute path="/settings/appearance" component={SettingsAppearancePage} />
       <ProtectedRoute path="/settings/data" component={SettingsDataPage} />
       <ProtectedRoute path="/settings" component={SettingsPage} />
+      <ProtectedRoute path="/subscription" component={SubscriptionPage} />
       <ProtectedRoute path="/" component={HomePage} />
       <Route path="/about-us" component={AboutUsPage} />
       <Route path="/api-access" component={ApiAccessPage} />

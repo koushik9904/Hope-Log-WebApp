@@ -19,7 +19,8 @@ import {
   ChevronDown,
   ChevronRight,
   ExternalLink,
-  Info
+  Info,
+  CreditCard
 } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { HopeLogLogo } from "@/components/ui/hope-log-logo";
@@ -135,6 +136,12 @@ export function Sidebar() {
           href="/about-us" 
           icon={<Info className="w-full h-full" />} 
           label="About Us" 
+        />
+        
+        <NavLink 
+          href="/subscription" 
+          icon={<CreditCard className="w-full h-full" />} 
+          label="Subscription" 
         />
         
         {/* Admin section - only visible to admins */}
