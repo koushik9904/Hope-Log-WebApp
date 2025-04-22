@@ -7,8 +7,9 @@ import {
   Summary, InsertSummary, 
   Notification, InsertNotification,
   NotificationPreferences, InsertNotificationPreferences,
+  SystemSettings, InsertSystemSettings,
   users, journalEntries, moods, goals, prompts, summaries,
-  notifications, notificationPreferences 
+  notifications, notificationPreferences, systemSettings
 } from "@shared/schema";
 import session from "express-session";
 import { db, pool } from "./db";
@@ -467,6 +468,42 @@ export class DatabaseStorage implements IStorage {
         .returning();
         
       return result[0];
+    }
+  }
+  
+  // System settings methods
+  async getSystemSetting(key: string): Promise<string | null> {
+    const result = await db
+      .select()
+      .from(systemSettings)
+      .where(eq(systemSettings.key, key));
+      
+    return result[0]?.value || null;
+  }
+  
+  async setSystemSetting(key: string, value: string): Promise<void> {
+    const existing = await db
+      .select()
+      .from(systemSettings)
+      .where(eq(systemSettings.key, key));
+    
+    if (existing.length > 0) {
+      await db
+        .update(systemSettings)
+        .set({ 
+          value,
+          updatedAt: new Date().toISOString()
+        })
+        .where(eq(systemSettings.key, key));
+    } else {
+      await db
+        .insert(systemSettings)
+        .values({
+          key,
+          value,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        });
     }
   }
   

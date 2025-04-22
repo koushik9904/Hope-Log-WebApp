@@ -3,6 +3,7 @@ import { z } from "zod";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import passport from "passport";
 import axios from "axios";
+import { storage } from "../storage";
 
 const router = Router();
 
@@ -15,11 +16,17 @@ const updateOAuthSchema = z.object({
 });
 
 // Get OAuth status (without exposing secrets)
-router.get("/oauth-status", (req: Request, res: Response) => {
+router.get("/oauth-status", async (req: Request, res: Response) => {
   if (!req.isAuthenticated()) return res.status(401).json({ error: "Unauthorized" });
   
-  const googleAuthEnabled = !!process.env.GOOGLE_CLIENT_ID && !!process.env.GOOGLE_CLIENT_SECRET;
-  const appleAuthEnabled = !!process.env.APPLE_CLIENT_ID && !!process.env.APPLE_TEAM_ID;
+  // Check both environment variables and database settings
+  const googleClientId = await storage.getSystemSetting("GOOGLE_CLIENT_ID") || process.env.GOOGLE_CLIENT_ID;
+  const googleClientSecret = await storage.getSystemSetting("GOOGLE_CLIENT_SECRET") || process.env.GOOGLE_CLIENT_SECRET;
+  const googleAuthEnabled = !!googleClientId && !!googleClientSecret;
+  
+  const appleClientId = await storage.getSystemSetting("APPLE_CLIENT_ID") || process.env.APPLE_CLIENT_ID;
+  const appleTeamId = await storage.getSystemSetting("APPLE_TEAM_ID") || process.env.APPLE_TEAM_ID;
+  const appleAuthEnabled = !!appleClientId && !!appleTeamId;
   
   return res.json({
     googleAuthEnabled,
