@@ -23,7 +23,7 @@ async function createAdminUser() {
     }
     
     // Create the admin user
-    const hashedPassword = await hashPassword('admin');
+    const hashedPassword = await hashPassword('admin234');
     
     await db.insert(users).values({
       username: 'admin',
