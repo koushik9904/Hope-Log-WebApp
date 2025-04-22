@@ -30,6 +30,20 @@ async function comparePasswords(supplied: string, stored: string) {
   return timingSafeEqual(hashedBuf, suppliedBuf);
 }
 
+// Helper function to get the dynamic callback URL based on the current request
+function getCallbackUrl(req: Request): string {
+  if (req && req.headers && req.headers.host) {
+    const protocol = req.headers['x-forwarded-proto'] || 'http';
+    return `${protocol}://${req.headers.host}/auth/google/callback`;
+  }
+  
+  // Fallback to environment variables
+  const hostname = process.env.REPLIT_DEV_DOMAIN
+    ? `https://${process.env.REPLIT_DEV_DOMAIN}`
+    : 'http://localhost:5000';
+  return `${hostname}/auth/google/callback`;
+}
+
 export function setupAuth(app: Express) {
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || "hopelog-secret-key",
@@ -67,6 +81,10 @@ export function setupAuth(app: Express) {
     const hostname = process.env.REPLIT_DEV_DOMAIN
       ? `https://${process.env.REPLIT_DEV_DOMAIN}`
       : 'http://localhost:5000';
+    
+    // Using the global getCallbackUrl function defined above
+    
+    // Default callback URL (will be updated in the route handler)
     const googleCallbackURL = `${hostname}/auth/google/callback`;
     console.log('Using Google callback URL:', googleCallbackURL);
     
@@ -186,6 +204,49 @@ export function setupAuth(app: Express) {
   // Google OAuth routes
   app.get("/auth/google", (req: Request, res: Response, next: NextFunction) => {
     console.log("Starting Google OAuth flow");
+    
+    // Update the Google strategy with the current domain's callback URL
+    if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+      const dynamicCallbackUrl = getCallbackUrl(req);
+      console.log("Using dynamic callback URL:", dynamicCallbackUrl);
+      
+      // Re-initialize the Google strategy with the updated callback URL
+      passport.use(
+        'google',
+        new GoogleStrategy(
+          {
+            clientID: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+            callbackURL: dynamicCallbackUrl,
+          },
+          async (accessToken, refreshToken, profile, done) => {
+            try {
+              // Check if user already exists
+              let user = await storage.getUserByUsername(`google-${profile.id}`);
+              
+              if (!user) {
+                // Create a new user if they don't exist
+                user = await storage.createUser({
+                  username: `google-${profile.id}`,
+                  password: await hashPassword(randomBytes(16).toString('hex')),
+                  firstName: profile.name?.givenName || '',
+                  lastName: profile.name?.familyName || '',
+                  email: profile.emails?.[0]?.value || '',
+                  avatar: profile.photos?.[0]?.value || '',
+                  provider: 'google',
+                  providerId: profile.id
+                });
+              }
+              
+              return done(null, user);
+            } catch (error) {
+              return done(error as Error);
+            }
+          }
+        )
+      );
+    }
+    
     passport.authenticate("google", { 
       scope: ["profile", "email"],
       prompt: "select_account"
@@ -213,9 +274,18 @@ export function setupAuth(app: Express) {
       console.error("Google OAuth error:", err);
       let errorMessage = err.message || "Authentication failed";
       
-      // Add note about potential delay in OAuth configuration updates
-      errorMessage += ". Note: Google OAuth changes can take up to 24 hours to propagate. Please ensure the following URL is added to your Google Cloud Console authorized redirect URIs: " + 
-      (process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}/auth/google/callback` : 'http://localhost:5000/auth/google/callback');
+      // Get the current dynamic callback URL
+      const currentCallbackUrl = getCallbackUrl(req);
+      
+      // Add detailed instructions
+      errorMessage += ". Please ensure the following URL is added to your Google Cloud Console authorized redirect URIs: " + 
+      currentCallbackUrl + "\n\n" +
+      "To fix this issue:\n" +
+      "1. Go to Google Cloud Console (https://console.cloud.google.com/)\n" +
+      "2. Select your project and go to 'APIs & Services' > 'Credentials'\n" +
+      "3. Edit your OAuth 2.0 Client ID\n" +
+      "4. Add the above URL to 'Authorized redirect URIs'\n" +
+      "5. Click 'Save' and wait a few minutes for changes to propagate";
       
       console.log("Redirecting to auth page with error message:", errorMessage);
       return res.redirect("/auth?error=" + encodeURIComponent(errorMessage));
