@@ -102,26 +102,42 @@ class PayPalService {
    * Creates a PayPal order for subscription checkout
    */
   static async createOrder(planName: string, userId: number) {
+    console.log(`[PayPal] Creating order for plan: ${planName}, userId: ${userId}`);
+    
     // Get the subscription plan
     const [plan] = await db.select()
       .from(subscriptionPlans)
       .where(eq(subscriptionPlans.name, planName));
     
     if (!plan) {
+      console.error(`[PayPal] Subscription plan '${planName}' not found`);
       throw new Error(`Subscription plan '${planName}' not found`);
     }
     
+    console.log(`[PayPal] Found plan:`, plan);
+    
     // Get callback URL from settings or use default
     const baseUrl = await getPayPalCallbackUrl();
+    console.log(`[PayPal] Using callback URL base: ${baseUrl}`);
+    
+    // Create return and cancel URLs
+    // PayPal will replace 'token' in query string with actual token/orderId
+    const returnUrl = `${baseUrl}?planName=${encodeURIComponent(planName)}&token=PAYPAL_TOKEN`;
+    const cancelUrl = `${baseUrl}?cancelled=true`;
+    
+    console.log(`[PayPal] Return URL: ${returnUrl}`);
+    console.log(`[PayPal] Cancel URL: ${cancelUrl}`);
     
     // Create the PayPal order
+    console.log(`[PayPal] Creating OrdersCreateRequest`);
     const request = new checkoutNodeJssdk.orders.OrdersCreateRequest();
     request.prefer('return=representation');
-    request.requestBody({
+    
+    const requestBody = {
       intent: 'CAPTURE',
       purchase_units: [{
         reference_id: `plan_${plan.id}_user_${userId}`,
-        description: plan.description,
+        description: plan.description || `${plan.displayName} Subscription`,
         amount: {
           currency_code: 'USD',
           value: plan.price.toString()
@@ -131,22 +147,54 @@ class PayPalService {
         brand_name: 'Hope Log',
         landing_page: 'NO_PREFERENCE',
         user_action: 'PAY_NOW',
-        return_url: `${baseUrl}/subscription?planName=${encodeURIComponent(planName)}&orderId=TOKEN`,
-        cancel_url: `${baseUrl}/subscription?cancelled=true`
+        return_url: returnUrl,
+        cancel_url: cancelUrl
       }
-    });
+    };
+    
+    console.log(`[PayPal] Request body:`, JSON.stringify(requestBody, null, 2));
+    request.requestBody(requestBody);
 
     try {
+      console.log(`[PayPal] Getting PayPal client`);
       const paypalClient = await client();
+      
+      console.log(`[PayPal] Executing PayPal order request`);
       const order = await paypalClient.execute(request);
+      
+      console.log(`[PayPal] Order created successfully:`, JSON.stringify(order.result, null, 2));
+      
+      // Extract and log the approval URL for debugging
+      const result = order.result as any; // Type assertion for TypeScript
+      const links = result.links || [];
+      const approvalLink = links.find((link: any) => link.rel === "approve");
+      
+      if (approvalLink) {
+        console.log(`[PayPal] Approval URL: ${approvalLink.href}`);
+      } else {
+        console.warn(`[PayPal] No approval URL found in response`);
+      }
+      
       return {
-        orderId: (order.result as any).id,
-        status: (order.result as any).status,
-        links: (order.result as any).links
+        orderId: result.id,
+        status: result.status,
+        links: result.links
       };
     } catch (err: any) {
-      console.error('Error creating PayPal order:', err);
-      throw new Error(`Failed to create PayPal order: ${err?.message || ''}`);
+      console.error('[PayPal] Error creating order:', err);
+      console.error('[PayPal] Error details:', err.details || 'No details');
+      
+      // Try to extract more helpful error information
+      let errorMessage = 'Failed to create PayPal order';
+      
+      if (err.details && Array.isArray(err.details)) {
+        const details = err.details.map((detail: any) => detail.description || detail.issue).join(', ');
+        errorMessage += `: ${details}`;
+      } else if (err.message) {
+        errorMessage += `: ${err.message}`;
+      }
+      
+      throw new Error(errorMessage);
     }
   }
 
@@ -154,25 +202,54 @@ class PayPalService {
    * Captures a PayPal order after approval
    */
   static async captureOrder(orderId: string, userId: number, planName: string) {
+    console.log(`[PayPal] Capturing order: ${orderId} for user: ${userId}, plan: ${planName}`);
     const request = new checkoutNodeJssdk.orders.OrdersCaptureRequest(orderId);
     request.prefer('return=representation');
 
     try {
+      console.log(`[PayPal] Getting PayPal client for capture`);
       const paypalClient = await client();
+      
+      console.log(`[PayPal] Executing order capture request`);
       const capture = await paypalClient.execute(request);
       
+      console.log(`[PayPal] Order captured successfully:`, JSON.stringify(capture.result, null, 2));
+      
+      // Type assertion for TypeScript
+      const captureResult = capture.result as any;
+      
+      // Safely access and validate capture data
+      if (!captureResult || !captureResult.purchase_units || 
+          !captureResult.purchase_units[0] || !captureResult.purchase_units[0].payments || 
+          !captureResult.purchase_units[0].payments.captures || 
+          !captureResult.purchase_units[0].payments.captures[0]) {
+        console.error(`[PayPal] Invalid capture response structure:`, captureResult);
+        throw new Error('Invalid PayPal capture response');
+      }
+      
       // Get the transaction details
-      const captureId = (capture.result as any).purchase_units[0].payments.captures[0].id;
-      const amount = parseFloat((capture.result as any).purchase_units[0].payments.captures[0].amount.value);
+      const captureDetails = captureResult.purchase_units[0].payments.captures[0];
+      const captureId = captureDetails.id;
+      
+      if (!captureDetails.amount || !captureDetails.amount.value) {
+        console.error(`[PayPal] Missing amount in capture response:`, captureDetails);
+        throw new Error('Missing amount in PayPal capture response');
+      }
+      
+      const amount = parseFloat(captureDetails.amount.value);
+      console.log(`[PayPal] Capture ID: ${captureId}, Amount: ${amount}`);
       
       // Get plan details
+      console.log(`[PayPal] Looking up plan: ${planName}`);
       const [plan] = await db.select()
         .from(subscriptionPlans)
         .where(eq(subscriptionPlans.name, planName));
       
       if (!plan) {
+        console.error(`[PayPal] Subscription plan '${planName}' not found`);
         throw new Error(`Subscription plan '${planName}' not found`);
       }
+      console.log(`[PayPal] Found plan:`, plan);
 
       // Insert a new subscription
       const endDate = new Date();
@@ -181,8 +258,10 @@ class PayPalService {
       } else if (plan.interval === 'year') {
         endDate.setFullYear(endDate.getFullYear() + 1);
       }
+      console.log(`[PayPal] Subscription will end at: ${endDate.toISOString()}`);
 
       // Insert the subscription
+      console.log(`[PayPal] Creating subscription record in database`);
       const [subscription] = await db.insert(subscriptions)
         .values({
           userId,
@@ -194,19 +273,23 @@ class PayPalService {
         })
         .returning();
 
+      console.log(`[PayPal] Created subscription record:`, subscription);
+
       // Record the payment
       const paymentMetadata = {};
       try {
         // Safely extract data from PayPal response
+        console.log(`[PayPal] Extracting payment metadata`);
         Object.assign(paymentMetadata, {
-          id: (capture.result as any).id,
-          status: (capture.result as any).status,
-          payment_source: (capture.result as any).payment_source
+          id: captureResult.id,
+          status: captureResult.status,
+          payment_source: captureResult.payment_source || null
         });
       } catch (err) {
-        console.warn('Could not extract all PayPal response details', err);
+        console.warn('[PayPal] Could not extract all PayPal response details', err);
       }
 
+      console.log(`[PayPal] Creating payment record in database`);
       await db.insert(payments)
         .values({
           userId,
@@ -220,6 +303,7 @@ class PayPalService {
         });
 
       // Update user's subscription status
+      console.log(`[PayPal] Updating user subscription status`);
       await db.update(users)
         .set({
           subscriptionTier: 'pro',
@@ -228,6 +312,7 @@ class PayPalService {
         })
         .where(eq(users.id, userId));
 
+      console.log(`[PayPal] Payment successfully processed and subscription activated`);
       return {
         subscriptionId: subscription.id,
         status: 'active',
@@ -236,8 +321,28 @@ class PayPalService {
         endDate: subscription.endDate
       };
     } catch (err: any) {
-      console.error('Error capturing PayPal order:', err);
-      throw new Error(`Failed to capture PayPal order: ${err?.message || ''}`);
+      console.error('[PayPal] Error capturing order:', err);
+      
+      // Try to extract more helpful error information
+      let errorMessage = 'Failed to capture PayPal order';
+      
+      if (err.details && Array.isArray(err.details)) {
+        const details = err.details.map((detail: any) => detail.description || detail.issue).join(', ');
+        errorMessage += `: ${details}`;
+        console.error('[PayPal] Error details:', details);
+      } else if (err.message) {
+        errorMessage += `: ${err.message}`;
+      }
+      
+      // Log the full error object to help with debugging
+      try {
+        console.error('[PayPal] Full error object:', JSON.stringify(err, null, 2));
+      } catch (jsonErr) {
+        console.error('[PayPal] Error converting error to JSON:', jsonErr);
+        console.error('[PayPal] Error object:', err);
+      }
+      
+      throw new Error(errorMessage);
     }
   }
 

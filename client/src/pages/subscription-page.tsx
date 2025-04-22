@@ -205,15 +205,17 @@ const SubscriptionPage = () => {
     }
   });
   
-  // Check for PayPal redirect with order ID
+  // Check for PayPal redirect with order ID (token)
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
-    const orderId = queryParams.get("orderId");
+    const token = queryParams.get("token"); // PayPal returns token in URL
     const planName = queryParams.get("planName");
     const cancelled = queryParams.get("cancelled");
     
+    console.log('[PayPal] Redirect params:', { token, planName, cancelled });
+    
     // Clear query params immediately to prevent reprocessing on page refresh
-    if (orderId || planName || cancelled) {
+    if (token || planName || cancelled) {
       window.history.replaceState({}, document.title, window.location.pathname);
     }
     
@@ -228,13 +230,15 @@ const SubscriptionPage = () => {
       return;
     }
     
-    if (orderId && planName) {
-      // Handle PayPal redirect with order ID
+    if (token && planName) {
+      // Handle PayPal redirect with token (orderId)
       const captureOrder = async () => {
         try {
           setProcessingPayPal(true);
+          console.log('[PayPal] Capturing order with token:', token);
+          
           const res = await apiRequest("POST", "/api/subscription/capture-order", { 
-            orderId, 
+            orderId: token, // Use token as the orderId
             planName 
           });
           
@@ -249,9 +253,11 @@ const SubscriptionPage = () => {
             setCurrentTab("subscription");
           } else {
             const errorData = await res.json();
+            console.error('[PayPal] Error response:', errorData);
             throw new Error(errorData.message || "Failed to process payment");
           }
         } catch (error: any) {
+          console.error('[PayPal] Capture error:', error);
           toast({
             title: "Payment processing failed",
             description: error.message || "There was an error processing your payment. Please try again.",
