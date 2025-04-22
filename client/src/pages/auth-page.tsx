@@ -176,7 +176,16 @@ export default function AuthPage() {
             {error && (
               <Alert variant="destructive" className="mb-4">
                 <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
+                <AlertDescription>
+                  {/* Check if it's a multiline error with instructions */}
+                  {error.includes('\n') ? (
+                    <div className="whitespace-pre-wrap text-xs">
+                      {error}
+                    </div>
+                  ) : (
+                    error
+                  )}
+                </AlertDescription>
               </Alert>
             )}
             
@@ -191,9 +200,14 @@ export default function AuthPage() {
                 <FcGoogle size={20} />
                 <span>Continue with Google</span>
               </Button>
-              <p className="text-center text-xs text-muted-foreground mt-1">
-                Google OAuth setup may take time to fully configure
-              </p>
+              <div className="text-center text-xs text-muted-foreground mt-1 space-y-1">
+                <p>Google OAuth setup requires configuration in Google Cloud Console:</p>
+                <ol className="text-left list-decimal pl-5 text-[11px] mt-1">
+                  <li>Add the current URL to authorized domains in Google Cloud Console</li>
+                  <li>Add the callback URL displayed in error messages to authorized redirect URIs</li>
+                  <li>Changes may take a few minutes to propagate</li>
+                </ol>
+              </div>
               <Button 
                 variant="outline" 
                 className="w-full bg-white hover:bg-gray-50 border border-gray-200 flex items-center justify-center gap-2 opacity-50 cursor-not-allowed"

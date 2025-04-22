@@ -277,15 +277,18 @@ export function setupAuth(app: Express) {
       // Get the current dynamic callback URL
       const currentCallbackUrl = getCallbackUrl(req);
       
-      // Add detailed instructions
-      errorMessage += ". Please ensure the following URL is added to your Google Cloud Console authorized redirect URIs: " + 
+      // Add detailed instructions with formatting for better display in the UI
+      errorMessage = "Google OAuth Configuration Required\n\n" +
+      "To complete Google OAuth setup, please add this URL to your authorized redirect URIs:\n" +
       currentCallbackUrl + "\n\n" +
-      "To fix this issue:\n" +
+      "Step-by-step instructions:\n" +
       "1. Go to Google Cloud Console (https://console.cloud.google.com/)\n" +
       "2. Select your project and go to 'APIs & Services' > 'Credentials'\n" +
       "3. Edit your OAuth 2.0 Client ID\n" +
       "4. Add the above URL to 'Authorized redirect URIs'\n" +
-      "5. Click 'Save' and wait a few minutes for changes to propagate";
+      "5. Add the domain '" + (req.headers.host || "") + "' to 'Authorized JavaScript origins'\n" +
+      "6. Click 'Save' and wait a few minutes for changes to propagate\n\n" +
+      "Original error: " + err.message;
       
       console.log("Redirecting to auth page with error message:", errorMessage);
       return res.redirect("/auth?error=" + encodeURIComponent(errorMessage));
