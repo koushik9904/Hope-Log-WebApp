@@ -236,29 +236,18 @@ export async function setupAuth(app: Express) {
       console.log("2. JavaScript Origin:", jsOrigin);
       console.log("==============================");
 
-      // Check if we should use a direct approach instead
-      console.log("Trying direct redirect approach to Google OAuth");
+      // Always create a fresh Google strategy with the current callback URL
+      // Remove existing strategy if possible
       try {
-        // Construct the Google OAuth URL directly
-        const googleOAuthUrl = "https://accounts.google.com/o/oauth2/v2/auth";
-        const params = new URLSearchParams({
-          client_id: process.env.GOOGLE_CLIENT_ID,
-          redirect_uri: dynamicCallbackUrl,
-          response_type: "code",
-          scope: "profile email",
-          prompt: "select_account",
-          access_type: "offline"
-        });
-        
-        const redirectUrl = `${googleOAuthUrl}?${params.toString()}`;
-        console.log("Redirecting directly to:", redirectUrl);
-        return res.redirect(redirectUrl);
-      } catch (error) {
-        console.error("Error with direct redirect approach:", error);
-        // Fall back to passport if direct approach fails
+        if ((passport as any)._strategies && (passport as any)._strategies.google) {
+          delete (passport as any)._strategies.google;
+          console.log("Removed existing Google strategy");
+        }
+      } catch (e) {
+        console.log("No existing Google strategy to remove");
       }
       
-      // Re-initialize the Google strategy with the updated callback URL
+      console.log("Re-creating Google OAuth strategy with fresh callback URL");
       passport.use(
         'google',
         new GoogleStrategy(
@@ -296,13 +285,39 @@ export async function setupAuth(app: Express) {
           }
         )
       );
+      
+      // Use the direct approach for consistent behavior
+      console.log("Using direct redirect approach to Google OAuth");
+      try {
+        // Construct the Google OAuth URL directly
+        const googleOAuthUrl = "https://accounts.google.com/o/oauth2/v2/auth";
+        const params = new URLSearchParams({
+          client_id: process.env.GOOGLE_CLIENT_ID,
+          redirect_uri: dynamicCallbackUrl,
+          response_type: "code",
+          scope: "profile email",
+          prompt: "select_account",
+          access_type: "offline"
+        });
+        
+        const redirectUrl = `${googleOAuthUrl}?${params.toString()}`;
+        console.log("Redirecting directly to:", redirectUrl);
+        return res.redirect(redirectUrl);
+      } catch (error) {
+        console.error("Error with direct redirect approach:", error);
+        // Fall back to passport if direct approach fails
+      }
+      
+      // Strategy is already initialized above, no need to repeat
+      return; // We've already redirected, so return and don't execute the code below
     } else {
       console.error("Google OAuth credentials not available! Please check GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET env variables.");
       return res.redirect("/auth?error=" + encodeURIComponent("Google OAuth credentials not properly configured. Please contact the administrator."));
     }
     
-    // Using passport approach as fallback
-    console.log("Using passport authentication approach");
+    // This code should never be reached because we either redirect above or return
+    // But keep it as a fallback just in case something goes wrong
+    console.log("WARNING: Using passport authentication approach as fallback. This should not happen.");
     passport.authenticate("google", { 
       scope: ["profile", "email"],
       prompt: "select_account"
@@ -341,6 +356,19 @@ export async function setupAuth(app: Express) {
   app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     if (req.url.startsWith('/auth/google')) {
       console.error("Google OAuth error:", err);
+      console.error("Full error object:", JSON.stringify(err, Object.getOwnPropertyNames(err)));
+      console.error("Error occurred in route:", req.url);
+      console.error("Original request headers:", req.headers);
+      
+      // Check for specific Google OAuth errors
+      if (err.message && (
+        err.message.includes('redirect_uri_mismatch') || 
+        err.message.includes('invalid_request') ||
+        err.message.includes('unauthorized_client')
+      )) {
+        console.error("DETECTED OAUTH CONFIGURATION ERROR IN GOOGLE CLOUD CONSOLE");
+      }
+      
       let errorMessage = err.message || "Authentication failed";
       
       // Get the current dynamic callback URL
