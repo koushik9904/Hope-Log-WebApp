@@ -204,11 +204,35 @@ export function setupAuth(app: Express) {
   // Google OAuth routes
   app.get("/auth/google", (req: Request, res: Response, next: NextFunction) => {
     console.log("Starting Google OAuth flow");
+    console.log("Request headers:", req.headers);
+    console.log("Google OAuth credentials available:", !!process.env.GOOGLE_CLIENT_ID && !!process.env.GOOGLE_CLIENT_SECRET);
     
     // Update the Google strategy with the current domain's callback URL
     if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
       const dynamicCallbackUrl = getCallbackUrl(req);
       console.log("Using dynamic callback URL:", dynamicCallbackUrl);
+
+      // Check if we should use a direct approach instead
+      console.log("Trying direct redirect approach to Google OAuth");
+      try {
+        // Construct the Google OAuth URL directly
+        const googleOAuthUrl = "https://accounts.google.com/o/oauth2/v2/auth";
+        const params = new URLSearchParams({
+          client_id: process.env.GOOGLE_CLIENT_ID,
+          redirect_uri: dynamicCallbackUrl,
+          response_type: "code",
+          scope: "profile email",
+          prompt: "select_account",
+          access_type: "offline"
+        });
+        
+        const redirectUrl = `${googleOAuthUrl}?${params.toString()}`;
+        console.log("Redirecting directly to:", redirectUrl);
+        return res.redirect(redirectUrl);
+      } catch (error) {
+        console.error("Error with direct redirect approach:", error);
+        // Fall back to passport if direct approach fails
+      }
       
       // Re-initialize the Google strategy with the updated callback URL
       passport.use(
@@ -221,11 +245,13 @@ export function setupAuth(app: Express) {
           },
           async (accessToken, refreshToken, profile, done) => {
             try {
+              console.log("Google OAuth callback received profile:", profile.id);
               // Check if user already exists
               let user = await storage.getUserByUsername(`google-${profile.id}`);
               
               if (!user) {
                 // Create a new user if they don't exist
+                console.log("Creating new user for Google profile:", profile.id);
                 user = await storage.createUser({
                   username: `google-${profile.id}`,
                   password: await hashPassword(randomBytes(16).toString('hex')),
@@ -240,13 +266,19 @@ export function setupAuth(app: Express) {
               
               return done(null, user);
             } catch (error) {
+              console.error("Error in Google profile callback:", error);
               return done(error as Error);
             }
           }
         )
       );
+    } else {
+      console.error("Google OAuth credentials not available! Please check GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET env variables.");
+      return res.redirect("/auth?error=" + encodeURIComponent("Google OAuth credentials not properly configured. Please contact the administrator."));
     }
     
+    // Using passport approach as fallback
+    console.log("Using passport authentication approach");
     passport.authenticate("google", { 
       scope: ["profile", "email"],
       prompt: "select_account"
@@ -257,6 +289,19 @@ export function setupAuth(app: Express) {
     "/auth/google/callback",
     (req: Request, res: Response, next: NextFunction) => {
       console.log("Google OAuth callback received:", req.url);
+      console.log("Callback query params:", req.query);
+      
+      // Check if there's an error from Google
+      if (req.query.error) {
+        console.error("Google OAuth returned an error:", req.query.error);
+        return res.redirect("/auth?error=" + encodeURIComponent("Google OAuth error: " + req.query.error));
+      }
+      
+      // If we have a code but no error, we can try to exchange it directly
+      if (req.query.code && !req.query.error) {
+        console.log("Received authorization code from Google, proceeding with authentication");
+      }
+      
       passport.authenticate("google", { 
         failureRedirect: "/auth",
         failWithError: true
