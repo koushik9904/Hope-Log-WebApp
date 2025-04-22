@@ -128,7 +128,7 @@ export default function AdminDashboardPage() {
             </CardHeader>
             <CardContent>
               {appStats?.systemAlerts && appStats.systemAlerts.length > 0 ? (
-                appStats.systemAlerts.map((alert, index) => (
+                appStats.systemAlerts.map((alert: {type: string, message: string}, index: number) => (
                   <div key={index} className="flex items-center">
                     <Circle 
                       className={`w-3 h-3 mr-2 fill-current ${
