@@ -1,6 +1,18 @@
 import { AdminLayout } from "@/components/admin/admin-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle, Users, Activity, Database, BookOpen, Brain, Circle, KeySquare, MessageSquare, ShieldAlert } from "lucide-react";
+import { 
+  AlertCircle, 
+  Users, 
+  Activity, 
+  Database, 
+  BookOpen, 
+  Brain, 
+  Circle, 
+  KeySquare, 
+  MessageSquare, 
+  ShieldAlert, 
+  CreditCard 
+} from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 
@@ -177,6 +189,20 @@ export default function AdminDashboardPage() {
                 </CardHeader>
                 <CardContent className="text-sm text-muted-foreground">
                   Configure API key and monitor token usage
+                </CardContent>
+              </Card>
+            </Link>
+            
+            <Link href="/admin/paypal">
+              <Card className="hover:bg-accent/10 transition-colors cursor-pointer">
+                <CardHeader>
+                  <CardTitle className="text-sm font-medium flex items-center">
+                    <CreditCard className="w-4 h-4 mr-2" />
+                    PayPal Integration
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm text-muted-foreground">
+                  Configure PayPal credentials for subscription payments
                 </CardContent>
               </Card>
             </Link>

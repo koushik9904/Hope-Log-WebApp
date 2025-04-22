@@ -23,6 +23,7 @@ import SettingsDataPage from "@/pages/settings-data-page";
 import SubscriptionPage from "@/pages/subscription-page";
 import AdminOAuthPage from "@/pages/admin-oauth-page";
 import AdminOpenAIPage from "@/pages/admin-openai-page";
+import AdminPaypalPage from "@/pages/admin-paypal-page";
 import AdminDashboardPage from "@/pages/admin-dashboard-page";
 import NotFound from "@/pages/not-found";
 import AboutUsPage from "@/pages/about-us-page";
@@ -45,6 +46,7 @@ function Router() {
       <Switch>
         <Route path="/admin/oauth" component={AdminOAuthPage} />
         <Route path="/admin/openai" component={AdminOpenAIPage} />
+        <Route path="/admin/paypal" component={AdminPaypalPage} />
         <Route path="/admin" component={AdminDashboardPage} />
         <Route path="/auth" component={AuthPage} />
         <Route path="/" component={AdminDashboardPage} />
