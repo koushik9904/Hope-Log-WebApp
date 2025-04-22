@@ -73,11 +73,29 @@ export async function setupAuth(app: Express) {
 
   passport.use(
     new LocalStrategy(async (username, password, done) => {
-      const user = await storage.getUserByUsername(username);
-      if (!user || !(await comparePasswords(password, user.password))) {
-        return done(null, false);
-      } else {
+      console.log("LocalStrategy: Attempting to authenticate user:", username);
+      try {
+        const user = await storage.getUserByUsername(username);
+        console.log("LocalStrategy: User lookup result:", user ? "Found" : "Not found");
+        
+        if (!user) {
+          console.log("LocalStrategy: Authentication failed - user not found");
+          return done(null, false);
+        }
+        
+        const passwordMatch = await comparePasswords(password, user.password);
+        console.log("LocalStrategy: Password comparison result:", passwordMatch ? "Match" : "No match");
+        
+        if (!passwordMatch) {
+          console.log("LocalStrategy: Authentication failed - password incorrect");
+          return done(null, false);
+        }
+        
+        console.log("LocalStrategy: Authentication successful for user ID:", user.id);
         return done(null, user);
+      } catch (error) {
+        console.error("LocalStrategy: Error during authentication:", error);
+        return done(error);
       }
     }),
   );
@@ -192,8 +210,27 @@ export async function setupAuth(app: Express) {
     });
   });
 
-  app.post("/api/login", passport.authenticate("local"), (req, res) => {
-    res.status(200).json(req.user);
+  app.post("/api/login", (req, res, next) => {
+    console.log("Login attempt for username:", req.body.username);
+    passport.authenticate("local", (err: Error | null, user: SelectUser | false, info: any) => {
+      if (err) {
+        console.error("Login error:", err);
+        return next(err);
+      }
+      if (!user) {
+        console.log("Login failed - user not found or password incorrect");
+        return res.status(401).json({ message: "Authentication failed" });
+      }
+      
+      req.login(user, (loginErr: Error | null) => {
+        if (loginErr) {
+          console.error("Session login error:", loginErr);
+          return next(loginErr);
+        }
+        console.log("Login successful for user ID:", user.id);
+        return res.status(200).json(user);
+      });
+    })(req, res, next);
   });
 
   app.post("/api/logout", (req, res, next) => {
