@@ -23,6 +23,10 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   getAllUsers(): Promise<User[]>;
   
+  // System settings methods
+  getSystemSetting(key: string): Promise<string | null>;
+  setSystemSetting(key: string, value: string): Promise<void>;
+  
   // Journal methods
   getJournalEntriesByUserId(userId: number): Promise<JournalEntry[]>;
   getJournalEntryById(id: number): Promise<JournalEntry | undefined>;
