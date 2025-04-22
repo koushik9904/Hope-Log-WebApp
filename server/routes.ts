@@ -4,6 +4,7 @@ import { z } from "zod";
 import { setupAuth } from "./auth";
 import { storage } from "./storage";
 import { generateAIResponse, analyzeSentiment, generateWeeklySummary, generateCustomPrompts, storeEmbedding } from "./openai";
+import oauthSettingsRoutes from "./routes/oauth-settings";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes
