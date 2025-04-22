@@ -1,4 +1,4 @@
-import * as checkoutNodeJssdk from '@paypal/checkout-server-sdk';
+import checkoutNodeJssdk from '@paypal/checkout-server-sdk';
 import { db } from './db';
 import { subscriptionPlans, payments, subscriptions, users, systemSettings } from '@shared/schema';
 import { eq, and } from 'drizzle-orm';
