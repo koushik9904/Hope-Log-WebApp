@@ -1,7 +1,7 @@
 import express from "express";
 import { db } from "../db";
-import { systemSettings } from "@shared/schema";
-import { eq, and } from "drizzle-orm";
+import { systemSettings, payments, users, subscriptions, subscriptionPlans } from "@shared/schema";
+import { eq, and, desc } from "drizzle-orm";
 import { z } from "zod";
 
 const router = express.Router();
@@ -134,30 +134,47 @@ router.post("/admin/paypal-settings", requireAdmin, async (req, res) => {
 // Get PayPal transaction history
 router.get("/admin/paypal-transactions", requireAdmin, async (req, res) => {
   try {
-    // Get recent transactions from payments table
-    const transactions = await db.query.payments.findMany({
-      with: {
-        user: true,
-        subscription: {
-          with: {
-            plan: true
+    // Get all PayPal payments
+    const paymentsList = await db.select().from(payments)
+      .where(eq(payments.paymentMethod, "paypal"))
+      .orderBy(desc(payments.paymentDate));
+    
+    // Format transaction data for frontend with additional lookups as needed
+    const formattedTransactions = await Promise.all(paymentsList.map(async (payment) => {
+      // Get user data
+      const userResult = await db.select().from(users)
+        .where(eq(users.id, payment.userId))
+        .limit(1);
+      const user = userResult[0];
+      
+      // Get subscription and plan data if available
+      let planName = "Unknown Plan";
+      if (payment.subscriptionId) {
+        const subResult = await db.select().from(subscriptions)
+          .where(eq(subscriptions.id, payment.subscriptionId))
+          .limit(1);
+          
+        if (subResult.length > 0) {
+          const planResult = await db.select().from(subscriptionPlans)
+            .where(eq(subscriptionPlans.id, subResult[0].planId))
+            .limit(1);
+          
+          if (planResult.length > 0) {
+            planName = planResult[0].displayName;
           }
         }
-      },
-      where: eq(payments.paymentMethod, "paypal"),
-      orderBy: (payments, { desc }) => [desc(payments.paymentDate)]
-    });
-    
-    // Format transaction data for frontend
-    const formattedTransactions = transactions.map(transaction => ({
-      id: transaction.id,
-      userId: transaction.userId,
-      username: transaction.user.username,
-      amount: transaction.amount,
-      status: transaction.status,
-      date: transaction.paymentDate,
-      planName: transaction.subscription?.plan.displayName || "Unknown",
-      paymentId: transaction.paymentId
+      }
+      
+      return {
+        id: payment.id,
+        userId: payment.userId,
+        username: user ? user.username : "Unknown User",
+        amount: payment.amount,
+        status: payment.status,
+        date: payment.paymentDate,
+        planName: planName,
+        paymentId: payment.paymentId
+      };
     }));
     
     res.json(formattedTransactions);

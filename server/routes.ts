@@ -8,6 +8,7 @@ import oauthSettingsRoutes from "./routes/oauth-settings";
 import openaiSettingsRoutes from "./routes/openai-settings";
 import adminStatsRoutes from "./routes/admin-stats";
 import subscriptionRoutes from "./routes/subscription";
+import paypalSettingsRoutes from "./routes/paypal-settings";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes
@@ -796,6 +797,7 @@ Your role is to:
   app.use("/api/settings", openaiSettingsRoutes);
   app.use("/api/admin", adminStatsRoutes);
   app.use("/api/subscription", subscriptionRoutes);
+  app.use("/api", paypalSettingsRoutes);
 
   const httpServer = createServer(app);
   return httpServer;
