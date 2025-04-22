@@ -37,39 +37,33 @@ function Router() {
   const { user } = useAuth();
   const [location] = useLocation();
   
+  // If user is an admin, show only admin routes
+  if (user?.isAdmin) {
+    return (
+      <Switch>
+        <Route path="/admin/oauth" component={AdminOAuthPage} />
+        <Route path="/admin" component={AdminDashboardPage} />
+        <Route path="/auth" component={AuthPage} />
+        <Route path="/" component={AdminDashboardPage} />
+        <Route component={NotFound} />
+      </Switch>
+    );
+  }
+  
   // If user is not logged in and visiting root path, show landing page
   if (location === "/" && !user) {
     return (
       <Switch>
         <Route path="/auth" component={AuthPage} />
-        <ProtectedRoute path="/journal/new" component={NewJournalEntryPage} />
-        <ProtectedRoute path="/journal/:id" component={JournalEntryPage} />
-        <ProtectedRoute path="/journal" component={JournalPage} />
-        <ProtectedRoute path="/insights" component={InsightsPage} />
-        <ProtectedRoute path="/goals" component={GoalsPage} />
-        <ProtectedRoute path="/settings/profile" component={SettingsProfilePage} />
-        <ProtectedRoute path="/settings/password" component={SettingsPasswordPage} />
-        <ProtectedRoute path="/settings/notifications" component={SettingsNotificationsPage} />
-        <ProtectedRoute path="/settings/privacy" component={SettingsPrivacyPage} />
-        <ProtectedRoute path="/settings/appearance" component={SettingsAppearancePage} />
-        <ProtectedRoute path="/settings/data" component={SettingsDataPage} />
-        <Route path="/admin/oauth" component={AdminOAuthPage} />
-        <Route path="/admin" component={AdminDashboardPage} />
-        <ProtectedRoute path="/settings" component={SettingsPage} />
-        <Route path="/about-us" component={AboutUsPage} />
-        <Route path="/api-access" component={ApiAccessPage} />
-        <Route path="/integrations" component={IntegrationsPage} />
         <Route path="/privacy-policy" component={PrivacyPolicyPage} />
         <Route path="/terms-of-service" component={TermsOfServicePage} />
-        <Route path="/help-center" component={HelpCenterPage} />
-        <Route path="/community" component={CommunityPage} />
-        <Route path="/mental-health-resources" component={MentalHealthResourcesPage} />
         <Route path="/" component={LandingPage} />
         <Route component={NotFound} />
       </Switch>
     );
   }
   
+  // Regular user routes
   return (
     <Switch>
       <ProtectedRoute path="/journal/new" component={NewJournalEntryPage} />
@@ -83,8 +77,6 @@ function Router() {
       <ProtectedRoute path="/settings/privacy" component={SettingsPrivacyPage} />
       <ProtectedRoute path="/settings/appearance" component={SettingsAppearancePage} />
       <ProtectedRoute path="/settings/data" component={SettingsDataPage} />
-      <Route path="/admin/oauth" component={AdminOAuthPage} />
-      <Route path="/admin" component={AdminDashboardPage} />
       <ProtectedRoute path="/settings" component={SettingsPage} />
       <ProtectedRoute path="/" component={HomePage} />
       <Route path="/about-us" component={AboutUsPage} />

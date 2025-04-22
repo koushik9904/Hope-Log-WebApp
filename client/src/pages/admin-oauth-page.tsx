@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -50,32 +50,48 @@ export default function AdminOAuthPage() {
       if (!response.ok) throw new Error("Failed to load OAuth settings");
       return response.json();
     },
-    onSuccess: (data) => {
-      // Update form values with existing settings
-      form.reset({
-        enableGoogleAuth: data.enableGoogleAuth || false,
-        googleClientId: data.googleClientId || "",
-        googleClientSecret: data.googleClientSecret || "",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error loading OAuth settings",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
   });
+  
+  // Update form when data is loaded
+  useEffect(() => {
+    if (oauthSettings) {
+      form.reset({
+        enableGoogleAuth: oauthSettings.enableGoogleAuth || false,
+        googleClientId: oauthSettings.googleClientId || "",
+        googleClientSecret: oauthSettings.googleClientSecret || "",
+      });
+    }
+  }, [oauthSettings, form]);
 
   // Update OAuth settings mutation
   const updateOAuthMutation = useMutation({
     mutationFn: async (data: OAuthSettingsFormValues) => {
-      const response = await apiRequest("POST", "/api/update-oauth", data);
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to update OAuth settings");
+      try {
+        const response = await fetch("/api/update-oauth", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        });
+        
+        if (!response.ok) {
+          // Try to parse as JSON first
+          const contentType = response.headers.get("content-type");
+          if (contentType && contentType.includes("application/json")) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Failed to update OAuth settings");
+          } else {
+            // If not JSON, get the text error
+            const errorText = await response.text();
+            throw new Error("Server error: " + response.status);
+          }
+        }
+        
+        return await response.json();
+      } catch (err) {
+        throw new Error(err.message || "Failed to communicate with server");
       }
-      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -99,12 +115,32 @@ export default function AdminOAuthPage() {
   // Test OAuth connection mutation
   const testOAuthMutation = useMutation({
     mutationFn: async ({ provider }: { provider: string }) => {
-      const response = await apiRequest("POST", "/api/test-oauth", { provider });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "OAuth test failed");
+      try {
+        const response = await fetch("/api/test-oauth", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ provider }),
+        });
+        
+        if (!response.ok) {
+          // Try to parse as JSON first
+          const contentType = response.headers.get("content-type");
+          if (contentType && contentType.includes("application/json")) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "OAuth test failed");
+          } else {
+            // If not JSON, get the text error
+            const errorText = await response.text();
+            throw new Error("Server error: " + response.status);
+          }
+        }
+        
+        return await response.json();
+      } catch (err) {
+        throw new Error(err.message || "Failed to communicate with server");
       }
-      return response.json();
     },
     onSuccess: () => {
       toast({
