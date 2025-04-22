@@ -1,4 +1,4 @@
-import checkoutNodeJssdk from '@paypal/checkout-server-sdk';
+import * as checkoutNodeJssdk from '@paypal/checkout-server-sdk';
 import { db } from './db';
 import { subscriptionPlans, payments, subscriptions, users, systemSettings } from '@shared/schema';
 import { eq, and } from 'drizzle-orm';
@@ -137,7 +137,8 @@ class PayPalService {
     });
 
     try {
-      const order = await client().execute(request);
+      const paypalClient = await client();
+      const order = await paypalClient.execute(request);
       return {
         orderId: (order.result as any).id,
         status: (order.result as any).status,
@@ -157,7 +158,8 @@ class PayPalService {
     request.prefer('return=representation');
 
     try {
-      const capture = await client().execute(request);
+      const paypalClient = await client();
+      const capture = await paypalClient.execute(request);
       
       // Get the transaction details
       const captureId = (capture.result as any).purchase_units[0].payments.captures[0].id;
