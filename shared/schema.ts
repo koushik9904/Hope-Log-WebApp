@@ -13,6 +13,7 @@ export const users = pgTable("users", {
   avatar: text("avatar"),
   provider: text("provider"), // 'local', 'google', 'apple'
   providerId: text("provider_id"),
+  isAdmin: boolean("is_admin").default(false),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -24,6 +25,7 @@ export const insertUserSchema = createInsertSchema(users).pick({
   avatar: true,
   provider: true,
   providerId: true,
+  isAdmin: true,
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
