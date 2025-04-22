@@ -8,23 +8,55 @@ function dateToISOString(date: Date): string {
   return date.toISOString();
 }
 
-// Get PayPal callback URL from database or default
+// Get PayPal callback URL from database or determine dynamically
 async function getPayPalCallbackUrl() {
+  console.log('[PayPal] Getting callback URL');
   try {
+    // First try to get the callback URL from settings
     const callbackUrlSettings = await db.select()
       .from(systemSettings)
       .where(eq(systemSettings.key, "paypal_callback_url"))
       .limit(1);
     
     if (callbackUrlSettings.length > 0 && callbackUrlSettings[0].value) {
-      return callbackUrlSettings[0].value;
+      const url = callbackUrlSettings[0].value;
+      console.log(`[PayPal] Found callback URL in settings: ${url}`);
+      // Make sure we have the /subscription path
+      if (url.endsWith('/subscription')) {
+        return url;
+      } else {
+        return url.endsWith('/') ? `${url}subscription` : `${url}/subscription`;
+      }
     }
   } catch (err) {
-    console.warn("Error fetching PayPal callback URL from settings:", err);
+    console.warn("[PayPal] Error fetching PayPal callback URL from settings:", err);
   }
   
-  // Default fallback URL
-  return process.env.APP_URL || 'https://hopelog.com';
+  // If not in settings, try environment variables
+  const appUrl = process.env.APP_URL || process.env.REPL_URL || process.env.REPL_SLUG;
+  if (appUrl) {
+    const baseUrl = appUrl.endsWith('/') ? appUrl.slice(0, -1) : appUrl;
+    console.log(`[PayPal] Using URL from environment: ${baseUrl}/subscription`);
+    return `${baseUrl}/subscription`;
+  }
+  
+  // Get the URL from the running instance
+  try {
+    // For Replit deployments
+    if (process.env.REPLIT) {
+      // This builds the replit URL format
+      const url = `https://${process.env.REPL_SLUG}-${process.env.REPL_OWNER}.repl.co/subscription`;
+      console.log(`[PayPal] Using Replit URL: ${url}`);
+      return url;
+    }
+  } catch (err) {
+    console.warn("[PayPal] Error determining Replit URL:", err);
+  }
+  
+  // Current Replit URL format
+  const currentReplitUrl = "https://5c1c35bb-7b48-47dd-8c3e-2be290fc8315-00-37jqtpq5xxnjj.sisko.replit.dev/subscription";
+  console.log(`[PayPal] Using current Replit URL: ${currentReplitUrl}`);
+  return currentReplitUrl;
 }
 
 // Get PayPal credentials from database
