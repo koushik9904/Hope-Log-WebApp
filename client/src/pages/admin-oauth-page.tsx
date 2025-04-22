@@ -44,9 +44,9 @@ export default function AdminOAuthPage() {
 
   // Get current OAuth settings
   const { data: oauthSettings } = useQuery({
-    queryKey: ["/api/oauth-status"],
+    queryKey: ["/api/settings/oauth-status"],
     queryFn: async () => {
-      const response = await fetch("/api/oauth-status");
+      const response = await fetch("/api/settings/oauth-status");
       if (!response.ok) throw new Error("Failed to load OAuth settings");
       return response.json();
     },
@@ -67,7 +67,7 @@ export default function AdminOAuthPage() {
   const updateOAuthMutation = useMutation({
     mutationFn: async (data: OAuthSettingsFormValues) => {
       try {
-        const response = await fetch("/api/update-oauth", {
+        const response = await fetch("/api/settings/update-oauth", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -89,8 +89,8 @@ export default function AdminOAuthPage() {
         }
         
         return await response.json();
-      } catch (err) {
-        throw new Error(err.message || "Failed to communicate with server");
+      } catch (error: any) {
+        throw new Error(error?.message || "Failed to communicate with server");
       }
     },
     onSuccess: () => {
@@ -100,7 +100,7 @@ export default function AdminOAuthPage() {
       });
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
-      queryClient.invalidateQueries({ queryKey: ["/api/oauth-status"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/settings/oauth-status"] });
       setCredentialsError(null);
     },
     onError: (error: Error) => {
@@ -116,7 +116,7 @@ export default function AdminOAuthPage() {
   const testOAuthMutation = useMutation({
     mutationFn: async ({ provider }: { provider: string }) => {
       try {
-        const response = await fetch("/api/test-oauth", {
+        const response = await fetch("/api/settings/test-oauth", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -138,8 +138,8 @@ export default function AdminOAuthPage() {
         }
         
         return await response.json();
-      } catch (err) {
-        throw new Error(err.message || "Failed to communicate with server");
+      } catch (error: any) {
+        throw new Error(error?.message || "Failed to communicate with server");
       }
     },
     onSuccess: () => {
