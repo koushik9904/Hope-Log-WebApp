@@ -24,10 +24,65 @@ async function hashPassword(password: string) {
 }
 
 async function comparePasswords(supplied: string, stored: string) {
-  const [hashed, salt] = stored.split(".");
-  const hashedBuf = Buffer.from(hashed, "hex");
-  const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
-  return timingSafeEqual(hashedBuf, suppliedBuf);
+  try {
+    console.log("comparePasswords: Comparing supplied password with stored password");
+    console.log("comparePasswords: Supplied length:", supplied.length, "Stored length:", stored.length);
+    
+    if (!stored || !stored.includes('.')) {
+      console.error("comparePasswords: Invalid stored password format, missing salt separator");
+      return false;
+    }
+    
+    const [hashed, salt] = stored.split(".");
+    console.log("comparePasswords: Hash length:", hashed.length, "Salt length:", salt.length);
+    
+    if (!hashed || !salt) {
+      console.error("comparePasswords: Invalid stored password format, missing hash or salt");
+      return false;
+    }
+    
+    const hashedBuf = Buffer.from(hashed, "hex");
+    console.log("comparePasswords: Created hash buffer of length:", hashedBuf.length);
+    
+    console.log("comparePasswords: Supplied password first 5 chars:", supplied.substring(0, 5) + "...");
+    console.log("comparePasswords: Hashing supplied password with salt");
+    const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
+    console.log("comparePasswords: Created supplied buffer of length:", suppliedBuf.length);
+    
+    // Check buffer lengths to avoid unequal buffer comparison which can throw
+    if (hashedBuf.length !== suppliedBuf.length) {
+      console.error("comparePasswords: Buffer length mismatch:", 
+        hashedBuf.length, "vs", suppliedBuf.length);
+      return false;
+    }
+    
+    console.log("comparePasswords: Hash buffer:", hashedBuf.toString('hex').substring(0, 10) + "...");
+    console.log("comparePasswords: Supplied buffer:", suppliedBuf.toString('hex').substring(0, 10) + "...");
+    
+    const result = timingSafeEqual(hashedBuf, suppliedBuf);
+    console.log("comparePasswords: Password comparison result:", result);
+    
+    // If no match and this is for admin, let's try a manual comparison
+    if (!result && supplied === "admin123" && hashed) {
+      // For debugging purposes, let's see if the admin password might have been changed
+      console.log("comparePasswords: Special case - admin login with default password");
+      
+      // Create a new admin password hash and log it for comparison
+      const newHash = await hashPassword("admin123");
+      console.log("comparePasswords: Current stored hash (partial):", hashed.substring(0, 20) + "...");
+      console.log("comparePasswords: Generated hash for admin123 (partial):", newHash.split('.')[0].substring(0, 20) + "...");
+      
+      // Just as a test for admin with the known password
+      if (supplied === "admin123") {
+        console.log("comparePasswords: This is an admin login attempt with default password");
+      }
+    }
+    
+    return result;
+  } catch (error) {
+    console.error("comparePasswords: Error during password comparison:", error);
+    return false;
+  }
 }
 
 // Helper function to get the dynamic callback URL based on the current request
