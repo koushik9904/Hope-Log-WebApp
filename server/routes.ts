@@ -5,6 +5,8 @@ import { setupAuth } from "./auth";
 import { storage } from "./storage";
 import { generateAIResponse, analyzeSentiment, generateWeeklySummary, generateCustomPrompts, storeEmbedding } from "./openai";
 import oauthSettingsRoutes from "./routes/oauth-settings";
+import openaiSettingsRoutes from "./routes/openai-settings";
+import adminStatsRoutes from "./routes/admin-stats";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes
@@ -788,7 +790,10 @@ Your role is to:
   });
 
   // OAuth settings API
+  // API routes for settings and admin functionality
   app.use("/api/settings", oauthSettingsRoutes);
+  app.use("/api/settings", openaiSettingsRoutes);
+  app.use("/api/admin", adminStatsRoutes);
 
   const httpServer = createServer(app);
   return httpServer;
