@@ -3,6 +3,11 @@ import { db } from './db';
 import { subscriptionPlans, payments, subscriptions, users } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 
+// Helper function to convert Date to ISO string for database
+function dateToISOString(date: Date): string {
+  return date.toISOString();
+}
+
 // Creating an environment
 function environment() {
   let clientId = process.env.PAYPAL_CLIENT_ID;
@@ -111,8 +116,8 @@ class PayPalService {
           userId,
           planId: plan.id,
           status: 'active',
-          startDate: new Date(),
-          endDate,
+          startDate: dateToISOString(new Date()),
+          endDate: dateToISOString(endDate),
           paypalSubscriptionId: null, // This is a one-time payment, not a recurring subscription
         })
         .returning();
@@ -126,7 +131,7 @@ class PayPalService {
           paymentMethod: 'paypal',
           paymentId: captureId,
           status: 'completed',
-          paymentDate: new Date(),
+          paymentDate: dateToISOString(new Date()),
           metadata: capture.result
         });
 
