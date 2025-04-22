@@ -123,6 +123,18 @@ class PayPalService {
         .returning();
 
       // Record the payment
+      const paymentMetadata = {};
+      try {
+        // Safely extract data from PayPal response
+        Object.assign(paymentMetadata, {
+          id: (capture.result as any).id,
+          status: (capture.result as any).status,
+          payment_source: (capture.result as any).payment_source
+        });
+      } catch (err) {
+        console.warn('Could not extract all PayPal response details', err);
+      }
+
       await db.insert(payments)
         .values({
           userId,
@@ -132,7 +144,7 @@ class PayPalService {
           paymentId: captureId,
           status: 'completed',
           paymentDate: dateToISOString(new Date()),
-          metadata: JSON.stringify(capture.result) // Convert unknown to string for storage
+          metadata: paymentMetadata
         });
 
       // Update user's subscription status
