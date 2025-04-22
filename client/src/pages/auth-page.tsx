@@ -84,19 +84,16 @@ export default function AuthPage() {
   };
 
   const handleSocialLogin = (provider: string) => {
-    // Social login is temporarily disabled due to Replit network limitations
-    toast({
-      title: "Social Login Unavailable",
-      description: "OAuth login is temporarily unavailable. Please use username/password login instead.",
-      className: "bg-amber-50 border-amber-200"
-    });
-    
-    // Original implementation (commented out)
-    // if (provider === 'google') {
-    //   window.location.href = '/auth/google';
-    // } else if (provider === 'apple') {
-    //   window.location.href = '/auth/apple';
-    // }
+    if (provider === 'google') {
+      window.location.href = '/auth/google';
+    } else if (provider === 'apple') {
+      // Apple login not yet implemented
+      toast({
+        title: "Apple Sign-In Coming Soon",
+        description: "Apple Sign-In is not yet available. Please use Google or username/password login instead.",
+        className: "bg-amber-50 border-amber-200"
+      });
+    }
   };
 
   // Redirect if already logged in
@@ -196,35 +193,23 @@ export default function AuthPage() {
               </Alert>
             )}
             
-            {/* Social Login Buttons - Currently Limited */}
-            <div className="bg-amber-50 p-3 rounded-lg border border-amber-200 mb-6">
-              <div className="flex items-start mb-2">
-                <AlertCircle className="h-5 w-5 text-amber-600 mr-2 flex-shrink-0 mt-0.5" />
-                <div>
-                  <h3 className="text-sm font-medium text-amber-800">OAuth Login Temporarily Limited</h3>
-                  <p className="text-xs text-amber-700 mt-1">
-                    OAuth login is temporarily limited due to Replit's network restrictions. 
-                    Please use username/password login below.
-                  </p>
-                </div>
-              </div>
-              
+            {/* Social Login Buttons */}
+            <div className="mb-6">              
               <div className="flex flex-col gap-2 mt-3">
                 <Button 
                   variant="outline" 
-                  className="w-full bg-white hover:bg-amber-50 border border-amber-300 flex items-center justify-center gap-2 opacity-70"
-                  disabled
-                  title="Google OAuth temporarily unavailable"
+                  className="w-full bg-white hover:bg-gray-50 border border-gray-300 flex items-center justify-center gap-2"
+                  onClick={() => handleSocialLogin('google')}
                 >
                   <FcGoogle size={20} />
-                  <span>Google Sign-In (Coming Soon)</span>
+                  <span>Continue with Google</span>
                 </Button>
                 
                 <Button 
                   variant="outline" 
-                  className="w-full bg-white hover:bg-amber-50 border border-amber-300 flex items-center justify-center gap-2 opacity-70"
+                  className="w-full bg-white hover:bg-gray-50 border border-gray-300 flex items-center justify-center gap-2 opacity-60"
                   disabled
-                  title="Apple Sign-In unavailable"
+                  title="Apple Sign-In coming soon"
                 >
                   <SiApple size={20} />
                   <span>Apple Sign-In (Coming Soon)</span>
