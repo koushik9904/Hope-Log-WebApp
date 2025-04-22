@@ -85,6 +85,15 @@ export default function AuthPage() {
 
   const handleSocialLogin = (provider: string) => {
     if (provider === 'google') {
+      // Show setup note before redirecting
+      toast({
+        title: "Google OAuth Setup Note",
+        description: `If you encounter a 'refused to connect' error, add this domain to your Google OAuth credentials: ${window.location.origin}`,
+        duration: 10000,
+        className: "bg-blue-50 border-blue-200"
+      });
+      
+      // Redirect to Google OAuth
       window.location.href = '/auth/google';
     } else if (provider === 'apple') {
       // Apple login not yet implemented
@@ -193,6 +202,14 @@ export default function AuthPage() {
               </Alert>
             )}
             
+            {/* Info Alert about OAuth Setup */}
+            <Alert className="mb-4 bg-blue-50 border-blue-200 text-xs">
+              <AlertCircle className="h-4 w-4 text-blue-500" />
+              <AlertDescription className="text-blue-700">
+                <strong>Google login requires configuration:</strong> For Google Sign-In to work, you must add this Replit domain to your Google Cloud OAuth credentials.
+              </AlertDescription>
+            </Alert>
+
             {/* Social Login Buttons */}
             <div className="mb-6">              
               <div className="flex flex-col gap-2 mt-3">

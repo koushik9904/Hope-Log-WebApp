@@ -212,12 +212,29 @@ export async function setupAuth(app: Express) {
   app.get("/auth/google", (req: Request, res: Response, next: NextFunction) => {
     console.log("Starting Google OAuth flow");
     console.log("Request headers:", req.headers);
-    console.log("Google OAuth credentials available:", !!process.env.GOOGLE_CLIENT_ID && !!process.env.GOOGLE_CLIENT_SECRET);
+    
+    // Check if Google OAuth credentials are available
+    const credentialsAvailable = !!process.env.GOOGLE_CLIENT_ID && !!process.env.GOOGLE_CLIENT_SECRET;
+    console.log("Google OAuth credentials available:", credentialsAvailable);
     
     // Update the Google strategy with the current domain's callback URL
     if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
       const dynamicCallbackUrl = getCallbackUrl(req);
       console.log("Using dynamic callback URL:", dynamicCallbackUrl);
+      
+      // Generate JavaScript origin for debugging
+      const jsOrigin = `${req.headers['x-forwarded-proto'] || 'http'}://${req.headers.host || ''}`;
+      console.log("Required JavaScript Origin for OAuth:", jsOrigin);
+      
+      // Log full OAuth configuration
+      console.log("=== OAuth DEBUG INFORMATION ===");
+      console.log("Client ID length:", process.env.GOOGLE_CLIENT_ID?.length || 0);
+      console.log("Client Secret length:", process.env.GOOGLE_CLIENT_SECRET?.length || 0);
+      console.log("Full redirect URL:", dynamicCallbackUrl);
+      console.log("For Google OAuth configuration you MUST add:");
+      console.log("1. Redirect URI:", dynamicCallbackUrl);
+      console.log("2. JavaScript Origin:", jsOrigin);
+      console.log("==============================");
 
       // Check if we should use a direct approach instead
       console.log("Trying direct redirect approach to Google OAuth");
@@ -331,15 +348,19 @@ export async function setupAuth(app: Express) {
       
       // Add detailed instructions with formatting for better display in the UI
       errorMessage = "Google OAuth Configuration Required\n\n" +
-      "To complete Google OAuth setup, please add this URL to your authorized redirect URIs:\n" +
+      "To complete Google OAuth setup, please add these URLs to your Google Cloud Console:\n\n" +
+      "Redirect URI (required):\n" +
       currentCallbackUrl + "\n\n" +
+      "JavaScript Origin (required):\n" +
+      (req.headers['x-forwarded-proto'] || 'http') + '://' + (req.headers.host || '') + "\n\n" +
       "Step-by-step instructions:\n" +
       "1. Go to Google Cloud Console (https://console.cloud.google.com/)\n" +
       "2. Select your project and go to 'APIs & Services' > 'Credentials'\n" +
       "3. Edit your OAuth 2.0 Client ID\n" +
-      "4. Add the above URL to 'Authorized redirect URIs'\n" +
-      "5. Add the domain '" + (req.headers.host || "") + "' to 'Authorized JavaScript origins'\n" +
-      "6. Click 'Save' and wait a few minutes for changes to propagate\n\n" +
+      "4. Add the above Redirect URI to 'Authorized redirect URIs'\n" +
+      "5. Add the JavaScript Origin to 'Authorized JavaScript origins'\n" +
+      "6. Click 'Save' and wait a few minutes for changes to propagate\n" +
+      "7. Make sure to update these values if your Replit domain changes\n\n" +
       "Original error: " + err.message;
       
       console.log("Redirecting to auth page with error message:", errorMessage);
