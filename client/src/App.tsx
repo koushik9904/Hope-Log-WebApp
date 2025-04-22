@@ -21,6 +21,7 @@ import SettingsPrivacyPage from "@/pages/settings-privacy-page";
 import SettingsAppearancePage from "@/pages/settings-appearance-page";
 import SettingsDataPage from "@/pages/settings-data-page";
 import AdminOAuthPage from "@/pages/admin-oauth-page";
+import AdminDashboardPage from "@/pages/admin-dashboard-page";
 import NotFound from "@/pages/not-found";
 import AboutUsPage from "@/pages/about-us-page";
 import ApiAccessPage from "@/pages/api-access-page";
@@ -53,6 +54,7 @@ function Router() {
         <ProtectedRoute path="/settings/appearance" component={SettingsAppearancePage} />
         <ProtectedRoute path="/settings/data" component={SettingsDataPage} />
         <Route path="/admin/oauth" component={AdminOAuthPage} />
+        <Route path="/admin" component={AdminDashboardPage} />
         <ProtectedRoute path="/settings" component={SettingsPage} />
         <Route path="/about-us" component={AboutUsPage} />
         <Route path="/api-access" component={ApiAccessPage} />
@@ -82,6 +84,7 @@ function Router() {
       <ProtectedRoute path="/settings/appearance" component={SettingsAppearancePage} />
       <ProtectedRoute path="/settings/data" component={SettingsDataPage} />
       <Route path="/admin/oauth" component={AdminOAuthPage} />
+      <Route path="/admin" component={AdminDashboardPage} />
       <ProtectedRoute path="/settings" component={SettingsPage} />
       <ProtectedRoute path="/" component={HomePage} />
       <Route path="/about-us" component={AboutUsPage} />

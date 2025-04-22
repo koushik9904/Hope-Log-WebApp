@@ -2,64 +2,72 @@ import { ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { 
-  User, 
-  Bell, 
-  Shield, 
-  Palette, 
-  Database, 
-  Lock,
-  KeySquare
+  KeySquare,
+  ShieldAlert,
+  Settings,
+  Home,
+  LogOut
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/use-auth";
 
-interface SettingsLayoutProps {
+interface AdminLayoutProps {
   children: ReactNode;
 }
 
 // Define sidebar navigation items
 const navigationItems = [
   {
-    label: "Profile",
-    href: "/settings/profile",
-    icon: User,
+    label: "Dashboard",
+    href: "/admin",
+    icon: Home,
   },
   {
-    label: "Password",
-    href: "/settings/password",
-    icon: Lock,
+    label: "OAuth Settings",
+    href: "/admin/oauth",
+    icon: KeySquare,
   },
   {
-    label: "Notifications",
-    href: "/settings/notifications",
-    icon: Bell,
+    label: "User Settings",
+    href: "/admin/users",
+    icon: Settings,
   },
   {
-    label: "Privacy",
-    href: "/settings/privacy",
-    icon: Shield,
-  },
-  {
-    label: "Appearance",
-    href: "/settings/appearance",
-    icon: Palette,
-  },
-  {
-    label: "Data",
-    href: "/settings/data",
-    icon: Database,
+    label: "Back to App",
+    href: "/",
+    icon: LogOut,
   },
 ];
 
-export function SettingsLayout({ children }: SettingsLayoutProps) {
+export function AdminLayout({ children }: AdminLayoutProps) {
   const [location] = useLocation();
+  const { user } = useAuth();
+  
+  // Redirect if not admin
+  if (!user?.isAdmin) {
+    return (
+      <div className="container py-8 min-h-screen">
+        <div className="flex items-center justify-center flex-col min-h-[60vh]">
+          <ShieldAlert className="w-16 h-16 text-destructive mb-4" />
+          <h2 className="text-3xl font-bold tracking-tight mb-2">Access Denied</h2>
+          <p className="text-muted-foreground mb-6">
+            You don't have permission to access the admin area
+          </p>
+          <Link href="/">
+            <Button>Return to Dashboard</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container py-8 min-h-screen">
       <div className="mb-8">
-        <h2 className="text-3xl font-bold tracking-tight">Settings</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Admin Dashboard</h2>
         <p className="text-muted-foreground">
-          Manage your account settings and preferences
+          Manage system settings and configurations
         </p>
       </div>
       

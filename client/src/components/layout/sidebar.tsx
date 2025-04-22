@@ -13,6 +13,7 @@ import {
   Lock,
   Bell,
   Shield,
+  ShieldAlert,
   Sun,
   Download,
   ChevronDown,
@@ -135,6 +136,20 @@ export function Sidebar() {
           icon={<Info className="w-full h-full" />} 
           label="About Us" 
         />
+        
+        {/* Admin section - only visible to admins */}
+        {user?.isAdmin && (
+          <>
+            <div className="px-6 py-3 mt-2">
+              <span className="text-xs text-gray-500 uppercase tracking-wider font-medium">Admin Area</span>
+            </div>
+            <NavLink 
+              href="/admin" 
+              icon={<ShieldAlert className="w-full h-full text-red-500" />} 
+              label="Admin Dashboard" 
+            />
+          </>
+        )}
         
         {/* Settings section with sub-navigation */}
         <div className={`${isSettingsActive || settingsExpanded ? "bg-gray-800" : ""}`}>

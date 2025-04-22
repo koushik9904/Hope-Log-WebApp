@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -14,6 +14,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Redirect } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
+import { AdminLayout } from "@/components/admin/admin-layout";
 
 // This page is only accessible to admin users for managing OAuth settings
 
@@ -126,34 +127,14 @@ export default function AdminOAuthPage() {
     updateOAuthMutation.mutate(data);
   }
 
-  // Check if user is logged in and is admin
+  // Check if user is logged in
   if (!user) {
     return <Redirect to="/auth" />;
   }
 
-  // Verify user is admin
-  if (user && !user.isAdmin) {
-    return (
-      <div className="container py-12">
-        <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Access Denied</AlertTitle>
-          <AlertDescription>
-            You don't have permission to access this page. This area is restricted to administrators only.
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
-
   return (
-    <div className="container py-8 min-h-screen">
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold tracking-tight">OAuth Integration Settings</h2>
-        <p className="text-muted-foreground">
-          Configure OAuth providers for social login functionality
-        </p>
-      </div>
+    <AdminLayout>
+      <h3 className="text-xl font-semibold mb-6">OAuth Integration Settings</h3>
 
       {credentialsError && (
         <Alert variant="destructive" className="mb-6">
@@ -309,6 +290,6 @@ export default function AdminOAuthPage() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </AdminLayout>
   );
 }
