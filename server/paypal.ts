@@ -27,26 +27,74 @@ async function getPayPalCallbackUrl() {
   return process.env.APP_URL || 'https://hopelog.com';
 }
 
+// Get PayPal credentials from database
+async function getPayPalCredentials() {
+  try {
+    const clientIdRecord = await db.select()
+      .from(systemSettings)
+      .where(eq(systemSettings.key, "paypal_client_id"))
+      .limit(1);
+    
+    const clientSecretRecord = await db.select()
+      .from(systemSettings)
+      .where(eq(systemSettings.key, "paypal_client_secret"))
+      .limit(1);
+    
+    const modeRecord = await db.select()
+      .from(systemSettings)
+      .where(eq(systemSettings.key, "paypal_mode"))
+      .limit(1);
+    
+    return {
+      clientId: clientIdRecord.length > 0 ? clientIdRecord[0].value : null,
+      clientSecret: clientSecretRecord.length > 0 ? clientSecretRecord[0].value : null,
+      mode: modeRecord.length > 0 ? modeRecord[0].value : "sandbox"
+    };
+  } catch (err) {
+    console.warn("Error fetching PayPal credentials from settings:", err);
+    return { clientId: null, clientSecret: null, mode: "sandbox" };
+  }
+}
+
 // Creating an environment
-function environment() {
+async function environment() {
+  // Try to get from environment variables first
   let clientId = process.env.PAYPAL_CLIENT_ID;
   let clientSecret = process.env.PAYPAL_CLIENT_SECRET;
-
+  
+  // If not in environment, get from database
   if (!clientId || !clientSecret) {
-    throw new Error('PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET must be set in environment variables');
+    const credentials = await getPayPalCredentials();
+    clientId = credentials.clientId || clientId;
+    clientSecret = credentials.clientSecret || clientSecret;
+    
+    // Set them as environment variables for future use
+    if (credentials.clientId) process.env.PAYPAL_CLIENT_ID = credentials.clientId;
+    if (credentials.clientSecret) process.env.PAYPAL_CLIENT_SECRET = credentials.clientSecret;
+    
+    // Check if we're in sandbox or live mode
+    const isProduction = credentials.mode === "live";
+    
+    if (!clientId || !clientSecret) {
+      throw new Error('PayPal credentials not found. Please set them in the admin settings.');
+    }
+    
+    return isProduction
+      ? new checkoutNodeJssdk.core.LiveEnvironment(clientId, clientSecret)
+      : new checkoutNodeJssdk.core.SandboxEnvironment(clientId, clientSecret);
   }
 
-  // Check if we're in production mode
+  // Default case with env variables
   const isProduction = process.env.NODE_ENV === 'production';
-  
   return isProduction
     ? new checkoutNodeJssdk.core.LiveEnvironment(clientId, clientSecret)
     : new checkoutNodeJssdk.core.SandboxEnvironment(clientId, clientSecret);
 }
 
 // Creating a client
-function client() {
-  return new checkoutNodeJssdk.core.PayPalHttpClient(environment());
+async function client() {
+  const env = await environment();
+  return new checkoutNodeJssdk.core.PayPalHttpClient(env);
 }
 
 class PayPalService {
