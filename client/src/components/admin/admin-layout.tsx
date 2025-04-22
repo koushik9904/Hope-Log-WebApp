@@ -6,7 +6,8 @@ import {
   ShieldAlert,
   Settings,
   Home,
-  LogOut
+  LogOut,
+  MessagesSquare
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,13 @@ import { useAuth } from "@/hooks/use-auth";
 
 interface AdminLayoutProps {
   children: ReactNode;
+}
+
+interface NavigationItem {
+  label: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  onClick?: (e: React.MouseEvent) => void;
 }
 
 // Define sidebar navigation items
@@ -29,9 +37,20 @@ const navigationItems = [
     icon: KeySquare,
   },
   {
-    label: "Back to App",
-    href: "/",
+    label: "OpenAI Settings",
+    href: "/admin/openai",
+    icon: MessagesSquare,
+  },
+  {
+    label: "Logout",
+    href: "/auth",
     icon: LogOut,
+    onClick: (e: React.MouseEvent) => {
+      e.preventDefault();
+      // We'll trigger a logout action here
+      fetch("/api/logout", { method: "POST" })
+        .then(() => window.location.href = "/auth");
+    }
   },
 ];
 
@@ -71,7 +90,12 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         <aside className="md:w-1/4 flex-shrink-0">
           <nav className="space-y-1 sticky top-20">
             {navigationItems.map((item) => {
-              const isActive = location === item.href;
+              // Check if current location matches this nav item
+              // For /admin path, only exact match should be active
+              // For other paths, check if location starts with the href
+              const isActive = item.href === "/admin" 
+                ? location === item.href 
+                : location.startsWith(item.href) && item.href !== "/auth";
               const Icon = item.icon;
               
               return (
@@ -82,6 +106,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                       "w-full justify-start",
                       isActive && "bg-muted"
                     )}
+                    onClick={item.onClick}
                   >
                     <Icon className="mr-2 h-4 w-4" />
                     {item.label}
