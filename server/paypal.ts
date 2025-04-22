@@ -140,7 +140,7 @@ class PayPalService {
         .set({
           subscriptionTier: 'pro',
           subscriptionStatus: 'active',
-          subscriptionExpiresAt: endDate
+          subscriptionExpiresAt: dateToISOString(endDate)
         })
         .where(eq(users.id, userId));
 
@@ -186,9 +186,9 @@ class PayPalService {
     await db.update(subscriptions)
       .set({
         status: 'cancelled',
-        cancelledAt: new Date(),
+        cancelledAt: dateToISOString(new Date()),
         cancelAtPeriodEnd: true,
-        updatedAt: new Date()
+        updatedAt: dateToISOString(new Date())
       })
       .where(eq(subscriptions.id, subscriptionId));
 

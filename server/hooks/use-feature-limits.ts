@@ -3,6 +3,11 @@ import { db } from '../db';
 import { eq, sql } from 'drizzle-orm';
 import { userUsage, featureLimits, users } from '@shared/schema';
 
+// Helper function to convert Date to ISO string for database
+function dateToISOString(date: Date): string {
+  return date.toISOString();
+}
+
 /**
  * Service for checking feature limits and user usage
  */
@@ -25,13 +30,13 @@ export class FeatureLimitService {
           journalEntriesCount: 0,
           goalsCount: 0,
           aiResponsesCount: 0,
-          aiResponsesResetDate: new Date(),
-          lastActive: new Date()
+          aiResponsesResetDate: dateToISOString(new Date()),
+          lastActive: dateToISOString(new Date())
         });
     } else {
       // Update last active timestamp
       await db.update(userUsage)
-        .set({ lastActive: new Date() })
+        .set({ lastActive: dateToISOString(new Date()) })
         .where(eq(userUsage.userId, userId));
     }
   }
@@ -92,7 +97,7 @@ export class FeatureLimitService {
     await db.update(userUsage)
       .set({
         journalEntriesCount: sql`${userUsage.journalEntriesCount} + 1`,
-        updatedAt: new Date()
+        updatedAt: dateToISOString(new Date())
       })
       .where(eq(userUsage.userId, userId));
   }
@@ -128,7 +133,7 @@ export class FeatureLimitService {
     await db.update(userUsage)
       .set({
         goalsCount: sql`${userUsage.goalsCount} + 1`,
-        updatedAt: new Date()
+        updatedAt: dateToISOString(new Date())
       })
       .where(eq(userUsage.userId, userId));
   }
@@ -150,8 +155,8 @@ export class FeatureLimitService {
       await db.update(userUsage)
         .set({
           aiResponsesCount: 0,
-          aiResponsesResetDate: now,
-          updatedAt: now
+          aiResponsesResetDate: dateToISOString(now),
+          updatedAt: dateToISOString(now)
         })
         .where(eq(userUsage.userId, userId));
       
@@ -182,7 +187,7 @@ export class FeatureLimitService {
     await db.update(userUsage)
       .set({
         aiResponsesCount: sql`${userUsage.aiResponsesCount} + 1`,
-        updatedAt: new Date()
+        updatedAt: dateToISOString(new Date())
       })
       .where(eq(userUsage.userId, userId));
   }

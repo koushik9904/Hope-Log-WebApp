@@ -38,9 +38,9 @@ router.get('/plans', async (req, res) => {
     });
     
     return res.status(200).json(formattedPlans);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching subscription plans:', error);
-    return res.status(500).json({ message: 'Failed to fetch subscription plans' });
+    return res.status(500).json({ message: error?.message || 'Failed to fetch subscription plans' });
   }
 });
 
