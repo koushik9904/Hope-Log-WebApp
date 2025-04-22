@@ -56,14 +56,14 @@ router.post('/create-order', async (req, res) => {
     const order = await PayPalService.createOrder(data.planName, req.user.id);
     
     return res.status(200).json(order);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating order:', error);
     
     if (error.name === 'ZodError') {
       return res.status(400).json({ message: 'Invalid request data', errors: error.errors });
     }
     
-    return res.status(500).json({ message: error.message || 'Failed to create order' });
+    return res.status(500).json({ message: error?.message || 'Failed to create order' });
   }
 });
 
@@ -83,9 +83,9 @@ router.post('/capture-order', async (req, res) => {
     const result = await PayPalService.captureOrder(orderId, req.user.id, planName);
     
     return res.status(200).json(result);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error capturing order:', error);
-    return res.status(500).json({ message: error.message || 'Failed to capture order' });
+    return res.status(500).json({ message: error?.message || 'Failed to capture order' });
   }
 });
 
@@ -105,9 +105,9 @@ router.post('/cancel', async (req, res) => {
     const result = await PayPalService.cancelSubscription(subscriptionId, req.user.id);
     
     return res.status(200).json(result);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error cancelling subscription:', error);
-    return res.status(500).json({ message: error.message || 'Failed to cancel subscription' });
+    return res.status(500).json({ message: error?.message || 'Failed to cancel subscription' });
   }
 });
 
@@ -124,9 +124,9 @@ router.get('/current', async (req, res) => {
       active: !!subscription,
       subscription: subscription
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching subscription status:', error);
-    return res.status(500).json({ message: 'Failed to fetch subscription status' });
+    return res.status(500).json({ message: error?.message || 'Failed to fetch subscription status' });
   }
 });
 
@@ -140,9 +140,9 @@ router.get('/history', async (req, res) => {
     const history = await PayPalService.getSubscriptionHistory(req.user.id);
     
     return res.status(200).json(history);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching subscription history:', error);
-    return res.status(500).json({ message: 'Failed to fetch subscription history' });
+    return res.status(500).json({ message: error?.message || 'Failed to fetch subscription history' });
   }
 });
 

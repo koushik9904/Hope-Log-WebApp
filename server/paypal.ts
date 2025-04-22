@@ -73,9 +73,9 @@ class PayPalService {
         status: order.result.status,
         links: order.result.links
       };
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error creating PayPal order:', err);
-      throw new Error(`Failed to create PayPal order: ${err.message}`);
+      throw new Error(`Failed to create PayPal order: ${err?.message || ''}`);
     }
   }
 
@@ -90,8 +90,8 @@ class PayPalService {
       const capture = await client().execute(request);
       
       // Get the transaction details
-      const captureId = capture.result.purchase_units[0].payments.captures[0].id;
-      const amount = parseFloat(capture.result.purchase_units[0].payments.captures[0].amount.value);
+      const captureId = (capture.result as any).purchase_units[0].payments.captures[0].id;
+      const amount = parseFloat((capture.result as any).purchase_units[0].payments.captures[0].amount.value);
       
       // Get plan details
       const [plan] = await db.select()
@@ -151,9 +151,9 @@ class PayPalService {
         startDate: subscription.startDate,
         endDate: subscription.endDate
       };
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error capturing PayPal order:', err);
-      throw new Error(`Failed to capture PayPal order: ${err.message}`);
+      throw new Error(`Failed to capture PayPal order: ${err?.message || ''}`);
     }
   }
 
