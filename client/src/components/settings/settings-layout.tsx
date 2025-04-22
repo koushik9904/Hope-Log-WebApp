@@ -7,7 +7,8 @@ import {
   Shield, 
   Palette, 
   Database, 
-  Lock 
+  Lock,
+  KeySquare
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -47,6 +48,11 @@ const navigationItems = [
     label: "Data",
     href: "/settings/data",
     icon: Database,
+  },
+  {
+    label: "OAuth Integration",
+    href: "/settings/oauth",
+    icon: KeySquare,
   },
 ];
 

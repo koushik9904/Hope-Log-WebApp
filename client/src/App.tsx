@@ -20,6 +20,7 @@ import SettingsNotificationsPage from "@/pages/settings-notifications-page";
 import SettingsPrivacyPage from "@/pages/settings-privacy-page";
 import SettingsAppearancePage from "@/pages/settings-appearance-page";
 import SettingsDataPage from "@/pages/settings-data-page";
+import SettingsOAuthPage from "@/pages/settings-oauth-page";
 import NotFound from "@/pages/not-found";
 import AboutUsPage from "@/pages/about-us-page";
 import ApiAccessPage from "@/pages/api-access-page";
@@ -51,6 +52,7 @@ function Router() {
         <ProtectedRoute path="/settings/privacy" component={SettingsPrivacyPage} />
         <ProtectedRoute path="/settings/appearance" component={SettingsAppearancePage} />
         <ProtectedRoute path="/settings/data" component={SettingsDataPage} />
+        <ProtectedRoute path="/settings/oauth" component={SettingsOAuthPage} />
         <ProtectedRoute path="/settings" component={SettingsPage} />
         <Route path="/about-us" component={AboutUsPage} />
         <Route path="/api-access" component={ApiAccessPage} />
@@ -79,6 +81,7 @@ function Router() {
       <ProtectedRoute path="/settings/privacy" component={SettingsPrivacyPage} />
       <ProtectedRoute path="/settings/appearance" component={SettingsAppearancePage} />
       <ProtectedRoute path="/settings/data" component={SettingsDataPage} />
+      <ProtectedRoute path="/settings/oauth" component={SettingsOAuthPage} />
       <ProtectedRoute path="/settings" component={SettingsPage} />
       <ProtectedRoute path="/" component={HomePage} />
       <Route path="/about-us" component={AboutUsPage} />

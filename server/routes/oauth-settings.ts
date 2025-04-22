@@ -92,11 +92,11 @@ router.post("/test-oauth", async (req: Request, res: Response) => {
       } else {
         throw new Error(`Unexpected status: ${response.status}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Google OAuth test failed:", error);
       return res.status(400).json({ 
         success: false, 
-        message: `Google OAuth test failed: ${error.message || 'Unknown error'}` 
+        message: `Google OAuth test failed: ${error?.message || 'Unknown error'}` 
       });
     }
   } else if (provider === 'apple') {
