@@ -8,6 +8,25 @@ function dateToISOString(date: Date): string {
   return date.toISOString();
 }
 
+// Get PayPal callback URL from database or default
+async function getPayPalCallbackUrl() {
+  try {
+    const callbackUrlSettings = await db.select()
+      .from(systemSettings)
+      .where(eq(systemSettings.key, "paypal_callback_url"))
+      .limit(1);
+    
+    if (callbackUrlSettings.length > 0 && callbackUrlSettings[0].value) {
+      return callbackUrlSettings[0].value;
+    }
+  } catch (err) {
+    console.warn("Error fetching PayPal callback URL from settings:", err);
+  }
+  
+  // Default fallback URL
+  return process.env.APP_URL || 'https://hopelog.com';
+}
+
 // Creating an environment
 function environment() {
   let clientId = process.env.PAYPAL_CLIENT_ID;
@@ -43,7 +62,10 @@ class PayPalService {
     if (!plan) {
       throw new Error(`Subscription plan '${planName}' not found`);
     }
-
+    
+    // Get callback URL from settings or use default
+    const baseUrl = await getPayPalCallbackUrl();
+    
     // Create the PayPal order
     const request = new checkoutNodeJssdk.orders.OrdersCreateRequest();
     request.prefer('return=representation');
@@ -61,8 +83,8 @@ class PayPalService {
         brand_name: 'Hope Log',
         landing_page: 'NO_PREFERENCE',
         user_action: 'PAY_NOW',
-        return_url: `${process.env.APP_URL || 'https://hopelog.ai'}/subscription?planName=${encodeURIComponent(planName)}`,
-        cancel_url: `${process.env.APP_URL || 'https://hopelog.ai'}/subscription?cancelled=true`
+        return_url: `${baseUrl}/subscription?planName=${encodeURIComponent(planName)}&orderId=TOKEN`,
+        cancel_url: `${baseUrl}/subscription?cancelled=true`
       }
     });
 
