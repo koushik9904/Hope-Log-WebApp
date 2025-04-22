@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, doublePrecision, date } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -14,6 +14,9 @@ export const users = pgTable("users", {
   provider: text("provider"), // 'local', 'google', 'apple'
   providerId: text("provider_id"),
   isAdmin: boolean("is_admin").default(false),
+  subscriptionTier: text("subscription_tier").default("free").notNull(), // 'free', 'pro'
+  subscriptionStatus: text("subscription_status").default("active").notNull(), // 'active', 'trial', 'expired', 'cancelled'
+  subscriptionExpiresAt: timestamp("subscription_expires_at", { mode: 'string' }),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -26,6 +29,9 @@ export const insertUserSchema = createInsertSchema(users).pick({
   provider: true,
   providerId: true,
   isAdmin: true,
+  subscriptionTier: true,
+  subscriptionStatus: true,
+  subscriptionExpiresAt: true,
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -197,3 +203,98 @@ export const systemSettings = pgTable("system_settings", {
 export const insertSystemSettingsSchema = createInsertSchema(systemSettings).omit({ id: true });
 export type InsertSystemSettings = z.infer<typeof insertSystemSettingsSchema>;
 export type SystemSettings = typeof systemSettings.$inferSelect;
+
+// Subscription plans table
+export const subscriptionPlans = pgTable("subscription_plans", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  displayName: text("display_name").notNull(),
+  description: text("description").notNull(),
+  price: doublePrecision("price").notNull(),
+  interval: text("interval").notNull().default("month"), // 'month', 'year'
+  features: jsonb("features").$type<string[]>().notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
+  updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
+});
+
+export const insertSubscriptionPlanSchema = createInsertSchema(subscriptionPlans).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertSubscriptionPlan = z.infer<typeof insertSubscriptionPlanSchema>;
+export type SubscriptionPlan = typeof subscriptionPlans.$inferSelect;
+
+// Subscriptions table (links users to plans)
+export const subscriptions = pgTable("subscriptions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  planId: integer("plan_id").notNull().references(() => subscriptionPlans.id),
+  status: text("status").notNull().default("active"), // 'active', 'cancelled', 'expired'
+  startDate: timestamp("start_date", { mode: 'string' }).notNull().defaultNow(),
+  endDate: timestamp("end_date", { mode: 'string' }),
+  paypalSubscriptionId: text("paypal_subscription_id"),
+  cancelAtPeriodEnd: boolean("cancel_at_period_end").default(false),
+  cancelledAt: timestamp("cancelled_at", { mode: 'string' }),
+  createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
+  updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
+});
+
+export const insertSubscriptionSchema = createInsertSchema(subscriptions).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertSubscription = z.infer<typeof insertSubscriptionSchema>;
+export type Subscription = typeof subscriptions.$inferSelect;
+
+// Payment transactions table
+export const payments = pgTable("payments", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  subscriptionId: integer("subscription_id").references(() => subscriptions.id),
+  amount: doublePrecision("amount").notNull(),
+  currency: text("currency").notNull().default("USD"),
+  paymentMethod: text("payment_method").notNull(), // 'paypal', etc.
+  paymentId: text("payment_id"), // ID from payment provider
+  status: text("status").notNull(), // 'completed', 'pending', 'failed', 'refunded'
+  paymentDate: timestamp("payment_date", { mode: 'string' }).notNull().defaultNow(),
+  metadata: jsonb("metadata").$type<Record<string, any>>(),
+  createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
+  updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
+});
+
+export const insertPaymentSchema = createInsertSchema(payments).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertPayment = z.infer<typeof insertPaymentSchema>;
+export type Payment = typeof payments.$inferSelect;
+
+// Feature limitations table - controls what features are available for different subscription tiers
+export const featureLimits = pgTable("feature_limits", {
+  id: serial("id").primaryKey(),
+  subscriptionTier: text("subscription_tier").notNull().unique(), // 'free', 'pro'
+  maxJournalEntries: integer("max_journal_entries"), // null means unlimited
+  maxGoals: integer("max_goals"),
+  aiResponsesPerDay: integer("ai_responses_per_day"),
+  insightsAccess: boolean("insights_access").notNull().default(false),
+  customPromptsAccess: boolean("custom_prompts_access").notNull().default(false),
+  weeklyDigestAccess: boolean("weekly_digest_access").notNull().default(false),
+  moodTrackingAccess: boolean("mood_tracking_access").notNull().default(true),
+  exportAccess: boolean("export_access").notNull().default(false),
+  communityAccess: boolean("community_access").notNull().default(false),
+  createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
+  updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
+});
+
+export const insertFeatureLimitSchema = createInsertSchema(featureLimits).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertFeatureLimit = z.infer<typeof insertFeatureLimitSchema>;
+export type FeatureLimit = typeof featureLimits.$inferSelect;
+
+// User usage tracking to enforce limits
+export const userUsage = pgTable("user_usage", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  journalEntriesCount: integer("journal_entries_count").notNull().default(0),
+  goalsCount: integer("goals_count").notNull().default(0),
+  aiResponsesCount: integer("ai_responses_count").notNull().default(0),
+  aiResponsesResetDate: timestamp("ai_responses_reset_date", { mode: 'string' }).notNull().defaultNow(),
+  lastActive: timestamp("last_active", { mode: 'string' }).notNull().defaultNow(),
+  createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
+  updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
+});
+
+export const insertUserUsageSchema = createInsertSchema(userUsage).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertUserUsage = z.infer<typeof insertUserUsageSchema>;
+export type UserUsage = typeof userUsage.$inferSelect;
