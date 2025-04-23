@@ -191,6 +191,34 @@ export const insertNotificationPreferencesSchema = createInsertSchema(notificati
 export type InsertNotificationPreferences = z.infer<typeof insertNotificationPreferencesSchema>;
 export type NotificationPreferences = typeof notificationPreferences.$inferSelect;
 
+// Habits table
+export const habits = pgTable("habits", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  title: text("title").notNull(),
+  description: text("description"),
+  frequency: text("frequency").notNull().default("daily"),
+  streak: integer("streak").notNull().default(0),
+  completedToday: boolean("completed_today").notNull().default(false),
+  lastCompletedAt: timestamp("last_completed_at", { mode: 'string' }),
+  deletedAt: timestamp("deleted_at", { mode: 'string' }),
+  createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
+  updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow()
+});
+
+export const insertHabitSchema = createInsertSchema(habits).omit({ 
+  id: true, 
+  streak: true, 
+  completedToday: true, 
+  lastCompletedAt: true,
+  deletedAt: true,
+  createdAt: true, 
+  updatedAt: true 
+});
+
+export type InsertHabit = z.infer<typeof insertHabitSchema>;
+export type Habit = typeof habits.$inferSelect;
+
 // System settings
 export const systemSettings = pgTable("system_settings", {
   id: serial("id").primaryKey(),

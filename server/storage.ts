@@ -3,12 +3,13 @@ import {
   JournalEntry, InsertJournalEntry, 
   Mood, InsertMood, 
   Goal, InsertGoal, 
+  Habit, InsertHabit,
   Prompt, InsertPrompt, 
   Summary, InsertSummary, 
   Notification, InsertNotification,
   NotificationPreferences, InsertNotificationPreferences,
   SystemSettings, InsertSystemSettings,
-  users, journalEntries, moods, goals, prompts, summaries,
+  users, journalEntries, moods, goals, habits, prompts, summaries,
   notifications, notificationPreferences, systemSettings
 } from "@shared/schema";
 import session from "express-session";
@@ -51,6 +52,17 @@ export interface IStorage {
   createGoal(goal: InsertGoal): Promise<Goal>;
   updateGoalProgress(id: number, progress: number): Promise<Goal>;
   deleteGoal(id: number): Promise<void>;
+  
+  // Habit methods
+  getHabitsByUserId(userId: number): Promise<Habit[]>;
+  getHabitById(id: number): Promise<Habit | undefined>;
+  createHabit(habit: InsertHabit): Promise<Habit>;
+  updateHabit(id: number, habit: Partial<Habit>): Promise<Habit>;
+  toggleHabitCompletion(id: number, completed: boolean): Promise<Habit>;
+  deleteHabit(id: number): Promise<void>;
+  getDeletedHabitsByUserId(userId: number): Promise<Habit[]>;
+  restoreHabit(id: number): Promise<Habit>;
+  permanentlyDeleteHabit(id: number): Promise<void>;
   
   // Prompt methods
   getDefaultPrompts(): Promise<Prompt[]>;
@@ -303,6 +315,112 @@ export class DatabaseStorage implements IStorage {
     await db
       .delete(goals)
       .where(eq(goals.id, id));
+  }
+  
+  // Habit methods
+  async getHabitsByUserId(userId: number): Promise<Habit[]> {
+    return await db
+      .select()
+      .from(habits)
+      .where(
+        and(
+          eq(habits.userId, userId),
+          isNull(habits.deletedAt)
+        )
+      )
+      .orderBy(habits.id);
+  }
+  
+  async getHabitById(id: number): Promise<Habit | undefined> {
+    const result = await db
+      .select()
+      .from(habits)
+      .where(eq(habits.id, id));
+      
+    return result[0];
+  }
+  
+  async createHabit(habit: InsertHabit): Promise<Habit> {
+    const result = await db
+      .insert(habits)
+      .values(habit)
+      .returning();
+      
+    return result[0];
+  }
+  
+  async updateHabit(id: number, habitUpdate: Partial<Habit>): Promise<Habit> {
+    const result = await db
+      .update(habits)
+      .set(habitUpdate)
+      .where(eq(habits.id, id))
+      .returning();
+      
+    if (result.length === 0) {
+      throw new Error(`Habit with id ${id} not found`);
+    }
+    
+    return result[0];
+  }
+  
+  async toggleHabitCompletion(id: number, completed: boolean): Promise<Habit> {
+    const result = await db
+      .update(habits)
+      .set({ 
+        completedToday: completed,
+        lastCompletedAt: completed ? new Date().toISOString() : undefined,
+        // If completed, increment the streak
+        streak: completed ? sql`${habits.streak} + 1` : habits.streak
+      })
+      .where(eq(habits.id, id))
+      .returning();
+      
+    if (result.length === 0) {
+      throw new Error(`Habit with id ${id} not found`);
+    }
+    
+    return result[0];
+  }
+  
+  async deleteHabit(id: number): Promise<void> {
+    // Soft delete - set deletedAt to current date
+    await db
+      .update(habits)
+      .set({ deletedAt: new Date().toISOString() })
+      .where(eq(habits.id, id));
+  }
+  
+  async getDeletedHabitsByUserId(userId: number): Promise<Habit[]> {
+    return await db
+      .select()
+      .from(habits)
+      .where(
+        and(
+          eq(habits.userId, userId),
+          sql`${habits.deletedAt} IS NOT NULL`
+        )
+      )
+      .orderBy(habits.id);
+  }
+  
+  async restoreHabit(id: number): Promise<Habit> {
+    const result = await db
+      .update(habits)
+      .set({ deletedAt: null })
+      .where(eq(habits.id, id))
+      .returning();
+      
+    if (result.length === 0) {
+      throw new Error(`Habit with id ${id} not found`);
+    }
+    
+    return result[0];
+  }
+  
+  async permanentlyDeleteHabit(id: number): Promise<void> {
+    await db
+      .delete(habits)
+      .where(eq(habits.id, id));
   }
   
   async getDefaultPrompts(): Promise<Prompt[]> {
