@@ -34,11 +34,12 @@ export default function NewJournalEntryPage() {
   const createJournalMutation = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error("You must be logged in to create a journal entry");
+      if (isFutureDate) throw new Error("Cannot create journal entries for future dates");
       
       const res = await apiRequest("POST", "/api/journal-entries", {
         content,
         userId: user.id,
-        date: new Date().toISOString(),
+        date: entryDate.toISOString(), // Use the selected date
         isJournal: true // This is a direct journal entry
       });
       
@@ -101,10 +102,41 @@ export default function NewJournalEntryPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <PenLine className="h-5 w-5" />
-              New Journal Entry
+              {isPastDate ? 'New Past Journal Entry' : 'New Journal Entry'}
             </CardTitle>
+            {isPastDate && (
+              <CardDescription className="flex items-center gap-1 text-amber-600">
+                <Calendar className="h-4 w-4" />
+                Creating entry for {entryDate.toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  month: 'long',
+                  day: 'numeric',
+                  year: 'numeric'
+                })}
+              </CardDescription>
+            )}
           </CardHeader>
           <CardContent>
+            {isFutureDate && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>
+                  Journal entries cannot be created for future dates.
+                </AlertDescription>
+              </Alert>
+            )}
+            
+            {isPastDate && !isFutureDate && (
+              <Alert className="mb-4">
+                <Calendar className="h-4 w-4" />
+                <AlertTitle>Past Date Entry</AlertTitle>
+                <AlertDescription>
+                  You are creating a journal entry for a past date. This will be added to your journal history.
+                </AlertDescription>
+              </Alert>
+            )}
+            
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
                 <Textarea
@@ -129,7 +161,7 @@ export default function NewJournalEntryPage() {
                   ) : (
                     <>
                       <Save className="h-4 w-4 mr-2" />
-                      Save Journal Entry
+                      {isPastDate ? 'Save Past Journal Entry' : 'Save Journal Entry'}
                     </>
                   )}
                 </Button>
