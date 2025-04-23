@@ -4,6 +4,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { JournalEntry } from "@shared/schema";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
+import { EntryTypeSelector } from "@/components/journal/entry-type-selector";
 import {
   Calendar,
   MessageSquare,
