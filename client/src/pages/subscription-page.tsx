@@ -331,8 +331,15 @@ const SubscriptionPage = () => {
   };
   
   // Check if the user has an active subscription
-  const hasActiveSubscription = currentSubscription?.active;
-  const isPro = user?.subscriptionTier === 'pro' && user?.subscriptionStatus === 'active';
+  // A subscription is considered active if:
+  // 1. The API says it's active OR
+  // 2. There's a subscription with an end date in the future (even if cancelled)
+  const subscriptionObject = currentSubscription?.subscription;
+  const endDateInFuture = subscriptionObject?.endDate ? new Date(subscriptionObject.endDate) > new Date() : false;
+  const hasActiveSubscription = currentSubscription?.active || endDateInFuture;
+  
+  // For UI purposes, we consider the user "Pro" if they have any valid subscription that hasn't expired
+  const isPro = user?.subscriptionTier === 'pro' || endDateInFuture;
   
   // Loading state
   const isLoading = plansLoading || subscriptionLoading || processingPayPal;
@@ -441,7 +448,8 @@ const SubscriptionPage = () => {
                   </CardContent>
                   <CardFooter>
                     {plan.name === 'free' ? (
-                      isPro ? (
+                      // Free plan is disabled if you're on Pro, otherwise it shows as your current plan
+                      !isPro ? (
                         <Button variant="outline" className="w-full" disabled>
                           Current Plan
                         </Button>
@@ -451,13 +459,15 @@ const SubscriptionPage = () => {
                         </Button>
                       )
                     ) : (
-                      isPro ? (
+                      // For paid plans
+                      // Check if user has THIS EXACT active plan (not cancelled)
+                      currentSubscription?.subscription?.plan?.name === plan.name && 
+                      !currentSubscription?.subscription?.cancelAtPeriodEnd ? (
                         <Button variant="outline" className="w-full" disabled>
-                          {currentSubscription?.subscription?.plan?.name === plan.name 
-                            ? "Current Plan" 
-                            : "Already Subscribed"}
+                          Current Plan
                         </Button>
                       ) : (
+                        // Allow subscribing or re-subscribing regardless of other plan status
                         <Button 
                           variant="default" 
                           className="w-full"
@@ -472,7 +482,7 @@ const SubscriptionPage = () => {
                           ) : (
                             <span className="flex items-center gap-2">
                               <CreditCard className="h-4 w-4" />
-                              Subscribe Now
+                              {currentSubscription?.subscription?.cancelAtPeriodEnd ? "Resubscribe" : "Subscribe Now"}
                             </span>
                           )}
                         </Button>
@@ -544,12 +554,29 @@ const SubscriptionPage = () => {
                   <CardTitle className="text-xl">
                     {currentSubscription.subscription.plan.displayName} Subscription
                   </CardTitle>
-                  <Badge variant={currentSubscription.subscription.status === 'active' ? 'default' : 'secondary'}>
-                    {currentSubscription.subscription.status === 'active'
-                      ? currentSubscription.subscription.cancelAtPeriodEnd
-                        ? 'Cancelling'
-                        : 'Active'
-                      : 'Inactive'}
+                  <Badge 
+                    variant={
+                      currentSubscription.subscription.status === 'active' 
+                        ? currentSubscription.subscription.cancelAtPeriodEnd 
+                          ? 'outline' 
+                          : 'default'
+                        : 'secondary'
+                    }
+                  >
+                    {(() => {
+                      // If end date is in the future
+                      const endDate = new Date(currentSubscription.subscription.endDate);
+                      const now = new Date();
+                      const isActive = endDate > now;
+                      
+                      if (isActive) {
+                        return currentSubscription.subscription.cancelAtPeriodEnd
+                          ? 'Active until ' + formatDate(currentSubscription.subscription.endDate)
+                          : 'Active';
+                      } else {
+                        return 'Inactive';
+                      }
+                    })()}
                   </Badge>
                 </div>
                 <CardDescription>

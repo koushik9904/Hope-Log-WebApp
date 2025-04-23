@@ -221,7 +221,7 @@ export function Sidebar() {
               </div>
               <div className="ml-3">
                 <p className="text-sm font-medium text-white">{user?.username}</p>
-                <p className="text-xs text-gray-400">Standard Plan</p>
+                <p className="text-xs text-gray-400">{user?.subscriptionTier === 'pro' ? 'Pro Plan' : 'Free Plan'}</p>
               </div>
             </div>
             <button 
