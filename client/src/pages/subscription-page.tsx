@@ -89,19 +89,26 @@ type ActiveSubscription = {
 
 // Payment history type
 type PaymentHistory = {
-  subscription: {
-    id: number;
-    startDate: string;
-    endDate: string;
-    status: string;
-  };
+  id: number;
+  userId: number;
+  planId: number;
+  startDate: string;
+  endDate: string;
+  status: string;
+  cancelAtPeriodEnd: boolean;
+  cancelledAt: string | null;
+  createdAt: string;
   plan: {
+    id: number;
     name: string;
     displayName: string;
     price: number;
     interval: 'month' | 'year';
+    description: string;
+    features: string[];
+    isActive: boolean;
   };
-  payment: {
+  payment?: {
     id: number;
     amount: number;
     paymentMethod: string;
@@ -109,6 +116,14 @@ type PaymentHistory = {
     status: string;
     paymentDate: string;
   } | null;
+  payments?: Array<{
+    id: number;
+    amount: number;
+    paymentMethod: string;
+    paymentId: string;
+    status: string;
+    paymentDate: string;
+  }>;
 }[];
 
 const SubscriptionPage = () => {
@@ -729,7 +744,7 @@ const SubscriptionPage = () => {
                             {item.plan.displayName} Subscription
                           </h4>
                           <p className="text-sm text-muted-foreground">
-                            {formatDate(item.subscription.startDate)} - {formatDate(item.subscription.endDate)}
+                            {formatDate(item.startDate || '')} - {formatDate(item.endDate || '')}
                           </p>
                         </div>
                         <Badge variant={item.payment?.status === 'completed' ? 'outline' : 'secondary'}>
@@ -737,24 +752,33 @@ const SubscriptionPage = () => {
                         </Badge>
                       </div>
                       
-                      {item.payment && (
+                      {/* Check for either a single payment or the first item in payments array */}
+                      {(item.payment || (item.payments && item.payments.length > 0)) && (
                         <div className="mt-2 space-y-1 text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Amount:</span>
-                            <span>${item.payment.amount}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Payment Method:</span>
-                            <span className="capitalize">{item.payment.paymentMethod}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Date:</span>
-                            <span>{formatDate(item.payment.paymentDate)}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Transaction ID:</span>
-                            <span className="text-xs truncate max-w-[180px]">{item.payment.paymentId}</span>
-                          </div>
+                          {/* Use the first payment if we have an array, otherwise use the payment property */}
+                          {(() => {
+                            const paymentData = item.payment || (item.payments && item.payments[0]);
+                            return paymentData ? (
+                              <>
+                                <div className="flex justify-between">
+                                  <span className="text-muted-foreground">Amount:</span>
+                                  <span>${paymentData.amount}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-muted-foreground">Payment Method:</span>
+                                  <span className="capitalize">{paymentData.paymentMethod}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-muted-foreground">Date:</span>
+                                  <span>{formatDate(paymentData.paymentDate)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-muted-foreground">Transaction ID:</span>
+                                  <span className="text-xs truncate max-w-[180px]">{paymentData.paymentId}</span>
+                                </div>
+                              </>
+                            ) : null;
+                          })()}
                         </div>
                       )}
                     </div>
