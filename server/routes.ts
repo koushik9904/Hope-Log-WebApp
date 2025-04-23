@@ -527,16 +527,35 @@ Your role is to:
     if (!req.isAuthenticated()) return res.sendStatus(401);
     
     const goalId = Number(req.params.goalId);
-    const { progress } = req.body;
     
     try {
       const goal = await storage.getGoalById(goalId);
       if (!goal) return res.status(404).json({ error: "Goal not found" });
       if (goal.userId !== req.user?.id) return res.sendStatus(403);
       
-      const updatedGoal = await storage.updateGoalProgress(goalId, progress);
-      res.json(updatedGoal);
+      // Handle both full goal updates and progress-only updates
+      if (req.body.hasOwnProperty('progress') && Object.keys(req.body).length === 1) {
+        // This is a progress-only update
+        const { progress } = req.body;
+        const updatedGoal = await storage.updateGoalProgress(goalId, progress);
+        return res.json(updatedGoal);
+      } else {
+        // This is a full goal update
+        // First, create a new goal with the updated data
+        const updatedData = {
+          ...req.body,
+          userId: req.user.id
+        };
+        
+        // Delete old goal
+        await storage.deleteGoal(goalId);
+        
+        // Create new goal with updated data
+        const updatedGoal = await storage.createGoal(updatedData);
+        return res.json(updatedGoal);
+      }
     } catch (error) {
+      console.error("Goal update error:", error);
       res.status(500).json({ error: "Failed to update goal" });
     }
   });
