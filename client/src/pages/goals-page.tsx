@@ -553,14 +553,26 @@ export default function GoalsPage() {
   const completedGoals = goals.filter(goal => goal.progress === 100).length;
   const completionRate = goals.length > 0 ? Math.round((completedGoals / goals.length) * 100) : 0;
   
-  // Habits (using example data for now)
-  const [habits, setHabits] = useState(EXAMPLE_HABITS);
-  const [habitToEdit, setHabitToEdit] = useState<typeof EXAMPLE_HABITS[0] | null>(null);
+  // Fetch habits data from the API
+  const { data: habits = [], isLoading: isHabitsLoading } = useQuery<Habit[]>({
+    queryKey: [`/api/habits/${user?.id}`],
+    enabled: !!user?.id,
+    staleTime: 60000, // 1 minute
+  });
+  
+  // Fetch deleted habits
+  const { data: deletedHabitsData = [], isLoading: isDeletedHabitsLoading } = useQuery<Habit[]>({
+    queryKey: [`/api/habits/${user?.id}/deleted`],
+    enabled: !!user?.id,
+    staleTime: 60000, // 1 minute
+  });
+  const [habitToEdit, setHabitToEdit] = useState<Habit | null>(null);
   const [showEditHabitDialog, setShowEditHabitDialog] = useState(false);
   
   // Recycle bin for deleted items
   const [deletedGoals, setDeletedGoals] = useState<DeletedGoal[]>([]);
-  const [deletedHabits, setDeletedHabits] = useState<DeletedHabit[]>([]);
+  // Use fetched data for deleted habits
+  const deletedHabits = deletedHabitsData;
   const [showRecycleBin, setShowRecycleBin] = useState(false);
   
   // User's premium status - for determining retention period
@@ -662,7 +674,7 @@ export default function GoalsPage() {
   });
   
   // Edit habit handler
-  const updateHabit = (updatedHabit: typeof EXAMPLE_HABITS[0]) => {
+  const updateHabit = (updatedHabit: Habit) => {
     editHabitMutation.mutate({
       id: updatedHabit.id,
       title: updatedHabit.title,
