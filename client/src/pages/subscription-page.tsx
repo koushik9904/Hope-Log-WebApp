@@ -362,12 +362,12 @@ const SubscriptionPage = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {plans?.map((plan) => (
-                <Card key={plan.id} className={`flex flex-col ${plan.name === 'pro' ? 'border-primary/50 shadow-lg' : ''}`}>
+                <Card key={plan.id} className={`flex flex-col ${plan.name === 'pro' ? 'border-[#F5B8DB]/50 shadow-lg' : 'border-[#B6CAEB]/30'}`}>
                   <CardHeader>
                     <div className="flex justify-between items-center">
                       <CardTitle>{plan.displayName}</CardTitle>
                       {plan.name === 'pro' && (
-                        <Badge variant="default" className="bg-primary">Recommended</Badge>
+                        <Badge variant="default" className="bg-[#F5B8DB] text-gray-800">Recommended</Badge>
                       )}
                     </div>
                     <CardDescription>
@@ -474,7 +474,7 @@ const SubscriptionPage = () => {
           <div className="mt-8 space-y-4">
             <div className="bg-muted p-4 rounded-lg">
               <div className="flex items-start gap-3">
-                <ShieldCheck className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
+                <ShieldCheck className="h-6 w-6 text-[#9AAB63] flex-shrink-0 mt-1" />
                 <div>
                   <h3 className="font-medium mb-1">Secure Subscription</h3>
                   <p className="text-sm text-muted-foreground">

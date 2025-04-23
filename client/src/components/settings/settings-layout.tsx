@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
+import { PageLayout } from "@/components/layout/page-layout";
 
 interface SettingsLayoutProps {
   children: ReactNode;
@@ -55,14 +56,7 @@ export function SettingsLayout({ children }: SettingsLayoutProps) {
   const [location] = useLocation();
 
   return (
-    <div className="container py-8 min-h-screen">
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold tracking-tight">Settings</h2>
-        <p className="text-muted-foreground">
-          Manage your account settings and preferences
-        </p>
-      </div>
-      
+    <PageLayout heading="Settings" subheading="Manage your account settings and preferences">
       <div className="flex flex-col md:flex-row gap-8">
         {/* Sidebar navigation */}
         <aside className="md:w-1/4 flex-shrink-0">
@@ -96,6 +90,6 @@ export function SettingsLayout({ children }: SettingsLayoutProps) {
           {children}
         </div>
       </div>
-    </div>
+    </PageLayout>
   );
 }

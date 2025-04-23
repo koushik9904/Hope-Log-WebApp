@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { PageLayout } from "@/components/layout/page-layout";
 
 export default function NotificationsSettingsPage() {
   const { preferences, isLoading, updatePreferences, isUpdating } = useNotificationPreferences();
