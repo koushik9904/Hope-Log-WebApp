@@ -531,9 +531,9 @@ const SubscriptionPage = () => {
                   <CardTitle className="text-xl">
                     {currentSubscription.subscription.plan.displayName} Subscription
                   </CardTitle>
-                  <Badge variant={currentSubscription.subscription.subscription.status === 'active' ? 'default' : 'secondary'}>
-                    {currentSubscription.subscription.subscription.status === 'active'
-                      ? currentSubscription.subscription.subscription.cancelAtPeriodEnd
+                  <Badge variant={currentSubscription.subscription.status === 'active' ? 'default' : 'secondary'}>
+                    {currentSubscription.subscription.status === 'active'
+                      ? currentSubscription.subscription.cancelAtPeriodEnd
                         ? 'Cancelling'
                         : 'Active'
                       : 'Inactive'}
