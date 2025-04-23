@@ -25,6 +25,13 @@ import { SiApple, SiAndroid } from "react-icons/si";
 import { FaTwitter, FaInstagram, FaFacebook } from "react-icons/fa";
 import { HopeLogLogo } from "@/components/ui/hope-log-logo";
 
+// Import institution logos
+import IIITHyderabadLogo from "@assets/IIIT_Hyderabad_Logo.jpg";
+import NIMHANSLogo from "@assets/nimhans logo.jpeg";
+import IITHyderabadLogo from "@assets/IIT Hyderabad Logo_Final Design.jpg";
+import UniversityOfHyderabadLogo from "@assets/University_of_Hyderabad_Logo.png";
+import TataMemorialLogo from "@assets/tata_memorial_logo.png";
+
 export default function LandingPage() {
   const { user } = useAuth();
 
@@ -219,24 +226,24 @@ export default function LandingPage() {
           </div>
           <div className="flex flex-wrap justify-center items-center gap-12">
             <div className="flex flex-col items-center">
-              <div className="w-12 h-12 bg-gray-200 rounded-full mb-2"></div>
-              <div className="text-gray-400 font-semibold text-sm">IIIT Hyderabad</div>
+              <img src={IIITHyderabadLogo} alt="IIIT Hyderabad" className="h-16 object-contain mb-2" />
+              <div className="text-gray-600 font-semibold text-sm">IIIT Hyderabad</div>
             </div>
             <div className="flex flex-col items-center">
-              <div className="w-12 h-12 bg-gray-200 rounded-full mb-2"></div>
-              <div className="text-gray-400 font-semibold text-sm">NIMHANS</div>
+              <img src={NIMHANSLogo} alt="NIMHANS" className="h-16 object-contain mb-2" />
+              <div className="text-gray-600 font-semibold text-sm">NIMHANS</div>
             </div>
             <div className="flex flex-col items-center">
-              <div className="w-12 h-12 bg-gray-200 rounded-full mb-2"></div>
-              <div className="text-gray-400 font-semibold text-sm">IIT Hyderabad</div>
+              <img src={IITHyderabadLogo} alt="IIT Hyderabad" className="h-16 object-contain mb-2" />
+              <div className="text-gray-600 font-semibold text-sm">IIT Hyderabad</div>
             </div>
             <div className="flex flex-col items-center">
-              <div className="w-12 h-12 bg-gray-200 rounded-full mb-2"></div>
-              <div className="text-gray-400 font-semibold text-sm">Hyderabad University</div>
+              <img src={UniversityOfHyderabadLogo} alt="University of Hyderabad" className="h-16 object-contain mb-2" />
+              <div className="text-gray-600 font-semibold text-sm">University of Hyderabad</div>
             </div>
             <div className="flex flex-col items-center">
-              <div className="w-12 h-12 bg-gray-200 rounded-full mb-2"></div>
-              <div className="text-gray-400 font-semibold text-sm">Tata Memorial Hospital</div>
+              <img src={TataMemorialLogo} alt="Tata Memorial Hospital" className="h-16 object-contain mb-2" />
+              <div className="text-gray-600 font-semibold text-sm">Tata Memorial Hospital</div>
             </div>
           </div>
         </div>
