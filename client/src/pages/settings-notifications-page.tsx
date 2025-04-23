@@ -1,11 +1,9 @@
 import { useEffect } from "react";
 import { useNotificationPreferences } from "@/hooks/use-notifications";
-import { SettingsLayout } from "@/components/settings/settings-layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { PageLayout } from "@/components/layout/page-layout";
@@ -67,16 +65,16 @@ export default function NotificationsSettingsPage() {
 
   if (isLoading) {
     return (
-      <SettingsLayout>
+      <PageLayout heading="Settings" subheading="Manage your account settings and preferences">
         <div className="flex items-center justify-center w-full h-64">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <Loader2 className="h-8 w-8 animate-spin text-[#F5B8DB]" />
         </div>
-      </SettingsLayout>
+      </PageLayout>
     );
   }
 
   return (
-    <SettingsLayout>
+    <PageLayout heading="Settings" subheading="Manage your account settings and preferences">
       <div className="space-y-6">
         <div>
           <h3 className="text-2xl font-medium">Notification Settings</h3>
@@ -229,6 +227,6 @@ export default function NotificationsSettingsPage() {
           </CardContent>
         </Card>
       </div>
-    </SettingsLayout>
+    </PageLayout>
   );
 }
