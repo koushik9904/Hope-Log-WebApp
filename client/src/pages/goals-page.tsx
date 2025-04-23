@@ -948,7 +948,21 @@ export default function GoalsPage() {
                 </DialogContent>
               </Dialog>
             ) : (
-              <Dialog open={showNewHabitDialog} onOpenChange={setShowNewHabitDialog}>
+              <Dialog
+                open={showNewHabitDialog} 
+                onOpenChange={(open) => {
+                  // Reset form when opening the dialog
+                  if (open) {
+                    habitForm.reset({
+                      title: "",
+                      description: "",
+                      frequency: "daily",
+                      userId: user?.id
+                    });
+                  }
+                  setShowNewHabitDialog(open);
+                }}
+              >
                 <DialogTrigger asChild>
                   <Button className="bg-[#F5B8DB] hover:bg-[#f096c9] text-white flex items-center gap-2">
                     <Plus className="h-4 w-4" /> New Habit
@@ -1035,8 +1049,12 @@ export default function GoalsPage() {
                         >
                           Cancel
                         </Button>
-                        <Button type="submit" className="bg-[#F5B8DB] hover:bg-[#f096c9] text-white">
-                          Create Habit
+                        <Button 
+                          type="submit" 
+                          className="bg-[#F5B8DB] hover:bg-[#f096c9] text-white"
+                          disabled={addHabitMutation.isPending}
+                        >
+                          {addHabitMutation.isPending ? "Creating..." : "Create Habit"}
                         </Button>
                       </DialogFooter>
                     </form>
