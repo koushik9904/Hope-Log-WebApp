@@ -330,9 +330,9 @@ const SubscriptionPage = () => {
       <Sidebar />
       
       {/* Main content */}
-      <div className="flex-1 md:ml-64 min-h-screen bg-background">
-        <div className="container max-w-5xl py-8">
-          <div className="space-y-4">
+      <div className="flex-1 md:ml-64 min-h-screen bg-cream">
+        <div className="container max-w-5xl py-8 px-4 md:px-8">
+          <div className="space-y-6">
             <div>
               <h1 className="text-3xl font-semibold mb-2">Subscription Management</h1>
               <p className="text-muted-foreground">Manage your subscription and payment information</p>
