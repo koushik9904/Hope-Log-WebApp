@@ -25,7 +25,7 @@ export function EntryTypeSelector({
   if (linkMode) {
     return (
       <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 ${className}`}>
-        <Link href="/journal/new?type=journal&date=${dateParam}">
+        <Link href={`/journal/new?type=journal&date=${dateParam}`}>
           <Card className="relative overflow-hidden hover:shadow-md transition-shadow cursor-pointer border border-gray-200 shadow-sm">
             <CardHeader className="bg-gradient-to-r from-[#F5B8DB]/10 to-white">
               <CardTitle className="flex items-center gap-2">
@@ -47,7 +47,7 @@ export function EntryTypeSelector({
           </Card>
         </Link>
         
-        <Link href="/chat?date=${dateParam}">
+        <Link href={`/chat?date=${dateParam}`}>
           <Card className="relative overflow-hidden hover:shadow-md transition-shadow cursor-pointer border border-gray-200 shadow-sm">
             <CardHeader className="bg-gradient-to-r from-[#B6CAEB]/10 to-white">
               <CardTitle className="flex items-center gap-2">
