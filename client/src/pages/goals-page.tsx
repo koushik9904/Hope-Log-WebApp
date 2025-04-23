@@ -192,6 +192,7 @@ const EXAMPLE_HABITS = [
 
 // Example AI-suggested goals - derived both from generic goals and journal analysis
 const AI_SUGGESTED_GOALS = [
+  // Journal-based suggestions (these would normally come from API)
   {
     id: "ai-1",
     name: "Meditate for 10 minutes daily",
@@ -464,7 +465,22 @@ export default function GoalsPage() {
   
   // Submit handlers
   const onGoalSubmit = (values: GoalFormValues) => {
-    addGoalMutation.mutate(values);
+    // Check for similar goals to avoid duplicates
+    const similarGoal = goals.find(goal => 
+      goal.name.toLowerCase().includes(values.name.toLowerCase()) || 
+      values.name.toLowerCase().includes(goal.name.toLowerCase())
+    );
+    
+    if (similarGoal) {
+      // Ask for confirmation before creating a potentially duplicate goal
+      if (window.confirm(`A similar goal "${similarGoal.name}" already exists. Do you still want to create this goal?`)) {
+        addGoalMutation.mutate(values);
+      } else {
+        setShowNewGoalDialog(false);
+      }
+    } else {
+      addGoalMutation.mutate(values);
+    }
   };
   
   // Habit API mutations
@@ -500,7 +516,22 @@ export default function GoalsPage() {
   });
   
   const onHabitSubmit = (values: HabitFormValues) => {
-    addHabitMutation.mutate(values);
+    // Check for similar habits to avoid duplicates
+    const similarHabit = habits.find(habit => 
+      habit.title.toLowerCase().includes(values.title.toLowerCase()) || 
+      values.title.toLowerCase().includes(habit.title.toLowerCase())
+    );
+    
+    if (similarHabit) {
+      // Ask for confirmation before creating a potentially duplicate habit
+      if (window.confirm(`A similar habit "${similarHabit.title}" already exists. Do you still want to create this habit?`)) {
+        addHabitMutation.mutate(values);
+      } else {
+        setShowNewHabitDialog(false);
+      }
+    } else {
+      addHabitMutation.mutate(values);
+    }
   };
   
   // Handler for adopting AI-suggested goals
