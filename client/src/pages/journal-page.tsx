@@ -247,9 +247,12 @@ export default function JournalPage() {
   
   // Group entries by date for the chronological view
   const entriesByDate = sortedEntries.reduce<Record<string, JournalEntry[]>>((acc, entry) => {
-    const date = new Date(entry.date).toLocaleDateString();
-    if (!acc[date]) acc[date] = [];
-    acc[date].push(entry);
+    // Format date to YYYY-MM-DD for consistent key generation
+    const entryDate = new Date(entry.date);
+    const dateStr = entryDate.toISOString().split('T')[0];
+    
+    if (!acc[dateStr]) acc[dateStr] = [];
+    acc[dateStr].push(entry);
     return acc;
   }, {});
   
@@ -500,7 +503,7 @@ export default function JournalPage() {
               <div className="space-y-6">
                 {/* Allow adding journal entries for the selected date if not present */}
                 {!Object.keys(entriesByDate).some(dateStr => 
-                  new Date(dateStr).toDateString() === selectedDate.toDateString()
+                  dateStr === selectedDate.toISOString().split('T')[0]
                 ) && (
                   <div className="flex justify-between items-center bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
                     <div>
@@ -525,8 +528,9 @@ export default function JournalPage() {
                   .filter(([dateString]) => {
                     // Show entries for selected date
                     if (!selectedDate) return true;
-                    const entryDate = new Date(dateString);
-                    return entryDate.toDateString() === selectedDate.toDateString();
+                    // Use YYYY-MM-DD format for consistent comparison
+                    const selectedDateStr = selectedDate.toISOString().split('T')[0];
+                    return dateString === selectedDateStr;
                   })
                   .map(([date, dateEntries]) => (
                   <div key={date} className="bg-white rounded-lg border border-gray-200 overflow-hidden">
