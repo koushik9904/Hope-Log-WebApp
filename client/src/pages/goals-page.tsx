@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Goal as GoalBase } from "@shared/schema";
+import { Goal as GoalBase, Habit } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -467,37 +467,40 @@ export default function GoalsPage() {
     addGoalMutation.mutate(values);
   };
   
+  // Habit API mutations
+  const addHabitMutation = useMutation({
+    mutationFn: async (habit: HabitFormValues) => {
+      const res = await apiRequest("POST", "/api/habits", habit);
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/habits/${user?.id}`] });
+      setShowNewHabitDialog(false);
+      toast({
+        title: "Habit created",
+        description: "Your new habit has been created successfully"
+      });
+      
+      // Reset form for next use
+      habitForm.reset({
+        title: "",
+        description: "",
+        frequency: "daily",
+        userId: user?.id
+      });
+    },
+    onError: (error) => {
+      console.error("Error creating habit:", error);
+      toast({
+        title: "Creation failed",
+        description: "There was an error creating your habit. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+  
   const onHabitSubmit = (values: HabitFormValues) => {
-    console.log("New habit:", values);
-    
-    // Create a new habit with definite userId
-    const newHabit = {
-      id: Date.now(), // Temporary ID until API implementation
-      title: values.title,
-      description: values.description || "",
-      frequency: values.frequency,
-      streak: 0,
-      userId: user?.id ?? 1, // Fallback to 1 if user?.id is undefined
-      completedToday: false
-    };
-    
-    // Add to habits list
-    setHabits(prev => [...prev, newHabit].sort((a, b) => {
-      // Sort to put uncompleted habits on top
-      if (a.completedToday && !b.completedToday) return 1;
-      if (!a.completedToday && b.completedToday) return -1;
-      return 0;
-    }));
-    
-    setShowNewHabitDialog(false);
-    
-    // Reset form for next use
-    habitForm.reset({
-      title: "",
-      description: "",
-      frequency: "daily",
-      userId: user?.id
-    });
+    addHabitMutation.mutate(values);
   };
   
   // Handler for adopting AI-suggested goals
@@ -573,50 +576,99 @@ export default function GoalsPage() {
     )
   );
   
+  // Toggle habit completion mutation
+  const toggleHabitMutation = useMutation({
+    mutationFn: async ({ id, completed }: { id: number, completed: boolean }) => {
+      const res = await apiRequest("PATCH", `/api/habits/${id}/toggle`, { completed });
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/habits/${user?.id}`] });
+    },
+    onError: (error) => {
+      console.error("Error toggling habit:", error);
+      toast({
+        title: "Update failed",
+        description: "There was an error updating your habit completion. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+  
   // Function to toggle habit completion
   const toggleHabitCompletion = (habitId: number) => {
-    setHabits(prev => 
-      prev.map(habit => 
-        habit.id === habitId 
-          ? { ...habit, completedToday: !habit.completedToday }
-          : habit
-      ).sort((a, b) => {
-        // Sort to put uncompleted habits on top
-        if (a.completedToday && !b.completedToday) return 1;
-        if (!a.completedToday && b.completedToday) return -1;
-        return 0;
-      })
-    );
-  };
-  
-  // Delete habit handler - move to recycle bin
-  const deleteHabit = (habitId: number) => {
-    const habitToDelete = habits.find(h => h.id === habitId);
-    if (habitToDelete) {
-      // Add the habit to the recycle bin with deletion timestamp
-      setDeletedHabits(prev => [...prev, {
-        ...habitToDelete,
-        deletedAt: new Date().toISOString()
-      }]);
-      
-      // Remove from active habits list
-      setHabits(prev => prev.filter(habit => habit.id !== habitId));
+    // Find the habit to get its current completion status
+    const habit = habits.find(h => h.id === habitId);
+    if (habit) {
+      // Toggle the completion status via API
+      toggleHabitMutation.mutate({ 
+        id: habitId, 
+        completed: !habit.completedToday 
+      });
     }
   };
   
+  // Delete habit mutation
+  const deleteHabitMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest("DELETE", `/api/habits/${id}`);
+      return id;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/habits/${user?.id}`] });
+      toast({
+        title: "Habit moved to recycle bin",
+        description: "You can restore this habit within 7 days",
+      });
+    },
+    onError: (error) => {
+      console.error("Error deleting habit:", error);
+      toast({
+        title: "Deletion failed",
+        description: "There was an error deleting your habit. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+  
+  // Delete habit handler - move to recycle bin
+  const deleteHabit = (habitId: number) => {
+    deleteHabitMutation.mutate(habitId);
+  };
+  
+  // Edit habit mutation
+  const editHabitMutation = useMutation({
+    mutationFn: async (habit: Partial<Habit> & { id: number }) => {
+      const { id, ...data } = habit;
+      const res = await apiRequest("PATCH", `/api/habits/${id}`, data);
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/habits/${user?.id}`] });
+      setShowEditHabitDialog(false);
+      toast({
+        title: "Habit updated",
+        description: "Your habit has been successfully updated"
+      });
+    },
+    onError: (error) => {
+      console.error("Error updating habit:", error);
+      toast({
+        title: "Update failed",
+        description: "There was an error updating your habit. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+  
   // Edit habit handler
   const updateHabit = (updatedHabit: typeof EXAMPLE_HABITS[0]) => {
-    setHabits(prev => 
-      prev.map(habit => 
-        habit.id === updatedHabit.id ? updatedHabit : habit
-      ).sort((a, b) => {
-        // Sort to put uncompleted habits on top
-        if (a.completedToday && !b.completedToday) return 1;
-        if (!a.completedToday && b.completedToday) return -1;
-        return 0;
-      })
-    );
-    setShowEditHabitDialog(false);
+    editHabitMutation.mutate({
+      id: updatedHabit.id,
+      title: updatedHabit.title,
+      description: updatedHabit.description,
+      frequency: updatedHabit.frequency
+    });
   };
   
   // Handler for adopting AI-suggested habits
@@ -624,23 +676,12 @@ export default function GoalsPage() {
     if (!user?.id) return;
     
     // Create a new habit from the AI suggestion
-    const newHabit = {
-      id: Date.now(), // Temporary ID until API implementation
+    addHabitMutation.mutate({
       title: aiHabit.title,
       description: aiHabit.description || "",
-      frequency: aiHabit.frequency,
-      streak: 0,
-      userId: user.id,
-      completedToday: false
-    };
-    
-    // Add to habits list
-    setHabits(prev => [...prev, newHabit].sort((a, b) => {
-      // Sort to put uncompleted habits on top
-      if (a.completedToday && !b.completedToday) return 1;
-      if (!a.completedToday && b.completedToday) return -1;
-      return 0;
-    }));
+      frequency: aiHabit.frequency as "daily" | "weekly" | "monthly",
+      userId: user.id
+    });
     
     // Remove from suggestions
     setAiSuggestedHabits(prev => prev.filter(h => h.id !== aiHabit.id));
@@ -689,41 +730,61 @@ export default function GoalsPage() {
     });
   };
   
+  // Restore habit mutation
+  const restoreHabitMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest("POST", `/api/habits/${id}/restore`);
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/habits/${user?.id}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/habits/${user?.id}/deleted`] });
+      toast({
+        title: "Habit restored",
+        description: "Your habit has been successfully restored"
+      });
+    },
+    onError: (error) => {
+      console.error("Error restoring habit:", error);
+      toast({
+        title: "Restore failed",
+        description: "There was an error restoring your habit. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+  
+  // Permanently delete habit mutation
+  const permanentDeleteHabitMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest("DELETE", `/api/habits/${id}/permanent`);
+      return id;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/habits/${user?.id}/deleted`] });
+      toast({
+        title: "Habit permanently deleted",
+        description: "Your habit has been permanently removed"
+      });
+    },
+    onError: (error) => {
+      console.error("Error permanently deleting habit:", error);
+      toast({
+        title: "Deletion failed",
+        description: "There was an error permanently deleting your habit. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+  
   // Restore habit from recycle bin
   const restoreHabit = (habitId: number) => {
-    // Find the habit in deleted habits
-    const habitToRestore = deletedHabits.find(h => h.id === habitId);
-    if (!habitToRestore) return;
-    
-    // Remove the deletedAt property
-    const { deletedAt, ...habitData } = habitToRestore;
-    
-    // Add habit back to habits list
-    setHabits(prev => [...prev, habitData].sort((a, b) => {
-      if (a.completedToday && !b.completedToday) return 1;
-      if (!a.completedToday && b.completedToday) return -1;
-      return 0;
-    }));
-    
-    // Remove from deleted habits
-    setDeletedHabits(prev => prev.filter(h => h.id !== habitId));
-    
-    toast({
-      title: "Habit restored",
-      description: `${habitData.title} has been restored to your habits`,
-    });
+    restoreHabitMutation.mutate(habitId);
   };
   
   // Permanently delete habit from recycle bin
   const permanentlyDeleteHabit = (habitId: number) => {
-    // Remove from deleted habits list
-    setDeletedHabits(prev => prev.filter(h => h.id !== habitId));
-    
-    toast({
-      title: "Habit deleted permanently",
-      description: "This habit has been permanently removed",
-      variant: "destructive"
-    });
+    permanentDeleteHabitMutation.mutate(habitId);
   };
   
   const completedHabitsToday = habits.filter(habit => habit.completedToday).length;
