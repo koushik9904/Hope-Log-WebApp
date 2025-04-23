@@ -1,21 +1,35 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Save, Loader2, PenLine } from "lucide-react";
+import { ChevronLeft, Save, Loader2, PenLine, Calendar, AlertCircle } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/use-auth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function NewJournalEntryPage() {
-  const [_, navigate] = useLocation();
+  const [location, navigate] = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
   const [content, setContent] = useState("");
   const queryClient = useQueryClient();
+  
+  // Get date parameter from URL if present
+  const params = new URLSearchParams(window.location.search);
+  const dateParam = params.get('date');
+  const [entryDate, setEntryDate] = useState<Date>(
+    dateParam ? new Date(dateParam) : new Date()
+  );
+  
+  // Check if this is a past date entry
+  const isPastDate = dateParam && new Date(dateParam).toDateString() !== new Date().toDateString();
+  
+  // Validate date is not in the future
+  const isFutureDate = entryDate > new Date();
   
   const createJournalMutation = useMutation({
     mutationFn: async () => {

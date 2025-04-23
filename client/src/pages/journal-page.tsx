@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link } from "wouter";
@@ -16,7 +16,10 @@ import {
   Clock,
   Trash2,
   RotateCcw,
-  Trash
+  Trash,
+  ChevronLeft,
+  ChevronRight,
+  PenLine
 } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
@@ -57,6 +60,62 @@ export default function JournalPage() {
   const [filterType, setFilterType] = useState<"all" | "user" | "ai">("all");
   const [activeTab, setActiveTab] = useState<string>("entries");
   const [showDeleted, setShowDeleted] = useState(false); // Toggle to show/hide deleted entries
+  
+  // Date navigation state
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedMonth, setSelectedMonth] = useState<string>(
+    new Date().toISOString().substring(0, 7) // Format: YYYY-MM
+  );
+  const [visibleDatesStart, setVisibleDatesStart] = useState<number>(0);
+  
+  // Calculate dates in selected month
+  const getDatesInMonth = (monthStr: string): Date[] => {
+    const [year, month] = monthStr.split('-').map(Number);
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0); // Last day of month
+    
+    const dates: Date[] = [];
+    for (let day = 1; day <= endDate.getDate(); day++) {
+      dates.push(new Date(year, month - 1, day));
+    }
+    return dates;
+  };
+  
+  const datesInMonth = getDatesInMonth(selectedMonth);
+  const visibleDates = datesInMonth.slice(visibleDatesStart, visibleDatesStart + 5);
+  
+  // Calculate if we can navigate dates
+  const canNavigatePrevious = visibleDatesStart > 0;
+  const canNavigateNext = visibleDatesStart + 5 < datesInMonth.length;
+  
+  // Initialize with today's date
+  useEffect(() => {
+    setSelectedDate(new Date());
+  }, []);
+  
+  // Change month handler
+  const handleMonthChange = (monthStr: string) => {
+    setSelectedMonth(monthStr);
+    setVisibleDatesStart(0);
+    // If current date is in this month, select it, otherwise select 1st
+    const today = new Date();
+    const [year, month] = monthStr.split('-').map(Number);
+    
+    if (today.getFullYear() === year && today.getMonth() === month - 1) {
+      setSelectedDate(today);
+    } else {
+      setSelectedDate(new Date(year, month - 1, 1));
+    }
+  };
+  
+  // Navigate dates
+  const navigateDates = (direction: 'prev' | 'next') => {
+    if (direction === 'prev' && canNavigatePrevious) {
+      setVisibleDatesStart(prev => Math.max(0, prev - 5));
+    } else if (direction === 'next' && canNavigateNext) {
+      setVisibleDatesStart(prev => Math.min(datesInMonth.length - 5, prev + 5));
+    }
+  };
   
   if (!user) return null;
   
@@ -250,8 +309,129 @@ export default function JournalPage() {
           </TabsList>
           
           <TabsContent value="entries">
-            <div className="flex flex-col md:flex-row items-center justify-between mb-6 gap-4">
-              <div className="relative w-full md:w-80">
+            <div className="mb-8">
+              {/* Month selector and date navigation */}
+              <div className="flex flex-col md:flex-row items-start justify-between gap-4 mb-4">
+                <div className="w-full md:w-60">
+                  <label htmlFor="month-select" className="block text-sm font-medium text-gray-700 mb-1">
+                    Select Month
+                  </label>
+                  <Select
+                    value={selectedMonth}
+                    onValueChange={handleMonthChange}
+                  >
+                    <SelectTrigger id="month-select" className="w-full">
+                      <div className="flex items-center">
+                        <Calendar className="mr-2 h-4 w-4" />
+                        <SelectValue placeholder="Select month" />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[...Array(12)].map((_, monthIndex) => {
+                        const date = new Date();
+                        date.setMonth(date.getMonth() - monthIndex);
+                        const monthStr = date.toISOString().substring(0, 7);
+                        const displayText = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                        return (
+                          <SelectItem key={monthStr} value={monthStr}>
+                            {displayText}
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="flex items-center space-x-2 self-end md:self-center">
+                  <Select 
+                    value={filterType} 
+                    onValueChange={(value) => setFilterType(value as "all" | "user" | "ai")}
+                  >
+                    <SelectTrigger className="w-36">
+                      <div className="flex items-center">
+                        <Filter className="mr-2 h-4 w-4" />
+                        <SelectValue placeholder="Filter by" />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Entries</SelectItem>
+                      <SelectItem value="user">Your Entries</SelectItem>
+                      <SelectItem value="ai">AI Responses</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSortOrder(sortOrder === "desc" ? "asc" : "desc")}
+                    className="h-10"
+                  >
+                    {sortOrder === "desc" ? (
+                      <SortDesc className="h-4 w-4 mr-2" />
+                    ) : (
+                      <SortAsc className="h-4 w-4 mr-2" />
+                    )}
+                    {sortOrder === "desc" ? "Newest" : "Oldest"}
+                  </Button>
+                </div>
+              </div>
+              
+              {/* Date navigation */}
+              <div className="relative flex items-center mb-6">
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  className="h-8 w-8 absolute left-0 z-10"
+                  onClick={() => navigateDates('prev')}
+                  disabled={!canNavigatePrevious}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                
+                <div className="w-full overflow-hidden px-10">
+                  <div className="flex justify-between gap-2">
+                    {visibleDates.map((date) => {
+                      const dateStr = date.toISOString().split('T')[0];
+                      const isSelected = date.toDateString() === selectedDate.toDateString();
+                      const isToday = date.toDateString() === new Date().toDateString();
+                      
+                      return (
+                        <button
+                          key={dateStr}
+                          className={`flex-1 rounded-lg py-3 px-1 flex flex-col items-center transition-colors
+                            ${isSelected 
+                              ? 'bg-primary text-primary-foreground' 
+                              : 'hover:bg-gray-100'
+                            }
+                            ${isToday && !isSelected ? 'border border-primary text-primary' : ''}
+                          `}
+                          onClick={() => setSelectedDate(date)}
+                        >
+                          <div className="text-xs font-medium mb-1">
+                            {date.toLocaleDateString('en-US', { weekday: 'short' })}
+                          </div>
+                          <div className={`text-lg font-bold ${isSelected ? 'text-primary-foreground' : ''}`}>
+                            {date.getDate()}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  className="h-8 w-8 absolute right-0 z-10"
+                  onClick={() => navigateDates('next')}
+                  disabled={!canNavigateNext}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+              
+              {/* Search bar */}
+              <div className="relative w-full">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input 
                   className="pl-9"
@@ -259,39 +439,6 @@ export default function JournalPage() {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
-              </div>
-              
-              <div className="flex items-center space-x-2 self-end">
-                <Select 
-                  value={filterType} 
-                  onValueChange={(value) => setFilterType(value as "all" | "user" | "ai")}
-                >
-                  <SelectTrigger className="w-36">
-                    <div className="flex items-center">
-                      <Filter className="mr-2 h-4 w-4" />
-                      <SelectValue placeholder="Filter by" />
-                    </div>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Entries</SelectItem>
-                    <SelectItem value="user">Your Entries</SelectItem>
-                    <SelectItem value="ai">AI Responses</SelectItem>
-                  </SelectContent>
-                </Select>
-                
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setSortOrder(sortOrder === "desc" ? "asc" : "desc")}
-                  className="h-10"
-                >
-                  {sortOrder === "desc" ? (
-                    <SortDesc className="h-4 w-4 mr-2" />
-                  ) : (
-                    <SortAsc className="h-4 w-4 mr-2" />
-                  )}
-                  {sortOrder === "desc" ? "Newest" : "Oldest"}
-                </Button>
               </div>
             </div>
             
@@ -312,13 +459,55 @@ export default function JournalPage() {
                     ? "Try a different search term or clear your filters"
                     : "Start journaling to see your entries here"}
                 </p>
-                <Link href="/journal/new">
-                  <Button className="pi-button">Start Journaling</Button>
-                </Link>
+                
+                {/* Allow adding journal entries for the past */}
+                {!searchTerm && (
+                  <div className="flex justify-center mt-4">
+                    <Link href={`/journal/new?date=${selectedDate.toISOString().split('T')[0]}`}>
+                      <Button className="pi-button flex items-center gap-2">
+                        <PenLine className="h-4 w-4" />
+                        {selectedDate.toDateString() === new Date().toDateString()
+                          ? "Start Journaling Today"
+                          : `Add Journal for ${selectedDate.toLocaleDateString('en-US', {month: 'short', day: 'numeric'})}`
+                        }
+                      </Button>
+                    </Link>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="space-y-6">
-                {Object.entries(entriesByDate).map(([date, dateEntries]) => (
+                {/* Allow adding journal entries for the selected date if not present */}
+                {!Object.keys(entriesByDate).some(dateStr => 
+                  new Date(dateStr).toDateString() === selectedDate.toDateString()
+                ) && (
+                  <div className="flex justify-between items-center bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
+                    <div>
+                      <h3 className="font-medium">No entries for {selectedDate.toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        month: 'long',
+                        day: 'numeric',
+                        year: 'numeric'
+                      })}</h3>
+                      <p className="text-sm text-gray-500">Add a journal entry for this date</p>
+                    </div>
+                    <Link href={`/journal/new?date=${selectedDate.toISOString().split('T')[0]}`}>
+                      <Button className="pi-button-secondary">
+                        <PenLine className="h-4 w-4 mr-2" />
+                        Add Entry
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+              
+                {Object.entries(entriesByDate)
+                  .filter(([dateString]) => {
+                    // Show entries for selected date
+                    if (!selectedDate) return true;
+                    const entryDate = new Date(dateString);
+                    return entryDate.toDateString() === selectedDate.toDateString();
+                  })
+                  .map(([date, dateEntries]) => (
                   <div key={date} className="bg-white rounded-lg border border-gray-200 overflow-hidden">
                     <div className="bg-gradient-to-r from-primary/10 to-primary/5 px-6 py-4 border-b border-gray-200">
                       <div className="flex items-center justify-between">
