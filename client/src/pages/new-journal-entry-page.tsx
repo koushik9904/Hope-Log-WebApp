@@ -3,13 +3,12 @@ import { useLocation } from "wouter";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Sparkle } from "lucide-react";
+import { ChevronLeft, Save, Loader2, PenLine } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/use-auth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { JournalChat } from "@/components/journal/journal-chat";
 
 export default function NewJournalEntryPage() {
   const [_, navigate] = useLocation();
@@ -25,6 +24,7 @@ export default function NewJournalEntryPage() {
       const res = await apiRequest("POST", "/api/journal-entries", {
         content,
         userId: user.id,
+        date: new Date().toISOString(),
         isJournal: true // This is a direct journal entry
       });
       
@@ -45,10 +45,11 @@ export default function NewJournalEntryPage() {
       navigate("/journal");
     },
     onError: (error) => {
+      console.error("Error creating journal entry:", error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: `Failed to create journal entry: ${error.message}`
+        description: `Failed to create journal entry. Please try again.`
       });
     }
   });
@@ -82,14 +83,46 @@ export default function NewJournalEntryPage() {
           </Button>
         </div>
         
-        {/* AI-Powered Chat Interface - Full Width */}
-        <div className="w-full">
-          {user && (
-            <div className="relative">
-              <JournalChat userId={user.id} />
-            </div>
-          )}
-        </div>
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <PenLine className="h-5 w-5" />
+              New Journal Entry
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit}>
+              <div className="mb-4">
+                <Textarea
+                  placeholder="Write your thoughts here..."
+                  className="min-h-[300px] resize-y"
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  disabled={createJournalMutation.isPending}
+                />
+              </div>
+              <div className="flex justify-end">
+                <Button
+                  type="submit"
+                  className="bg-[#9AAB63] hover:bg-[#869650] text-white"
+                  disabled={createJournalMutation.isPending || !content.trim()}
+                >
+                  {createJournalMutation.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Journal Entry
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     </DashboardLayout>
   );

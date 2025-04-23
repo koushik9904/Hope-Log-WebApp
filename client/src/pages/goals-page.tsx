@@ -1119,7 +1119,7 @@ export default function GoalsPage() {
                   <div className="space-y-3">
                     {deletedHabits.map(habit => {
                       // Calculate days remaining before permanent deletion
-                      const deletedAt = new Date(habit.deletedAt);
+                      const deletedAt = habit.deletedAt ? new Date(habit.deletedAt) : new Date();
                       const expiresIn = isPremiumUser ? 30 : 7; // days
                       const expirationDate = new Date(deletedAt.getTime() + expiresIn * 24 * 60 * 60 * 1000);
                       const daysRemaining = Math.ceil((expirationDate.getTime() - new Date().getTime()) / (24 * 60 * 60 * 1000));
