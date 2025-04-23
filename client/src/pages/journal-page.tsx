@@ -277,11 +277,19 @@ export default function JournalPage() {
           </div>
           
           <div className="flex items-center gap-3">
-            <Link href="/journal/new">
-              <Button className="pi-button flex items-center gap-2">
-                <Plus className="h-4 w-4" /> New Entry
-              </Button>
-            </Link>
+            <HoverCard>
+              <HoverCardTrigger asChild>
+                <Button className="pi-button flex items-center gap-2">
+                  <Plus className="h-4 w-4" /> New Entry
+                </Button>
+              </HoverCardTrigger>
+              <HoverCardContent className="w-[650px] p-4">
+                <h3 className="font-medium text-lg mb-4">Select Entry Type</h3>
+                <EntryTypeSelector 
+                  linkMode={true}
+                />
+              </HoverCardContent>
+            </HoverCard>
             
             <HoverCard>
               <HoverCardTrigger asChild>
@@ -487,16 +495,18 @@ export default function JournalPage() {
                 
                 {/* Allow adding journal entries for the past */}
                 {!searchTerm && (
-                  <div className="flex justify-center mt-4">
-                    <Link href={`/journal/new?date=${selectedDate.toISOString().split('T')[0]}`}>
-                      <Button className="pi-button flex items-center gap-2">
-                        <PenLine className="h-4 w-4" />
-                        {selectedDate.toDateString() === new Date().toDateString()
-                          ? "Start Journaling Today"
-                          : `Add Journal for ${selectedDate.toLocaleDateString('en-US', {month: 'short', day: 'numeric'})}`
-                        }
-                      </Button>
-                    </Link>
+                  <div className="mt-4">
+                    <h3 className="text-xl font-medium mb-4 text-center">
+                      {selectedDate.toDateString() === new Date().toDateString()
+                        ? "Start Journaling Today"
+                        : `Add Journal for ${selectedDate.toLocaleDateString('en-US', {month: 'short', day: 'numeric'})}`
+                      }
+                    </h3>
+                    <EntryTypeSelector
+                      selectedDate={selectedDate}
+                      linkMode={true}
+                      className="max-w-4xl mx-auto"
+                    />
                   </div>
                 )}
               </div>
@@ -506,22 +516,21 @@ export default function JournalPage() {
                 {!Object.keys(entriesByDate).some(dateStr => 
                   dateStr === selectedDate.toISOString().split('T')[0]
                 ) && (
-                  <div className="flex justify-between items-center bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
-                    <div>
-                      <h3 className="font-medium">No entries for {selectedDate.toLocaleDateString('en-US', {
+                  <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 mb-6">
+                    <div className="mb-4">
+                      <h3 className="font-medium text-xl text-center">No entries for {selectedDate.toLocaleDateString('en-US', {
                         weekday: 'long',
                         month: 'long',
                         day: 'numeric',
                         year: 'numeric'
                       })}</h3>
-                      <p className="text-sm text-gray-500">Add a journal entry for this date</p>
+                      <p className="text-sm text-gray-500 text-center mt-1">How would you like to journal for this date?</p>
                     </div>
-                    <Link href={`/journal/new?date=${selectedDate.toISOString().split('T')[0]}`}>
-                      <Button className="pi-button-secondary">
-                        <PenLine className="h-4 w-4 mr-2" />
-                        Add Entry
-                      </Button>
-                    </Link>
+                    <EntryTypeSelector
+                      selectedDate={selectedDate}
+                      linkMode={true}
+                      className="max-w-4xl mx-auto"
+                    />
                   </div>
                 )}
               
