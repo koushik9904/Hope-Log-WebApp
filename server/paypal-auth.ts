@@ -71,7 +71,7 @@ export async function getPayPalAccessToken(): Promise<string> {
   const auth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
   
   // Set API URL based on mode
-  const apiUrl = getPayPalApiUrl(mode);
+  const apiUrl = getPayPalApiUrl(mode || 'sandbox'); // Provide default if null
   
   try {
     // Make OAuth token request
@@ -132,7 +132,7 @@ export async function makePayPalRequest(
   try {
     // Get credentials to determine API URL
     const { mode } = await getPayPalCredentials();
-    const apiUrl = getPayPalApiUrl(mode);
+    const apiUrl = getPayPalApiUrl(mode || 'sandbox'); // Provide default if null
     
     // Get access token
     const accessToken = await getPayPalAccessToken();

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { db } from '../db';
 import { subscriptionPlans, featureLimits } from '@shared/schema';
 import PayPalService from '../paypal';
+import { PayPalRestService } from '../paypal-rest'; // Import new REST-based PayPal service
 import { z } from 'zod';
 import { eq } from 'drizzle-orm';
 
@@ -53,7 +54,8 @@ router.post('/create-order', async (req, res) => {
   try {
     const data = createOrderSchema.parse(req.body);
     
-    const order = await PayPalService.createOrder(data.planName, req.user.id);
+    // Use the REST-based PayPal service with OAuth authentication
+    const order = await PayPalRestService.createOrder(data.planName, req.user.id);
     
     return res.status(200).json(order);
   } catch (error: any) {
@@ -80,7 +82,8 @@ router.post('/capture-order', async (req, res) => {
       return res.status(400).json({ message: 'Missing orderId or planName' });
     }
     
-    const result = await PayPalService.captureOrder(orderId, req.user.id, planName);
+    // Use the REST-based PayPal service with OAuth authentication
+    const result = await PayPalRestService.captureOrder(orderId, req.user.id, planName);
     
     return res.status(200).json(result);
   } catch (error: any) {

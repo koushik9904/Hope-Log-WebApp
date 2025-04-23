@@ -1,5 +1,5 @@
 import { makePayPalRequest, getPayPalAccessToken } from './paypal-auth';
-import { getPayPalCallbackUrl } from './paypal';
+import { getPayPalCallbackUrl } from './paypal'; // Import from paypal.ts file
 import { db } from './db';
 import { subscriptionPlans, payments, subscriptions, users } from '@shared/schema';
 import { eq, and } from 'drizzle-orm';
