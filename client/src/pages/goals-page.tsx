@@ -1245,7 +1245,7 @@ export default function GoalsPage() {
                     AI Suggested Goals
                   </CardTitle>
                   <CardDescription>
-                    Personalized goal recommendations based on your journal entries
+                    Personalized goal recommendations based on your journal entries and general wellness best practices
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="pt-6">
@@ -1254,6 +1254,10 @@ export default function GoalsPage() {
                       <div key={goal.id} className="bg-[#fbf1f7] p-4 rounded-xl border border-[#F5B8DB] border-opacity-30">
                         <h4 className="font-medium text-gray-800 mb-2">{goal.name}</h4>
                         <p className="text-sm text-gray-600 mb-3">{goal.description}</p>
+                        <div className="text-xs text-gray-500 italic mb-3">
+                          <Lightbulb className="h-3 w-3 inline mr-1" />
+                          {goal.source}
+                        </div>
                         <div className="flex items-center gap-2 mt-3">
                           <Badge className="bg-[#F5B8DB] text-white">{goal.category}</Badge>
                           <div className="flex-1"></div>
@@ -1699,7 +1703,7 @@ export default function GoalsPage() {
                       AI Suggested Habits
                     </CardTitle>
                     <CardDescription>
-                      Personalized habit recommendations based on your journal entries and health patterns
+                      Personalized habit recommendations based on your journal entries and general wellness best practices
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="pt-6">
