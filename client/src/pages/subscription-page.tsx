@@ -216,11 +216,15 @@ const SubscriptionPage = () => {
   // Check for PayPal redirect with order ID (token)
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
-    const token = queryParams.get("token"); // PayPal returns token in URL
+    // PayPal returns the token parameter with the order ID
+    const token = queryParams.get("token");
+    // Our custom planName parameter that we sent with the return URL
     const planName = queryParams.get("planName");
+    // PayPal token parameter from approval URL
+    const paypalOrderId = token;
     const cancelled = queryParams.get("cancelled");
     
-    console.log('[PayPal] Redirect params:', { token, planName, cancelled });
+    console.log('[PayPal] Redirect params:', { token, paypalOrderId, planName, cancelled });
     
     // Clear query params immediately to prevent reprocessing on page refresh
     if (token || planName || cancelled) {
@@ -238,15 +242,17 @@ const SubscriptionPage = () => {
       return;
     }
     
-    if (token && planName) {
-      // Handle PayPal redirect with token (orderId)
+    // If we have either token or paypalOrderId, and we have the planName, we can capture the order
+    if ((token || paypalOrderId) && planName) {
+      // Handle PayPal redirect with token/orderId
       const captureOrder = async () => {
         try {
           setProcessingPayPal(true);
-          console.log('[PayPal] Capturing order with token:', token);
+          const orderId = token || paypalOrderId;
+          console.log('[PayPal] Capturing order with token/orderId:', orderId);
           
           const res = await apiRequest("POST", "/api/subscription/capture-order", { 
-            orderId: token, // Use token as the orderId
+            orderId, // Use token/paypalOrderId as the orderId
             planName 
           });
           

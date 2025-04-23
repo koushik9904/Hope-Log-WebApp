@@ -33,7 +33,8 @@ export class PayPalRestService {
     console.log(`[PayPal] Using callback URL base: ${baseUrl}`);
     
     // Create return and cancel URLs
-    const returnUrl = `${baseUrl}?planName=${encodeURIComponent(planName)}&token=PAYPAL_TOKEN`;
+    // Note: PayPal uses 'token' as the parameter name for the order ID
+    const returnUrl = `${baseUrl}?planName=${encodeURIComponent(planName)}`;
     const cancelUrl = `${baseUrl}?cancelled=true`;
     
     console.log(`[PayPal] Return URL: ${returnUrl}`);
