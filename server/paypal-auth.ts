@@ -3,6 +3,36 @@ import { eq } from 'drizzle-orm';
 import { db } from './db';
 import axios from 'axios';
 
+// Get PayPal callback URL from database or determine dynamically
+export async function getPayPalCallbackUrl() {
+  console.log('[PayPal] Getting callback URL');
+  try {
+    // First try to get the callback URL from settings
+    const callbackUrlSettings = await db.select()
+      .from(systemSettings)
+      .where(eq(systemSettings.key, "paypal_callback_url"))
+      .limit(1);
+    
+    if (callbackUrlSettings.length > 0 && callbackUrlSettings[0].value) {
+      const url = callbackUrlSettings[0].value;
+      console.log(`[PayPal] Found callback URL in settings: ${url}`);
+      // Make sure we have the /subscription path
+      if (url.endsWith('/subscription')) {
+        return url;
+      } else {
+        return url.endsWith('/') ? `${url}subscription` : `${url}/subscription`;
+      }
+    }
+    
+    // Default approach: use the server's host with /subscription path
+    return `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.replit.dev/subscription`;
+  } catch (error) {
+    console.error('[PayPal] Error getting callback URL:', error);
+    // Fallback to a default URL
+    return `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.replit.dev/subscription`;
+  }
+}
+
 // Cache to store the token and its expiration
 let tokenCache: {
   accessToken: string;
