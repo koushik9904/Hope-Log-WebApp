@@ -57,63 +57,96 @@ function Router() {
         <Route path="/auth" component={AuthPage} />
         
         {/* Main pages */}
-        <Route path="/journal">
-          <Suspense fallback={<LoadingFallback />}>
-            <JournalPage />
-          </Suspense>
-        </Route>
-        <Route path="/insights">
-          <Suspense fallback={<LoadingFallback />}>
-            <InsightsPage />
-          </Suspense>
-        </Route>
-        <Route path="/goals">
-          <Suspense fallback={<LoadingFallback />}>
-            <GoalsPage />
-          </Suspense>
-        </Route>
-        <Route path="/subscription">
-          <Suspense fallback={<LoadingFallback />}>
-            <SubscriptionPage />
-          </Suspense>
-        </Route>
+        {/* Protected Routes - Require Authentication */}
+        <ProtectedRoute 
+          path="/journal" 
+          component={() => (
+            <Suspense fallback={<LoadingFallback />}>
+              <JournalPage />
+            </Suspense>
+          )} 
+        />
+        <ProtectedRoute 
+          path="/insights" 
+          component={() => (
+            <Suspense fallback={<LoadingFallback />}>
+              <InsightsPage />
+            </Suspense>
+          )} 
+        />
+        <ProtectedRoute 
+          path="/goals" 
+          component={() => (
+            <Suspense fallback={<LoadingFallback />}>
+              <GoalsPage />
+            </Suspense>
+          )} 
+        />
+        <ProtectedRoute 
+          path="/subscription" 
+          component={() => (
+            <Suspense fallback={<LoadingFallback />}>
+              <SubscriptionPage />
+            </Suspense>
+          )} 
+        />
+        
+        {/* Public Routes */}
         <Route path="/about-us">
           <Suspense fallback={<LoadingFallback />}>
             <AboutUsPage />
           </Suspense>
         </Route>
         
-        {/* Settings pages */}
-        <Route path="/settings/profile">
-          <Suspense fallback={<LoadingFallback />}>
-            <SettingsProfilePage />
-          </Suspense>
-        </Route>
-        <Route path="/settings/password">
-          <Suspense fallback={<LoadingFallback />}>
-            <SettingsPasswordPage />
-          </Suspense>
-        </Route>
-        <Route path="/settings/notifications">
-          <Suspense fallback={<LoadingFallback />}>
-            <SettingsNotificationsPage />
-          </Suspense>
-        </Route>
-        <Route path="/settings/privacy">
-          <Suspense fallback={<LoadingFallback />}>
-            <SettingsPrivacyPage />
-          </Suspense>
-        </Route>
-        <Route path="/settings/appearance">
-          <Suspense fallback={<LoadingFallback />}>
-            <SettingsAppearancePage />
-          </Suspense>
-        </Route>
-        <Route path="/settings/data">
-          <Suspense fallback={<LoadingFallback />}>
-            <SettingsDataPage />
-          </Suspense>
-        </Route>
+        {/* Protected Settings Pages */}
+        <ProtectedRoute 
+          path="/settings/profile" 
+          component={() => (
+            <Suspense fallback={<LoadingFallback />}>
+              <SettingsProfilePage />
+            </Suspense>
+          )} 
+        />
+        <ProtectedRoute 
+          path="/settings/password" 
+          component={() => (
+            <Suspense fallback={<LoadingFallback />}>
+              <SettingsPasswordPage />
+            </Suspense>
+          )} 
+        />
+        <ProtectedRoute 
+          path="/settings/notifications" 
+          component={() => (
+            <Suspense fallback={<LoadingFallback />}>
+              <SettingsNotificationsPage />
+            </Suspense>
+          )} 
+        />
+        <ProtectedRoute 
+          path="/settings/privacy" 
+          component={() => (
+            <Suspense fallback={<LoadingFallback />}>
+              <SettingsPrivacyPage />
+            </Suspense>
+          )} 
+        />
+        <ProtectedRoute 
+          path="/settings/appearance" 
+          component={() => (
+            <Suspense fallback={<LoadingFallback />}>
+              <SettingsAppearancePage />
+            </Suspense>
+          )} 
+        />
+        <ProtectedRoute 
+          path="/settings/data" 
+          component={() => (
+            <Suspense fallback={<LoadingFallback />}>
+              <SettingsDataPage />
+            </Suspense>
+          )} 
+        />
         
         {/* Landing or Home depending on login status */}
         <Route path="/" component={user ? HomePage : LandingPage} />

@@ -7,7 +7,7 @@ export function ProtectedRoute({
   component: Component,
 }: {
   path: string;
-  component: React.ComponentType;
+  component: React.ComponentType | (() => React.ReactNode);
 }) {
   const { user, isLoading } = useAuth();
 
@@ -29,5 +29,10 @@ export function ProtectedRoute({
     );
   }
 
-  return <Route path={path}><Component /></Route>
+  return (
+    <Route path={path}>
+      {typeof Component === 'function' && 
+        (Component as any)()}
+    </Route>
+  );
 }
