@@ -72,14 +72,12 @@ type SubscriptionPlan = {
 type ActiveSubscription = {
   active: boolean;
   subscription: {
-    subscription: {
-      id: number;
-      status: string;
-      startDate: string;
-      endDate: string;
-      cancelAtPeriodEnd: boolean;
-      cancelledAt: string | null;
-    },
+    id: number;
+    status: string;
+    startDate: string;
+    endDate: string;
+    cancelAtPeriodEnd: boolean;
+    cancelledAt: string | null;
     plan: {
       name: string;
       displayName: string;
@@ -303,8 +301,8 @@ const SubscriptionPage = () => {
   
   // Handle subscription cancellation
   const handleCancelSubscription = () => {
-    if (currentSubscription?.subscription?.subscription?.id) {
-      cancelSubscriptionMutation.mutate(currentSubscription.subscription.subscription.id);
+    if (currentSubscription?.subscription?.id) {
+      cancelSubscriptionMutation.mutate(currentSubscription.subscription.id);
     }
   };
   
@@ -551,7 +549,7 @@ const SubscriptionPage = () => {
                       Start Date:
                     </span>
                     <span className="font-medium">
-                      {formatDate(currentSubscription.subscription.subscription.startDate)}
+                      {formatDate(currentSubscription.subscription.startDate)}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -560,18 +558,18 @@ const SubscriptionPage = () => {
                       End Date:
                     </span>
                     <span className="font-medium">
-                      {formatDate(currentSubscription.subscription.subscription.endDate)}
+                      {formatDate(currentSubscription.subscription.endDate)}
                     </span>
                   </div>
-                  {currentSubscription.subscription.subscription.cancelAtPeriodEnd && (
+                  {currentSubscription.subscription.cancelAtPeriodEnd && (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground flex items-center gap-2">
                         <CalendarDays className="h-4 w-4" />
                         Cancelled On:
                       </span>
                       <span className="font-medium">
-                        {currentSubscription.subscription.subscription.cancelledAt 
-                          ? formatDate(currentSubscription.subscription.subscription.cancelledAt)
+                        {currentSubscription.subscription.cancelledAt 
+                          ? formatDate(currentSubscription.subscription.cancelledAt)
                           : 'N/A'}
                       </span>
                     </div>
@@ -656,8 +654,8 @@ const SubscriptionPage = () => {
                 </div>
               </CardContent>
               <CardFooter>
-                {currentSubscription.subscription.subscription.status === 'active' && 
-                 !currentSubscription.subscription.subscription.cancelAtPeriodEnd && (
+                {currentSubscription.subscription.status === 'active' && 
+                 !currentSubscription.subscription.cancelAtPeriodEnd && (
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button variant="destructive">Cancel Subscription</Button>
