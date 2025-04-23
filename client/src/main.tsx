@@ -12,11 +12,26 @@ import "@fontsource-variable/nunito"; // Default font
 import "@fontsource-variable/montserrat"; // Replacing Acorn font
 import "@fontsource-variable/inter"; // Replacing TT Commons font
 
-createRoot(document.getElementById("root")!).render(
-  <ThemeProvider attribute="class" defaultTheme="light">
-    <QueryClientProvider client={queryClient}>
-      <App />
-      <Toaster />
-    </QueryClientProvider>
-  </ThemeProvider>
-);
+console.log("Starting application rendering...");
+
+try {
+  const rootElement = document.getElementById("root");
+  if (!rootElement) {
+    throw new Error("Root element not found");
+  }
+  
+  console.log("Root element found, rendering application");
+  
+  createRoot(rootElement).render(
+    <ThemeProvider attribute="class" defaultTheme="light">
+      <QueryClientProvider client={queryClient}>
+        <App />
+        <Toaster />
+      </QueryClientProvider>
+    </ThemeProvider>
+  );
+  
+  console.log("Application rendered successfully");
+} catch (error) {
+  console.error("Error rendering application:", error);
+}
