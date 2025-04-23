@@ -281,7 +281,6 @@ export default function GoalsPage() {
   
   // Filter AI-suggested goals to remove any that already exist in the user's goals list
   const [filteredAiSuggestedGoals, setFilteredAiSuggestedGoals] = useState<typeof AI_SUGGESTED_GOALS>([]);
-  const [filteredAiSuggestedHabits, setFilteredAiSuggestedHabits] = useState<typeof AI_SUGGESTED_HABITS>([]);
   
   // Process AI suggestions when they're loaded
   useEffect(() => {
@@ -553,17 +552,14 @@ export default function GoalsPage() {
   // In a real app, this would be part of the user object from the database
   const isPremiumUser = user?.id === 1; // For demo purposes, assume user 1 is premium
   
-  // Filter AI-suggested habits to remove any that already exist in the user's habits list
-  useEffect(() => {
-    // Filter out AI habits that already exist in the user's habits
-    const filtered = aiSuggestedHabits.filter(aiHabit => 
-      !habits.some(userHabit => 
-        // Case-insensitive title comparison
-        userHabit.title.toLowerCase() === aiHabit.title.toLowerCase()
-      )
-    );
-    setFilteredAiSuggestedHabits(filtered);
-  }, [habits, aiSuggestedHabits]);
+  // Calculate filtered AI habits - this variable will be used directly 
+  // instead of storing it in state to avoid duplication
+  const filteredAiSuggestedHabits = aiSuggestedHabits.filter(aiHabit => 
+    !habits.some(userHabit => 
+      // Case-insensitive title comparison
+      userHabit.title.toLowerCase() === aiHabit.title.toLowerCase()
+    )
+  );
   
   // Function to toggle habit completion
   const toggleHabitCompletion = (habitId: number) => {
@@ -636,7 +632,6 @@ export default function GoalsPage() {
     
     // Remove from suggestions
     setAiSuggestedHabits(prev => prev.filter(h => h.id !== aiHabit.id));
-    setFilteredAiSuggestedHabits(prev => prev.filter(h => h.id !== aiHabit.id));
   };
   
   // Restore goal from recycle bin
@@ -1579,7 +1574,6 @@ export default function GoalsPage() {
                               variant="outline"
                               onClick={() => {
                                 setAiSuggestedHabits(prev => prev.filter(h => h.id !== habit.id));
-                                setFilteredAiSuggestedHabits(prev => prev.filter(h => h.id !== habit.id));
                               }}
                               className="text-gray-500 text-xs px-2 border-gray-300 bg-white"
                               size="sm"
