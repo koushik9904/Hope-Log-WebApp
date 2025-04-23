@@ -16,6 +16,7 @@ import openaiSettingsRoutes from "./routes/openai-settings";
 import adminStatsRoutes from "./routes/admin-stats";
 import subscriptionRoutes from "./routes/subscription";
 import paypalSettingsRoutes from "./routes/paypal-settings";
+import { setupHabitRoutes } from "./routes/habits";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes
@@ -831,6 +832,9 @@ Your role is to:
 
   // OAuth settings API
   // API routes for settings and admin functionality
+  // Set up habit routes
+  setupHabitRoutes(app);
+  
   app.use("/api/settings", oauthSettingsRoutes);
   app.use("/api/settings", openaiSettingsRoutes);
   app.use("/api/admin", adminStatsRoutes);
