@@ -19,6 +19,8 @@ import { useAuth } from "@/hooks/use-auth";
 
 // Use lazy loading for other pages to improve performance
 const JournalPage = lazy(() => import("@/pages/journal-page"));
+const JournalEntryPage = lazy(() => import("@/pages/journal-entry-page"));
+const NewJournalEntryPage = lazy(() => import("@/pages/new-journal-entry-page"));
 const InsightsPage = lazy(() => import("@/pages/insights-page"));
 const GoalsPage = lazy(() => import("@/pages/goals-page"));
 const SubscriptionPage = lazy(() => import("@/pages/subscription-page"));
@@ -63,6 +65,22 @@ function Router() {
           component={() => (
             <Suspense fallback={<LoadingFallback />}>
               <JournalPage />
+            </Suspense>
+          )} 
+        />
+        <ProtectedRoute 
+          path="/journal/new" 
+          component={() => (
+            <Suspense fallback={<LoadingFallback />}>
+              <NewJournalEntryPage />
+            </Suspense>
+          )} 
+        />
+        <ProtectedRoute 
+          path="/journal/:id" 
+          component={() => (
+            <Suspense fallback={<LoadingFallback />}>
+              <JournalEntryPage />
             </Suspense>
           )} 
         />

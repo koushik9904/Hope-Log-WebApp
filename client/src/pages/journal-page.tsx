@@ -88,9 +88,27 @@ export default function JournalPage() {
   const canNavigatePrevious = visibleDatesStart > 0;
   const canNavigateNext = visibleDatesStart + 5 < datesInMonth.length;
   
-  // Initialize with today's date
+  // Initialize with today's date and display selected date info
   useEffect(() => {
-    setSelectedDate(new Date());
+    const today = new Date();
+    setSelectedDate(today);
+    
+    // Make sure we're showing the current month that contains today
+    const currentMonthStr = today.toISOString().substring(0, 7);
+    setSelectedMonth(currentMonthStr);
+    
+    // Calculate the position to show today in the visible dates
+    const daysInCurrentMonth = getDatesInMonth(currentMonthStr);
+    const todayIndex = daysInCurrentMonth.findIndex(date => 
+      date.getDate() === today.getDate()
+    );
+    
+    // Position the visible dates window to show today
+    if (todayIndex >= 0) {
+      // Try to position today in the middle of the visible window
+      const newStart = Math.max(0, Math.min(todayIndex - 2, daysInCurrentMonth.length - 5));
+      setVisibleDatesStart(newStart);
+    }
   }, []);
   
   // Change month handler
@@ -412,6 +430,9 @@ export default function JournalPage() {
                           </div>
                           <div className={`text-lg font-bold ${isSelected ? 'text-primary-foreground' : ''}`}>
                             {date.getDate()}
+                          </div>
+                          <div className="text-xs mt-1">
+                            {date.toLocaleDateString('en-US', { month: 'short' })}
                           </div>
                         </button>
                       );
