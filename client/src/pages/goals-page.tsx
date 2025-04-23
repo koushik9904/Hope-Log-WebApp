@@ -249,7 +249,6 @@ export default function GoalsPage() {
   const [showNewGoalDialog, setShowNewGoalDialog] = useState(false);
   const [showNewHabitDialog, setShowNewHabitDialog] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("goals");
-  const [aiSuggestedGoals, setAiSuggestedGoals] = useState(AI_SUGGESTED_GOALS);
   
   // Fetch goals data
   const { data: goals = [], isLoading } = useQuery<Goal[]>({
@@ -258,23 +257,106 @@ export default function GoalsPage() {
     staleTime: 60000, // 1 minute
   });
   
+  // Define the type for AI suggestions
+  type AISuggestion = {
+    name: string;
+    type: 'goal' | 'habit';
+    description: string;
+  };
+
+  type APISuggestions = {
+    goals: AISuggestion[];
+  };
+  
+  // Fetch AI-suggested goals and habits
+  const { data: aiSuggestions = { goals: [] as AISuggestion[] }, isLoading: isSuggestionsLoading } = useQuery<APISuggestions>({
+    queryKey: [`/api/goals/${user?.id}/suggestions`],
+    enabled: !!user?.id,
+    staleTime: 300000, // 5 minutes - these don't change as frequently
+  });
+  
+  // Convert API suggestions to the format used in the UI
+  const [aiSuggestedGoals, setAiSuggestedGoals] = useState<typeof AI_SUGGESTED_GOALS>([]);
+  const [aiSuggestedHabits, setAiSuggestedHabits] = useState<typeof AI_SUGGESTED_HABITS>([]);
+  
   // Filter AI-suggested goals to remove any that already exist in the user's goals list
   const [filteredAiSuggestedGoals, setFilteredAiSuggestedGoals] = useState<typeof AI_SUGGESTED_GOALS>([]);
   
+  // Process AI suggestions when they're loaded
+  useEffect(() => {
+    if (aiSuggestions.goals && aiSuggestions.goals.length > 0) {
+      // Separate goals and habits from suggestions
+      const goals = aiSuggestions.goals
+        .filter((item: AISuggestion) => item.type === 'goal')
+        .map((item: AISuggestion, index: number) => ({
+          id: `ai-goal-${index}`,
+          name: item.name,
+          description: item.description,
+          category: getGoalCategory(item.name),
+          targetDate: null,
+          source: "Based on your journal entries"
+        }));
+      
+      const habits = aiSuggestions.goals
+        .filter((item: AISuggestion) => item.type === 'habit')
+        .map((item: AISuggestion, index: number) => ({
+          id: `ai-habit-${index}`,
+          title: item.name,
+          description: item.description,
+          frequency: determineFrequency(item.name),
+          source: "Based on your journal entries"
+        }));
+      
+      setAiSuggestedGoals(goals.length > 0 ? goals : AI_SUGGESTED_GOALS);
+      setAiSuggestedHabits(habits.length > 0 ? habits : AI_SUGGESTED_HABITS);
+    } else {
+      // Fallback to example data if no suggestions
+      setAiSuggestedGoals(AI_SUGGESTED_GOALS);
+      setAiSuggestedHabits(AI_SUGGESTED_HABITS);
+    }
+  }, [aiSuggestions]);
+  
+  // Helper function to determine a category for a goal
+  const getGoalCategory = (goalName: string): string => {
+    const name = goalName.toLowerCase();
+    if (name.includes('read') || name.includes('learn') || name.includes('study')) 
+      return 'Learning';
+    if (name.includes('exercise') || name.includes('workout') || name.includes('run') || name.includes('meditate'))
+      return 'Health';
+    if (name.includes('save') || name.includes('budget') || name.includes('invest'))
+      return 'Financial';
+    if (name.includes('family') || name.includes('friend') || name.includes('relationship'))
+      return 'Relationships';
+    if (name.includes('job') || name.includes('career') || name.includes('work'))
+      return 'Career';
+    return 'Personal';
+  };
+  
+  // Helper function to determine frequency for a habit
+  const determineFrequency = (habitName: string): string => {
+    const name = habitName.toLowerCase();
+    if (name.includes('weekly') || name.includes('each week'))
+      return 'weekly';
+    if (name.includes('monthly') || name.includes('each month'))
+      return 'monthly';
+    return 'daily'; // Default to daily
+  };
+  
+  // Filter goals/habits that already exist
   useEffect(() => {
     if (goals.length > 0) {
       // Filter out AI goals that already exist in the user's goals
-      const filtered = AI_SUGGESTED_GOALS.filter(aiGoal => 
+      const filteredGoals = aiSuggestedGoals.filter(aiGoal => 
         !goals.some(userGoal => 
           // Case-insensitive name comparison
           userGoal.name.toLowerCase() === aiGoal.name.toLowerCase()
         )
       );
-      setFilteredAiSuggestedGoals(filtered);
+      setFilteredAiSuggestedGoals(filteredGoals);
     } else {
-      setFilteredAiSuggestedGoals(AI_SUGGESTED_GOALS);
+      setFilteredAiSuggestedGoals(aiSuggestedGoals);
     }
-  }, [goals]);
+  }, [goals, aiSuggestedGoals]);
   
   // Add goal mutation
   const addGoalMutation = useMutation({
@@ -458,8 +540,6 @@ export default function GoalsPage() {
   
   // Habits (using example data for now)
   const [habits, setHabits] = useState(EXAMPLE_HABITS);
-  const [aiSuggestedHabits, setAiSuggestedHabits] = useState(AI_SUGGESTED_HABITS);
-  const [filteredAiSuggestedHabits, setFilteredAiSuggestedHabits] = useState<typeof AI_SUGGESTED_HABITS>([]);
   const [habitToEdit, setHabitToEdit] = useState<typeof EXAMPLE_HABITS[0] | null>(null);
   const [showEditHabitDialog, setShowEditHabitDialog] = useState(false);
   
@@ -472,17 +552,20 @@ export default function GoalsPage() {
   // In a real app, this would be part of the user object from the database
   const isPremiumUser = user?.id === 1; // For demo purposes, assume user 1 is premium
   
+  // Declare aiSuggestedHabits here to fix the duplicate declaration
+  const [filteredAiSuggestedHabits, setFilteredAiSuggestedHabits] = useState<typeof AI_SUGGESTED_HABITS>([]);
+  
   // Filter AI-suggested habits to remove any that already exist in the user's habits list
   useEffect(() => {
     // Filter out AI habits that already exist in the user's habits
-    const filtered = AI_SUGGESTED_HABITS.filter(aiHabit => 
+    const filtered = aiSuggestedHabits.filter(aiHabit => 
       !habits.some(userHabit => 
         // Case-insensitive title comparison
         userHabit.title.toLowerCase() === aiHabit.title.toLowerCase()
       )
     );
     setFilteredAiSuggestedHabits(filtered);
-  }, [habits]);
+  }, [habits, aiSuggestedHabits]);
   
   // Function to toggle habit completion
   const toggleHabitCompletion = (habitId: number) => {

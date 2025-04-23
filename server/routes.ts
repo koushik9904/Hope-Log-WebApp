@@ -3,7 +3,14 @@ import { createServer, type Server } from "http";
 import { z } from "zod";
 import { setupAuth } from "./auth";
 import { storage } from "./storage";
-import { generateAIResponse, analyzeSentiment, generateWeeklySummary, generateCustomPrompts, storeEmbedding } from "./openai";
+import { 
+  generateAIResponse, 
+  analyzeSentiment, 
+  generateWeeklySummary, 
+  generateCustomPrompts, 
+  storeEmbedding,
+  generateGoalSuggestions
+} from "./openai";
 import oauthSettingsRoutes from "./routes/oauth-settings";
 import openaiSettingsRoutes from "./routes/openai-settings";
 import adminStatsRoutes from "./routes/admin-stats";
@@ -456,6 +463,37 @@ Your role is to:
       res.json(goals);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch goals" });
+    }
+  });
+  
+  // Get AI-suggested goals and habits based on journal entries
+  app.get("/api/goals/:userId/suggestions", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const userId = Number(req.params.userId);
+    if (req.user?.id !== userId) return res.sendStatus(403);
+    
+    try {
+      // Get recent journal entries for analysis
+      const journalEntries = await storage.getRecentJournalEntriesByUserId(userId, 10);
+      
+      // Filter to only include actual journal entries, not chat messages
+      const filteredEntries = journalEntries.filter(entry => entry.isJournal);
+      
+      if (filteredEntries.length === 0) {
+        return res.json({ goals: [] });
+      }
+      
+      // Get existing goals to avoid duplicates
+      const existingGoals = await storage.getGoalsByUserId(userId);
+      
+      // Generate suggestions based on journal content
+      const suggestions = await generateGoalSuggestions(filteredEntries, existingGoals);
+      
+      res.json(suggestions);
+    } catch (error) {
+      console.error("Error generating goal suggestions:", error);
+      res.status(500).json({ error: "Failed to generate goal suggestions" });
     }
   });
 
