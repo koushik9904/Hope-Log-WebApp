@@ -257,19 +257,19 @@ export default function GoalsPage() {
     staleTime: 60000, // 1 minute
   });
   
-  // Define the type for AI suggestions
-  type AISuggestion = {
+  // Define the interface for AI suggestions from the API
+  interface AISuggestion {
     name: string;
     type: 'goal' | 'habit';
     description: string;
-  };
+  }
 
-  type APISuggestions = {
+  interface APISuggestions {
     goals: AISuggestion[];
-  };
+  }
   
   // Fetch AI-suggested goals and habits
-  const { data: aiSuggestions = { goals: [] as AISuggestion[] }, isLoading: isSuggestionsLoading } = useQuery<APISuggestions>({
+  const { data: aiSuggestions = { goals: [] }, isLoading: isSuggestionsLoading } = useQuery<APISuggestions>({
     queryKey: [`/api/goals/${user?.id}/suggestions`],
     enabled: !!user?.id,
     staleTime: 300000, // 5 minutes - these don't change as frequently
@@ -281,14 +281,15 @@ export default function GoalsPage() {
   
   // Filter AI-suggested goals to remove any that already exist in the user's goals list
   const [filteredAiSuggestedGoals, setFilteredAiSuggestedGoals] = useState<typeof AI_SUGGESTED_GOALS>([]);
+  const [filteredAiSuggestedHabits, setFilteredAiSuggestedHabits] = useState<typeof AI_SUGGESTED_HABITS>([]);
   
   // Process AI suggestions when they're loaded
   useEffect(() => {
     if (aiSuggestions.goals && aiSuggestions.goals.length > 0) {
       // Separate goals and habits from suggestions
-      const goals = aiSuggestions.goals
-        .filter((item: AISuggestion) => item.type === 'goal')
-        .map((item: AISuggestion, index: number) => ({
+      const goalItems = aiSuggestions.goals
+        .filter(item => item.type === 'goal')
+        .map((item, index) => ({
           id: `ai-goal-${index}`,
           name: item.name,
           description: item.description,
@@ -297,9 +298,9 @@ export default function GoalsPage() {
           source: "Based on your journal entries"
         }));
       
-      const habits = aiSuggestions.goals
-        .filter((item: AISuggestion) => item.type === 'habit')
-        .map((item: AISuggestion, index: number) => ({
+      const habitItems = aiSuggestions.goals
+        .filter(item => item.type === 'habit')
+        .map((item, index) => ({
           id: `ai-habit-${index}`,
           title: item.name,
           description: item.description,
@@ -307,8 +308,8 @@ export default function GoalsPage() {
           source: "Based on your journal entries"
         }));
       
-      setAiSuggestedGoals(goals.length > 0 ? goals : AI_SUGGESTED_GOALS);
-      setAiSuggestedHabits(habits.length > 0 ? habits : AI_SUGGESTED_HABITS);
+      setAiSuggestedGoals(goalItems.length > 0 ? goalItems : AI_SUGGESTED_GOALS);
+      setAiSuggestedHabits(habitItems.length > 0 ? habitItems : AI_SUGGESTED_HABITS);
     } else {
       // Fallback to example data if no suggestions
       setAiSuggestedGoals(AI_SUGGESTED_GOALS);
@@ -342,7 +343,7 @@ export default function GoalsPage() {
     return 'daily'; // Default to daily
   };
   
-  // Filter goals/habits that already exist
+  // Filter out AI-suggested goals that already exist
   useEffect(() => {
     if (goals.length > 0) {
       // Filter out AI goals that already exist in the user's goals
@@ -551,9 +552,6 @@ export default function GoalsPage() {
   // User's premium status - for determining retention period
   // In a real app, this would be part of the user object from the database
   const isPremiumUser = user?.id === 1; // For demo purposes, assume user 1 is premium
-  
-  // Declare aiSuggestedHabits here to fix the duplicate declaration
-  const [filteredAiSuggestedHabits, setFilteredAiSuggestedHabits] = useState<typeof AI_SUGGESTED_HABITS>([]);
   
   // Filter AI-suggested habits to remove any that already exist in the user's habits list
   useEffect(() => {
