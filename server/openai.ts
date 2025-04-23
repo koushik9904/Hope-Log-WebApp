@@ -488,3 +488,60 @@ export async function generateCustomPrompts(
     ];
   }
 }
+
+// Generate goal and habit suggestions based on journal entries
+export async function generateGoalSuggestions(
+  recentEntries: { content: string; date: string }[],
+  existingGoals: { name: string; targetDate?: string | null; progress: number }[] = []
+): Promise<{ goals: { name: string; type: 'goal' | 'habit'; description: string }[] }> {
+  try {
+    // Extract the content of the journal entries
+    const entriesText = recentEntries
+      .map(entry => `Entry from ${new Date(entry.date).toDateString()}: ${entry.content}`)
+      .join("\n\n");
+    
+    const existingGoalsText = existingGoals.length > 0
+      ? `Current goals:\n${existingGoals.map(goal => 
+          `- ${goal.name} (${goal.progress}% complete${goal.targetDate ? `, target: ${goal.targetDate}` : ''})`
+        ).join('\n')}`
+      : "The user currently has no active goals or habits.";
+    
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: `You are an AI wellness assistant that helps identify potential goals and habits from journal entries.
+          
+          Based on the user's journal entries, suggest actionable goals or habits that would support their wellness journey.
+          
+          Guidelines:
+          - Suggest 3-5 items in total
+          - Classify each as either a 'goal' (one-time achievement) or 'habit' (recurring activity)
+          - Goals should be specific, measurable, achievable, relevant, and time-bound
+          - Habits should be concrete daily or weekly actions
+          - Add a brief description of why this would be beneficial
+          - Avoid suggesting goals/habits the user already has
+          - Base suggestions on the user's actual journal content, not generic advice
+          
+          Return a JSON object with a 'goals' array containing objects with:
+          - 'name': short title (5-7 words max)
+          - 'type': either 'goal' or 'habit'
+          - 'description': 1-2 sentence explanation of the benefit`
+        },
+        {
+          role: "user",
+          content: `Here are my recent journal entries:\n\n${entriesText}\n\n${existingGoalsText}`
+        }
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.7,
+    });
+
+    const content = response.choices[0].message.content || '{"goals":[]}';
+    return JSON.parse(content);
+  } catch (error) {
+    console.error("Error generating goal suggestions:", error);
+    return { goals: [] };
+  }
+}
