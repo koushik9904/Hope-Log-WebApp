@@ -9,7 +9,7 @@ function dateToISOString(date: Date): string {
 }
 
 // Get PayPal callback URL from database or determine dynamically
-async function getPayPalCallbackUrl() {
+export async function getPayPalCallbackUrl() {
   console.log('[PayPal] Getting callback URL');
   try {
     // First try to get the callback URL from settings
