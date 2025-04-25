@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/hooks/use-auth';
-import JournalChat from '@/components/journal/journal-chat';
-import PageHeader from '@/components/layout/page-header';
+import { JournalChat } from '@/components/journal/journal-chat';
+import { PageHeader } from '@/components/layout/page-header';
 import { useToast } from '@/hooks/use-toast';
 
 export default function ChatPage() {

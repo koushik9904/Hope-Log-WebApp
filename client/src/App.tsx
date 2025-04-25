@@ -21,6 +21,7 @@ import { useAuth } from "@/hooks/use-auth";
 const JournalPage = lazy(() => import("@/pages/journal-page"));
 const JournalEntryPage = lazy(() => import("@/pages/journal-entry-page"));
 const NewJournalEntryPage = lazy(() => import("@/pages/new-journal-entry-page"));
+const ChatPage = lazy(() => import("@/pages/chat-page"));
 const InsightsPage = lazy(() => import("@/pages/insights-page"));
 const GoalsPage = lazy(() => import("@/pages/goals-page"));
 const SubscriptionPage = lazy(() => import("@/pages/subscription-page"));
@@ -110,6 +111,14 @@ function Router() {
           component={() => (
             <Suspense fallback={<LoadingFallback />}>
               <SubscriptionPage />
+            </Suspense>
+          )} 
+        />
+        <ProtectedRoute 
+          path="/chat" 
+          component={() => (
+            <Suspense fallback={<LoadingFallback />}>
+              <ChatPage />
             </Suspense>
           )} 
         />
