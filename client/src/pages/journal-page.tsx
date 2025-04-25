@@ -337,7 +337,6 @@ export default function JournalPage() {
           <TabsList className="mb-6">
             <TabsTrigger value="entries">All Entries</TabsTrigger>
             <TabsTrigger value="calendar">Calendar View</TabsTrigger>
-            <TabsTrigger value="emotions">Emotions</TabsTrigger>
             <TabsTrigger value="recycle-bin" onClick={() => setShowDeleted(true)}>
               <div className="flex items-center">
                 <Trash2 className="h-4 w-4 mr-2" />
@@ -903,27 +902,6 @@ export default function JournalPage() {
             </div>
           </TabsContent>
           
-          <TabsContent value="emotions">
-            <div className="bg-white border border-gray-200 rounded-lg p-8">
-              <h3 className="text-lg font-medium mb-4">Emotions in Your Journal</h3>
-              
-              {emotions.size === 0 ? (
-                <div className="text-center py-8">
-                  <p className="text-gray-500">
-                    No emotions have been detected in your journal entries yet.
-                  </p>
-                </div>
-              ) : (
-                <div className="flex flex-wrap gap-2">
-                  {Array.from(emotions).map((emotion, i) => (
-                    <Badge key={i} className="px-3 py-1 text-sm">
-                      {emotion}
-                    </Badge>
-                  ))}
-                </div>
-              )}
-            </div>
-          </TabsContent>
           
           <TabsContent value="recycle-bin">
             <div className="bg-white border border-gray-200 rounded-lg p-8">
