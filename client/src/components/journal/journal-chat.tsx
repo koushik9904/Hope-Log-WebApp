@@ -30,6 +30,7 @@ import { useToast } from "@/hooks/use-toast";
 
 type JournalChatProps = {
   userId: number;
+  selectedDate?: Date;
 };
 
 // Sample suggested prompts that Pi.ai might offer
@@ -40,7 +41,9 @@ const SUGGESTED_PROMPTS = [
   "What made me smile today?"
 ];
 
-export function JournalChat({ userId }: JournalChatProps) {
+export function JournalChat({ userId, selectedDate }: JournalChatProps) {
+  // If selectedDate is provided, use it; otherwise, use current date
+  const entryDate = selectedDate || new Date();
   const { toast } = useToast();
   const [message, setMessage] = useState("");
   const [journalEntry, setJournalEntry] = useState("");
@@ -166,8 +169,8 @@ export function JournalChat({ userId }: JournalChatProps) {
             : userMessages.join('\n\n')
         : "Journal entry from chat";
       
-      // Get user's local date
-      const localDate = new Date();
+      // Use the provided entryDate for the journal entry
+      // This ensures we use the selected date and not always today's date
       
       // Use the regular journal entry endpoint but specify this is a journal entry (not chat)
       const res = await apiRequest("POST", "/api/journal-entries", {
@@ -175,7 +178,7 @@ export function JournalChat({ userId }: JournalChatProps) {
         content: summaryContent,
         transcript: transcript,
         isJournal: true,
-        date: localDate.toISOString()
+        date: entryDate.toISOString()
       });
       
       return await res.json();
@@ -226,15 +229,14 @@ export function JournalChat({ userId }: JournalChatProps) {
   // Save long-form journal entry
   const saveJournalEntryMutation = useMutation({
     mutationFn: async (content: string) => {
-      // Get user's local date
-      const localDate = new Date();
+      // Use the selected date from props or current date
       
       const res = await apiRequest("POST", "/api/journal-entries", {
         content,
         userId,
         isJournal: true,
         analyzeSentiment: true,
-        date: localDate.toISOString()
+        date: entryDate.toISOString()
       });
       return await res.json();
     },
