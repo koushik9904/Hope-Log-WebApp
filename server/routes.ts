@@ -366,25 +366,24 @@ Your role is to:
       // This endpoint now only handles direct journal entries
       // Chat messages are handled in memory and only saved when "Save Chat" is clicked
       
-      // Use provided date if available, otherwise use current server time
-      // The client provides the date in the user's local timezone as an ISO string
-      // We need to parse it and preserve the actual date components
-      let entryDate: Date;
+      // EMERGENCY FIX: Use the date string from client directly 
+      // The client is now providing a specially formatted date string that must be preserved exactly
+      let entryDate: string;
       
       if (date) {
-        // Parse the incoming date string
-        const parsedDate = new Date(date);
-        console.log(`Server received date: ${date}, Parsed as: ${parsedDate.toISOString()}`);
-        entryDate = parsedDate;
+        // Log but otherwise use the client-provided date string directly
+        console.log(`🚨 Server received force-formatted date: ${date}`);
+        entryDate = date; // Use it directly without further parsing
       } else {
-        entryDate = new Date();
+        // Only for fallback - construct a current date in ISO format
+        entryDate = new Date().toISOString();
       }
       
       // Save as permanent journal entry
       const journalEntry = await storage.createJournalEntry({
         userId,
         content,
-        date: entryDate.toISOString(),
+        date: entryDate, // Already an ISO string from client
         isAiResponse: false,
         isJournal: true, // This is a permanent journal entry
         transcript: transcript || content // Use provided transcript if available, otherwise use content
