@@ -520,34 +520,40 @@ export default function JournalPage() {
               </div>
             ) : (
               <div className="space-y-6">
-                {/* Allow adding journal entries for the selected date if not present */}
-                {!Object.keys(entriesByDate).some(dateStr => {
-                  // Create a date object from selectedDate with only date part (no time)
-                  const year = selectedDate.getFullYear();
-                  const month = selectedDate.getMonth();
-                  const day = selectedDate.getDate();
-                  const selectedDateOnly = new Date(year, month, day);
-                  const selectedDateStr = selectedDateOnly.toISOString().split('T')[0];
-                  
-                  return dateStr === selectedDateStr;
-                }) && (
-                  <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 mb-6">
-                    <div className="mb-4">
-                      <h3 className="font-medium text-xl text-center">No entries for {selectedDate.toLocaleDateString('en-US', {
-                        weekday: 'long',
-                        month: 'long',
-                        day: 'numeric',
-                        year: 'numeric'
-                      })}</h3>
-                      <p className="text-sm text-gray-500 text-center mt-1">How would you like to journal for this date?</p>
-                    </div>
-                    <EntryTypeSelector
-                      selectedDate={selectedDate}
-                      linkMode={true}
-                      className="max-w-4xl mx-auto"
-                    />
+                {/* Always show journaling options for the selected date */}
+                <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 mb-6">
+                  <div className="mb-4">
+                    <h3 className="font-medium text-xl text-center">
+                      {!Object.keys(entriesByDate).some(dateStr => {
+                        // Create a date object from selectedDate with only date part (no time)
+                        const year = selectedDate.getFullYear();
+                        const month = selectedDate.getMonth();
+                        const day = selectedDate.getDate();
+                        const selectedDateOnly = new Date(year, month, day);
+                        const selectedDateStr = selectedDateOnly.toISOString().split('T')[0];
+                        
+                        return dateStr === selectedDateStr;
+                      }) ? 
+                        `No entries for ${selectedDate.toLocaleDateString('en-US', {
+                          weekday: 'long',
+                          month: 'long',
+                          day: 'numeric',
+                          year: 'numeric'
+                        })}` : 
+                        `Continue journaling for ${selectedDate.toLocaleDateString('en-US', {
+                          month: 'long',
+                          day: 'numeric'
+                        })}`
+                      }
+                    </h3>
+                    <p className="text-sm text-gray-500 text-center mt-1">How would you like to journal for this date?</p>
                   </div>
-                )}
+                  <EntryTypeSelector
+                    selectedDate={selectedDate}
+                    linkMode={true}
+                    className="max-w-4xl mx-auto"
+                  />
+                </div>
               
                 {Object.entries(entriesByDate)
                   .filter(([dateString]) => {

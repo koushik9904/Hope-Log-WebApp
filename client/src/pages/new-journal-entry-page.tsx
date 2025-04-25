@@ -30,19 +30,30 @@ export default function NewJournalEntryPage() {
     dateParam ? new Date(dateParam) : new Date()
   );
 
-  // Set entry type from URL parameter if available
-  useEffect(() => {
-    if (typeParam === 'journal' || typeParam === 'chat') {
-      setEntryType(typeParam);
-      setShowEntrySelector(false);
-    }
-  }, [typeParam]);
-
   // Check if this is a past date entry
   const isPastDate = dateParam && new Date(dateParam).toDateString() !== new Date().toDateString();
 
   // Validate date is not in the future
   const isFutureDate = entryDate > new Date();
+  
+  // Set entry type from URL parameter if available
+  useEffect(() => {
+    // Check for future dates
+    if (isFutureDate) {
+      toast({
+        title: "Cannot create future entries",
+        description: "Journal entries can only be created for today or past dates",
+        variant: "destructive"
+      });
+      navigate('/journal');
+      return;
+    }
+  
+    if (typeParam === 'journal' || typeParam === 'chat') {
+      setEntryType(typeParam);
+      setShowEntrySelector(false);
+    }
+  }, [typeParam, isFutureDate, navigate, toast]);
 
   // Handle entry type selection
   const handleEntryTypeSelect = (type: 'chat' | 'journal') => {
