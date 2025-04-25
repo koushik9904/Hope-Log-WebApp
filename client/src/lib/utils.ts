@@ -13,11 +13,17 @@ export function cn(...inputs: ClassValue[]) {
  * @returns A new Date object with corrected timezone handling
  */
 export function prepareLocalDateForStorage(date: Date): Date {
-  // Create new date object with time set to noon (to avoid any DST issues)
-  const localDate = new Date(date);
+  // Create a new date object with the specific year, month, and day from the input date
+  // This guarantees we work with the actual local calendar day the user selected
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const day = date.getDate();
   
-  // Set to noon of the selected date in local timezone to avoid any DST issues
-  localDate.setHours(12, 0, 0, 0);
+  // Create a new date with the local components and set to noon (to avoid DST issues)
+  const localDate = new Date(year, month, day, 12, 0, 0, 0);
+  
+  // Log for debugging
+  console.log(`Original date: ${date.toISOString()}, Prepared date: ${localDate.toISOString()}`);
   
   return localDate;
 }

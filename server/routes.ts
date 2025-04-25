@@ -367,8 +367,18 @@ Your role is to:
       // Chat messages are handled in memory and only saved when "Save Chat" is clicked
       
       // Use provided date if available, otherwise use current server time
-      // The client should provide the date in the user's local timezone
-      const entryDate = date ? new Date(date) : new Date();
+      // The client provides the date in the user's local timezone as an ISO string
+      // We need to parse it and preserve the actual date components
+      let entryDate: Date;
+      
+      if (date) {
+        // Parse the incoming date string
+        const parsedDate = new Date(date);
+        console.log(`Server received date: ${date}, Parsed as: ${parsedDate.toISOString()}`);
+        entryDate = parsedDate;
+      } else {
+        entryDate = new Date();
+      }
       
       // Save as permanent journal entry
       const journalEntry = await storage.createJournalEntry({
