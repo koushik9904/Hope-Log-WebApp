@@ -125,7 +125,7 @@ export default function SettingsDataPage() {
               </div>
               <Progress value={6.4} className="h-2 mb-2" />
               <p className="text-sm text-gray-500">
-                You're using 6.4% of your available storage. Standard plan includes 50MB of storage.
+                You're using 6.4% of your available storage. Free plan includes 50MB of storage.
               </p>
             </div>
             
