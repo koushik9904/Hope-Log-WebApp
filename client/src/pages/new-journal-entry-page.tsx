@@ -78,7 +78,6 @@ export default function NewJournalEntryPage() {
         content,
         userId: user.id,
         date: localDate.toISOString(),
-        timezone: timezone,
         isJournal: true
       });
 

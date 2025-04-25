@@ -46,7 +46,6 @@ export const journalEntries = pgTable("journal_entries", {
   isAiResponse: boolean("is_ai_response").notNull().default(false),
   isJournal: boolean("is_journal").notNull().default(false),
   transcript: text("transcript"),  // For storing complete chat transcripts when saving
-  timezone: text("timezone"),  // Store the user's timezone when entry was created
   sentiment: jsonb("sentiment").$type<{
     score: number;
     emotions: string[];
