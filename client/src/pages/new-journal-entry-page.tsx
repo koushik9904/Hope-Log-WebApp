@@ -60,16 +60,25 @@ export default function NewJournalEntryPage() {
       if (!user) throw new Error("You must be logged in to create a journal entry");
       if (isFutureDate) throw new Error("Cannot create journal entries for future dates");
 
-      // Convert date to user's timezone
+      // Use the selected date with local time components
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      
+      // Ensure we preserve the date but use local time
+      const now = new Date(); 
       const localDate = new Date(entryDate);
-      const userTimezoneOffset = localDate.getTimezoneOffset() * 60000;
-      const userLocalDate = new Date(localDate.getTime() - userTimezoneOffset);
+      // Set hours/minutes/seconds from current time if it's today's entry
+      if (!isPastDate) {
+        localDate.setHours(now.getHours());
+        localDate.setMinutes(now.getMinutes());
+        localDate.setSeconds(now.getSeconds());
+        localDate.setMilliseconds(now.getMilliseconds());
+      }
 
       const res = await apiRequest("POST", "/api/journal-entries", {
         content,
         userId: user.id,
-        date: userLocalDate.toISOString(),
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        date: localDate.toISOString(),
+        timezone: timezone,
         isJournal: true
       });
 

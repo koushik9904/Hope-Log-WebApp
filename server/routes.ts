@@ -66,7 +66,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/journal-entries/save-chat", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     
-    const { userId } = req.body;
+    const { userId, date = null, timezone = null } = req.body;
     if (req.user?.id !== userId) return res.sendStatus(403);
     
     try {
@@ -87,11 +87,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generate summary and analyze sentiment with goal extraction
       const sentiment = await analyzeSentiment(transcript);
       
+      // Use provided date if available, otherwise use current time
+      // The client should provide the date in the user's local timezone
+      const entryDate = date ? new Date(date) : new Date();
+      
       // Create the journal entry as a permanent record (isJournal=true)
       const journalEntry = await storage.createJournalEntry({
         userId,
         content: chatEntries[chatEntries.length - 1].content, // Use the last message as the content
-        date: new Date().toISOString(),
+        date: entryDate.toISOString(),
         isAiResponse: false,
         isJournal: true,
         transcript: transcript // Store the full conversation transcript
@@ -355,18 +359,22 @@ Your role is to:
   app.post("/api/journal-entries", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     
-    const { content, userId, transcript = null } = req.body;
+    const { content, userId, transcript = null, date = null, timezone = null } = req.body;
     if (req.user?.id !== userId) return res.sendStatus(403);
     
     try {
       // This endpoint now only handles direct journal entries
       // Chat messages are handled in memory and only saved when "Save Chat" is clicked
       
+      // Use provided date if available, otherwise use current server time
+      // The client should provide the date in the user's local timezone
+      const entryDate = date ? new Date(date) : new Date();
+      
       // Save as permanent journal entry
       const journalEntry = await storage.createJournalEntry({
         userId,
         content,
-        date: new Date().toISOString(),
+        date: entryDate.toISOString(),
         isAiResponse: false,
         isJournal: true, // This is a permanent journal entry
         transcript: transcript || content // Use provided transcript if available, otherwise use content
