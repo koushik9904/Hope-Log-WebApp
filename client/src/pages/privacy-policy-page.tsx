@@ -1,8 +1,10 @@
-import { HopeLogLogo } from "@/components/ui/hope-log-logo";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "wouter";
-import { Shield, ExternalLink } from "lucide-react";
+import { Shield } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { PageHeader } from "@/components/layout/page-header";
+import { PageFooter } from "@/components/layout/page-footer";
+import { primaryNavLinks } from "@/lib/navigation";
 
 export default function PrivacyPolicyPage() {
   const { user } = useAuth();
@@ -10,37 +12,10 @@ export default function PrivacyPolicyPage() {
   
   return (
     <div className="min-h-screen bg-[#FFF8E8]">
-      {/* Navigation */}
-      <nav className="sticky top-0 bg-white/80 backdrop-blur-md z-50 border-b border-gray-100">
-        <div className="container mx-auto px-4 sm:px-6 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center">
-              <HopeLogLogo size="md" withText />
-            </div>
-            <div className="hidden md:flex items-center space-x-8">
-              <Link href="/" className="text-gray-600 hover:text-gray-900">Home</Link>
-              <a href="https://jazeeljabbar.substack.com/" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-gray-900">Blog</a>
-              <Link href="/about-us" className="text-gray-600 hover:text-gray-900">About Us</Link>
-            </div>
-            <div className="flex items-center space-x-4">
-              {user ? (
-                <Link href="/" className="pi-button">
-                  Go to Dashboard
-                </Link>
-              ) : (
-                <>
-                  <Link href="/auth" className="px-4 py-2 rounded-lg bg-black text-white font-medium hover:bg-gray-800 transition-colors">
-                    Login
-                  </Link>
-                  <Link href="/auth?tab=register" className="pi-button">
-                    Sign Up Free
-                  </Link>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
+      <PageHeader 
+        currentPage="privacy-policy"
+        navLinks={primaryNavLinks}
+      />
       
       <div className="container mx-auto px-4 sm:px-6 py-12">
         <div className="max-w-4xl mx-auto">
@@ -212,6 +187,8 @@ export default function PrivacyPolicyPage() {
           </div>
         </div>
       </div>
+      
+      <PageFooter />
     </div>
   );
 }

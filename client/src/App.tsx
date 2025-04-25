@@ -25,6 +25,11 @@ const InsightsPage = lazy(() => import("@/pages/insights-page"));
 const GoalsPage = lazy(() => import("@/pages/goals-page"));
 const SubscriptionPage = lazy(() => import("@/pages/subscription-page"));
 const AboutUsPage = lazy(() => import("@/pages/about-us-page"));
+const CommunityPage = lazy(() => import("@/pages/community-page"));
+const MentalHealthResourcesPage = lazy(() => import("@/pages/mental-health-resources-page"));
+const HelpCenterPage = lazy(() => import("@/pages/help-center-page"));
+const PrivacyPolicyPage = lazy(() => import("@/pages/privacy-policy-page"));
+const TermsOfServicePage = lazy(() => import("@/pages/terms-of-service-page"));
 
 // Settings pages
 const SettingsProfilePage = lazy(() => import("@/pages/settings-profile-page"));
@@ -113,6 +118,36 @@ function Router() {
         <Route path="/about-us">
           <Suspense fallback={<LoadingFallback />}>
             <AboutUsPage />
+          </Suspense>
+        </Route>
+        
+        <Route path="/community">
+          <Suspense fallback={<LoadingFallback />}>
+            <CommunityPage />
+          </Suspense>
+        </Route>
+        
+        <Route path="/mental-health-resources">
+          <Suspense fallback={<LoadingFallback />}>
+            <MentalHealthResourcesPage />
+          </Suspense>
+        </Route>
+        
+        <Route path="/help-center">
+          <Suspense fallback={<LoadingFallback />}>
+            <HelpCenterPage />
+          </Suspense>
+        </Route>
+        
+        <Route path="/privacy-policy">
+          <Suspense fallback={<LoadingFallback />}>
+            <PrivacyPolicyPage />
+          </Suspense>
+        </Route>
+        
+        <Route path="/terms-of-service">
+          <Suspense fallback={<LoadingFallback />}>
+            <TermsOfServicePage />
           </Suspense>
         </Route>
         

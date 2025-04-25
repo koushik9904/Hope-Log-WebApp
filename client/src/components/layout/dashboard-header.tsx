@@ -1,8 +1,9 @@
 import { User } from "@shared/schema";
 import { format } from "date-fns";
-import { Bell, Menu, LogOut } from "lucide-react";
+import { Menu, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { HopeLogLogo } from "@/components/ui/hope-log-logo";
+import { NotificationDropdown } from "@/components/notifications/notification-dropdown";
 
 type DashboardHeaderProps = {
   user: User | null;
@@ -30,9 +31,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
         </div>
         
         <div className="hidden md:flex items-center space-x-4">
-          <button className="text-white hover:text-gray-200 bg-gray-700 p-2 rounded-full transition-colors">
-            <Bell className="h-5 w-5" />
-          </button>
+          <NotificationDropdown />
           
           <div className="relative group">
             <button className="flex items-center space-x-2">

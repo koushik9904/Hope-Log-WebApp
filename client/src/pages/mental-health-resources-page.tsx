@@ -1,4 +1,3 @@
-import { HopeLogLogo } from "@/components/ui/hope-log-logo";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "wouter";
 import { 
@@ -17,8 +16,8 @@ import {
   Clock,
   ExternalLink
 } from "lucide-react";
+import { HopeLogLogo } from "@/components/ui/hope-log-logo";
 import { useAuth } from "@/hooks/use-auth";
-import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Card,
@@ -29,6 +28,15 @@ import {
   CardTitle 
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/layout/page-header";
+import { PageFooter } from "@/components/layout/page-footer";
+
+// Import asset images
+import nimhansLogo from "@assets/nimhans logo.jpeg";
+import iiitHyderabadLogo from "@assets/IIIT_Hyderabad_Logo.jpg";
+import universityOfHyderabadLogo from "@assets/University_of_Hyderabad_Logo.png";
+import iitHyderabadLogo from "@assets/IIT Hyderabad Logo_Final Design.jpg";
+import tataMemorialLogo from "@assets/tata_memorial_logo.png";
 
 interface Resource {
   title: string;
@@ -213,37 +221,7 @@ export default function MentalHealthResourcesPage() {
   
   return (
     <div className="min-h-screen bg-[#FFF8E8]">
-      {/* Navigation */}
-      <nav className="sticky top-0 bg-white/80 backdrop-blur-md z-50 border-b border-gray-100">
-        <div className="container mx-auto px-4 sm:px-6 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center">
-              <HopeLogLogo size="md" withText />
-            </div>
-            <div className="hidden md:flex items-center space-x-8">
-              <Link href="/" className="text-gray-600 hover:text-gray-900">Home</Link>
-              <a href="https://jazeeljabbar.substack.com/" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-gray-900">Blog</a>
-              <Link href="/about-us" className="text-gray-600 hover:text-gray-900">About Us</Link>
-            </div>
-            <div className="flex items-center space-x-4">
-              {user ? (
-                <Link href="/" className="pi-button">
-                  Go to Dashboard
-                </Link>
-              ) : (
-                <>
-                  <Link href="/auth" className="px-4 py-2 rounded-lg bg-black text-white font-medium hover:bg-gray-800 transition-colors">
-                    Login
-                  </Link>
-                  <Link href="/auth?tab=register" className="pi-button">
-                    Sign Up Free
-                  </Link>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
+      <PageHeader currentPage="mental-health-resources" />
       
       <div className="container mx-auto px-4 sm:px-6 py-12">
         <div className="max-w-5xl mx-auto">
@@ -347,6 +325,121 @@ export default function MentalHealthResourcesPage() {
             </div>
           </div>
           
+          {/* India-Specific Mental Health Resources */}
+          <div className="bg-[#B6CAEB]/10 rounded-xl p-8 border border-[#B6CAEB]/20 mb-10">
+            <h2 className="text-2xl font-bold mb-4 flex items-center">
+              <Map className="h-6 w-6 mr-2 text-[#B6CAEB]" /> India Mental Health Resources
+            </h2>
+            <p className="text-gray-600 mb-6">
+              Mental health resources specifically for people in India, including helplines, institutions, and support services.
+            </p>
+            
+            <div className="grid md:grid-cols-2 gap-6 mb-6">
+              <div className="bg-white p-5 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+                <h3 className="font-semibold text-gray-800 mb-1 flex items-center">
+                  NIMHANS (National Institute of Mental Health and Neuro Sciences)
+                  <ExternalLink className="ml-1 h-3 w-3 text-gray-400" />
+                </h3>
+                <p className="text-sm text-gray-600 mb-2">India's premier mental health institution offering specialized care and research.</p>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-[#B6CAEB] font-medium">Website:</span>
+                  <a href="https://nimhans.ac.in/" target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline">nimhans.ac.in</a>
+                </div>
+                <div className="flex justify-between items-center mt-1">
+                  <span className="text-sm text-[#B6CAEB] font-medium">Helpline:</span>
+                  <span className="text-sm">080-26995000 / 080-26995500</span>
+                </div>
+              </div>
+              
+              <div className="bg-white p-5 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+                <h3 className="font-semibold text-gray-800 mb-1 flex items-center">
+                  TISS iCall
+                  <ExternalLink className="ml-1 h-3 w-3 text-gray-400" />
+                </h3>
+                <p className="text-sm text-gray-600 mb-2">Psychosocial helpline providing counseling, support, and linking to mental health professionals.</p>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-[#B6CAEB] font-medium">Website:</span>
+                  <a href="https://icallhelpline.org/" target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline">icallhelpline.org</a>
+                </div>
+                <div className="flex justify-between items-center mt-1">
+                  <span className="text-sm text-[#B6CAEB] font-medium">Helpline:</span>
+                  <span className="text-sm">9152987821 (9 AM to 9 PM, Mon-Sat)</span>
+                </div>
+              </div>
+              
+              <div className="bg-white p-5 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+                <h3 className="font-semibold text-gray-800 mb-1 flex items-center">
+                  AASRA
+                  <ExternalLink className="ml-1 h-3 w-3 text-gray-400" />
+                </h3>
+                <p className="text-sm text-gray-600 mb-2">Crisis intervention center for the depressed and suicidal.</p>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-[#B6CAEB] font-medium">Website:</span>
+                  <a href="http://www.aasra.info/" target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline">aasra.info</a>
+                </div>
+                <div className="flex justify-between items-center mt-1">
+                  <span className="text-sm text-[#B6CAEB] font-medium">Helpline:</span>
+                  <span className="text-sm">+91-9820466726 (24/7)</span>
+                </div>
+              </div>
+              
+              <div className="bg-white p-5 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+                <h3 className="font-semibold text-gray-800 mb-1 flex items-center">
+                  The Live Love Laugh Foundation
+                  <ExternalLink className="ml-1 h-3 w-3 text-gray-400" />
+                </h3>
+                <p className="text-sm text-gray-600 mb-2">Foundation focused on reducing stigma and providing mental health education and support.</p>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-[#B6CAEB] font-medium">Website:</span>
+                  <a href="https://thelivelovelaughfoundation.org/" target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline">thelivelovelaughfoundation.org</a>
+                </div>
+                <div className="flex justify-between items-center mt-1">
+                  <span className="text-sm text-[#B6CAEB] font-medium">Resources:</span>
+                  <span className="text-sm">Mental health resources and provider directory</span>
+                </div>
+              </div>
+            </div>
+            
+            <h3 className="text-xl font-semibold mb-3">Leading Academic Institutions for Mental Health in India</h3>
+            <div className="grid md:grid-cols-3 gap-4 mb-6">
+              <div className="flex flex-col items-center p-4 bg-white rounded-lg border border-gray-200">
+                <img src={nimhansLogo} alt="NIMHANS Logo" className="h-16 mb-3" />
+                <h4 className="text-center font-medium">NIMHANS, Bangalore</h4>
+                <p className="text-xs text-center text-gray-600 mt-1">National Institute of Mental Health and Neuro Sciences</p>
+              </div>
+              
+              <div className="flex flex-col items-center p-4 bg-white rounded-lg border border-gray-200">
+                <img src={iiitHyderabadLogo} alt="IIIT Hyderabad Logo" className="h-16 mb-3" />
+                <h4 className="text-center font-medium">IIIT Hyderabad</h4>
+                <p className="text-xs text-center text-gray-600 mt-1">Cognitive Science Research Center</p>
+              </div>
+              
+              <div className="flex flex-col items-center p-4 bg-white rounded-lg border border-gray-200">
+                <img src={universityOfHyderabadLogo} alt="University of Hyderabad Logo" className="h-16 mb-3" />
+                <h4 className="text-center font-medium">University of Hyderabad</h4>
+                <p className="text-xs text-center text-gray-600 mt-1">Centre for Health Psychology</p>
+              </div>
+            </div>
+            
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <h3 className="text-lg font-semibold mb-2">National Mental Health Helpline (Kiran)</h3>
+              <p className="text-sm text-gray-700 mb-2">
+                24/7 toll-free mental health rehabilitation helpline providing early screening, first-aid, psychological support, distress management, mental wellbeing, and psychological crisis management.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 items-center">
+                <div className="flex items-center">
+                  <Phone className="h-4 w-4 text-blue-500 mr-1" />
+                  <span className="font-medium">1800-599-0019</span>
+                </div>
+                <span className="hidden sm:block text-gray-500">|</span>
+                <div className="flex items-center">
+                  <Globe className="h-4 w-4 text-blue-500 mr-1" />
+                  <a href="https://nimhans.ac.in/kiran-mhrd/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">nimhans.ac.in/kiran-mhrd/</a>
+                </div>
+              </div>
+            </div>
+          </div>
+          
           {/* Self-Care Reminder */}
           <div className="bg-[#F5B8DB]/10 rounded-xl p-8 border border-[#F5B8DB]/20 mb-10">
             <div className="flex flex-col md:flex-row items-center">
@@ -414,6 +507,8 @@ export default function MentalHealthResourcesPage() {
           </div>
         </div>
       </div>
+      
+      <PageFooter />
     </div>
   );
 }

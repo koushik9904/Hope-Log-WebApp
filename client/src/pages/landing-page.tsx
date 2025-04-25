@@ -24,6 +24,9 @@ import {
 import { SiApple, SiAndroid } from "react-icons/si";
 import { FaTwitter, FaInstagram, FaFacebook } from "react-icons/fa";
 import { HopeLogLogo } from "@/components/ui/hope-log-logo";
+import { PageHeader } from "@/components/layout/page-header";
+import { PageFooter } from "@/components/layout/page-footer";
+import { primaryNavLinks } from "@/lib/navigation";
 
 // Import institution logos
 import IIITHyderabadLogo from "@assets/IIIT_Hyderabad_Logo.jpg";
@@ -59,39 +62,11 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Navigation */}
-      <nav className="sticky top-0 bg-white/80 backdrop-blur-md z-50 border-b border-gray-100">
-        <div className="container mx-auto px-4 sm:px-6 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center">
-              <HopeLogLogo size="lg" withText />
-            </div>
-            <div className="hidden md:flex items-center space-x-8">
-              <a href="#features" className="text-gray-600 hover:text-gray-900">Features</a>
-              <a href="#pricing" className="text-gray-600 hover:text-gray-900">Pricing</a>
-              <a href="#testimonials" className="text-gray-600 hover:text-gray-900">Testimonials</a>
-              <a href="https://jazeeljabbar.substack.com/" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-gray-900">Blog</a>
-              <Link href="/about-us" className="text-gray-600 hover:text-gray-900">About Us</Link>
-            </div>
-            <div className="flex items-center space-x-2 sm:space-x-4">
-              {user ? (
-                <Link href="/" className="pi-button text-sm sm:text-base whitespace-nowrap">
-                  Go to Dashboard
-                </Link>
-              ) : (
-                <>
-                  <Link href="/auth" className="px-3 py-2 sm:px-4 rounded-lg bg-black text-white font-medium hover:bg-gray-800 transition-colors text-sm sm:text-base whitespace-nowrap">
-                    Login
-                  </Link>
-                  <Link href="/auth?tab=register" className="pi-button text-sm sm:text-base whitespace-nowrap">
-                    Sign Up
-                  </Link>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
+      {/* Navigation - Using the PageHeader component with shared navigation links */}
+      <PageHeader 
+        currentPage="home"
+        navLinks={primaryNavLinks}
+      />
 
       {/* Hero Section - Rosebud-inspired with pastel graphics */}
       <section className="py-20 px-4 relative overflow-hidden">
@@ -190,11 +165,36 @@ export default function LandingPage() {
               </div>
               
               {/* Floating elements around the chat window */}
-              <div className="absolute top-1/3 -right-6 bg-white p-3 rounded-lg shadow-lg flex items-center transform rotate-6 border border-gray-100">
-                <Heart className="h-6 w-6 text-rose-500 mr-2" />
-                <div className="text-sm">
-                  <div className="font-semibold">Mood Tracker</div>
-                  <div className="text-xs text-gray-500">Track your emotions</div>
+              <div className="absolute top-1/3 -right-6 bg-white p-3 rounded-lg shadow-lg transform rotate-6 border border-gray-100">
+                <div className="flex items-center mb-2">
+                  <Heart className="h-6 w-6 text-rose-500 mr-2 flex-shrink-0" />
+                  <div className="text-sm">
+                    <div className="font-semibold">Mood Tracker</div>
+                    <div className="text-xs text-gray-500">Track your emotions</div>
+                  </div>
+                </div>
+                
+                {/* Mini Mood Chart */}
+                <div className="w-full h-16 mt-1 pl-2">
+                  <svg className="w-full h-full" viewBox="0 0 100 40" preserveAspectRatio="none">
+                    <path 
+                      d="M0,20 L14,30 L28,12 L42,34 L56,8 L70,16 L84,12 L100,18" 
+                      fill="none" 
+                      stroke="#F5B8DB" 
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    {/* Data points */}
+                    <circle cx="0" cy="20" r="2" fill="#F5B8DB" />
+                    <circle cx="14" cy="30" r="2" fill="#F5B8DB" />
+                    <circle cx="28" cy="12" r="2" fill="#F5B8DB" />
+                    <circle cx="42" cy="34" r="2" fill="#F5B8DB" />
+                    <circle cx="56" cy="8" r="2" fill="#F5B8DB" />
+                    <circle cx="70" cy="16" r="2" fill="#F5B8DB" />
+                    <circle cx="84" cy="12" r="2" fill="#F5B8DB" />
+                    <circle cx="100" cy="18" r="2" fill="#F5B8DB" />
+                  </svg>
                 </div>
               </div>
               
@@ -332,16 +332,64 @@ export default function LandingPage() {
                   </div>
                 </div>
                 
-                <div className="h-40 bg-gray-100 rounded-lg mb-4 flex items-center justify-center">
-                  <div className="w-full h-full p-4 flex justify-between items-end">
-                    {[...Array(7)].map((_, i) => (
-                      <div key={i} className="flex flex-col items-center">
-                        <div 
-                          className={`w-4 ${[4, 3, 5, 2, 4, 5, 4][i % 7] * 8}px rounded-t-full bg-[#F5B8DB]`}
-                        ></div>
-                        <div className="text-xs mt-1 text-gray-500">{['M', 'T', 'W', 'T', 'F', 'S', 'S'][i]}</div>
+                <div className="h-40 bg-white rounded-lg mb-4 overflow-hidden">
+                  {/* Line Chart for Mood Tracking */}
+                  <div className="w-full h-full p-2">
+                    <div className="h-full relative">
+                      {/* Y-axis labels */}
+                      <div className="absolute left-0 top-0 bottom-0 w-8 flex flex-col justify-between text-xs text-gray-400 py-2">
+                        <span>Great</span>
+                        <span>Good</span>
+                        <span>Okay</span>
+                        <span>Low</span>
+                        <span>Bad</span>
                       </div>
-                    ))}
+                      
+                      {/* Grid lines */}
+                      <div className="absolute left-8 right-0 top-0 bottom-0">
+                        {[...Array(5)].map((_, i) => (
+                          <div key={i} className="absolute left-0 right-0 border-t border-gray-100" style={{ top: `${i * 25}%` }}></div>
+                        ))}
+                      </div>
+                      
+                      {/* Line chart */}
+                      <div className="absolute left-8 right-0 top-4 bottom-4">
+                        <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                          {/* Grid lines */}
+                          <line x1="0" y1="0" x2="100" y2="0" stroke="#f0f0f0" strokeWidth="0.5" />
+                          <line x1="0" y1="25" x2="100" y2="25" stroke="#f0f0f0" strokeWidth="0.5" />
+                          <line x1="0" y1="50" x2="100" y2="50" stroke="#f0f0f0" strokeWidth="0.5" />
+                          <line x1="0" y1="75" x2="100" y2="75" stroke="#f0f0f0" strokeWidth="0.5" />
+                          <line x1="0" y1="100" x2="100" y2="100" stroke="#f0f0f0" strokeWidth="0.5" />
+                          
+                          {/* Line chart path */}
+                          <path 
+                            d="M0,50 L16.7,70 L33.3,30 L50,80 L66.7,20 L83.3,40 L100,30" 
+                            fill="none" 
+                            stroke="#F5B8DB" 
+                            strokeWidth="3"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          
+                          {/* Data points */}
+                          <circle cx="0" cy="50" r="2.5" fill="#F5B8DB" />
+                          <circle cx="16.7" cy="70" r="2.5" fill="#F5B8DB" />
+                          <circle cx="33.3" cy="30" r="2.5" fill="#F5B8DB" />
+                          <circle cx="50" cy="80" r="2.5" fill="#F5B8DB" />
+                          <circle cx="66.7" cy="20" r="2.5" fill="#F5B8DB" />
+                          <circle cx="83.3" cy="40" r="2.5" fill="#F5B8DB" />
+                          <circle cx="100" cy="30" r="2.5" fill="#F5B8DB" />
+                        </svg>
+                      </div>
+                      
+                      {/* X-axis labels */}
+                      <div className="absolute left-8 right-0 bottom-0 flex justify-between text-xs text-gray-400 px-1">
+                        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
+                          <span key={i}>{day}</span>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </div>
                 
@@ -787,64 +835,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-black py-16 border-t border-gray-800">
-        <div className="container mx-auto px-4 sm:px-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
-            <div>
-              <HopeLogLogo size="md" className="mb-4" />
-              <p className="text-gray-400 mb-6">
-                Your AI-powered mental wellness journal and companion.
-              </p>
-              <div className="flex space-x-4">
-                <a href="#" className="text-gray-400 hover:text-white">
-                  <FaTwitter size={20} />
-                </a>
-                <a href="#" className="text-gray-400 hover:text-white">
-                  <FaInstagram size={20} />
-                </a>
-                <a href="#" className="text-gray-400 hover:text-white">
-                  <FaFacebook size={20} />
-                </a>
-              </div>
-            </div>
-            
-            <div>
-              <h3 className="font-bold text-lg mb-4 text-white">Product</h3>
-              <ul className="space-y-3">
-                <li><a href="#features" className="text-gray-400 hover:text-white">Features</a></li>
-                <li><a href="#pricing" className="text-gray-400 hover:text-white">Pricing</a></li>
-                <li><Link href="/api-access" className="text-gray-400 hover:text-white">API Access</Link></li>
-                <li><Link href="/integrations" className="text-gray-400 hover:text-white">Integrations</Link></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h3 className="font-bold text-lg mb-4 text-white">Resources</h3>
-              <ul className="space-y-3">
-                <li><a href="https://jazeeljabbar.substack.com/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white">Blog</a></li>
-                <li><Link href="/help-center" className="text-gray-400 hover:text-white">Help Center</Link></li>
-                <li><Link href="/community" className="text-gray-400 hover:text-white">Community</Link></li>
-                <li><Link href="/mental-health-resources" className="text-gray-400 hover:text-white">Mental Health Resources</Link></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h3 className="font-bold text-lg mb-4 text-white">Company</h3>
-              <ul className="space-y-3">
-                <li><Link href="/about-us" className="text-gray-400 hover:text-white">About Us</Link></li>
-                <li><a href="#" className="text-gray-400 hover:text-white">Careers</a></li>
-                <li><Link href="/privacy-policy" className="text-gray-400 hover:text-white">Privacy Policy</Link></li>
-                <li><Link href="/terms-of-service" className="text-gray-400 hover:text-white">Terms of Service</Link></li>
-              </ul>
-            </div>
-          </div>
-          
-          <div className="border-t border-gray-700 pt-8 text-center text-gray-400 text-sm">
-            <p>&copy; {new Date().getFullYear()} Hope Log. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
+      {/* Footer Component */}
+      <PageFooter />
     </div>
   );
 }

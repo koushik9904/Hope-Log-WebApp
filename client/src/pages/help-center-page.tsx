@@ -1,4 +1,3 @@
-import { HopeLogLogo } from "@/components/ui/hope-log-logo";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "wouter";
 import { 
@@ -21,6 +20,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { PageHeader } from "@/components/layout/page-header";
+import { PageFooter } from "@/components/layout/page-footer";
 
 export default function HelpCenterPage() {
   const { user } = useAuth();
@@ -79,37 +80,7 @@ export default function HelpCenterPage() {
   
   return (
     <div className="min-h-screen bg-[#FFF8E8]">
-      {/* Navigation */}
-      <nav className="sticky top-0 bg-white/80 backdrop-blur-md z-50 border-b border-gray-100">
-        <div className="container mx-auto px-4 sm:px-6 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center">
-              <HopeLogLogo size="md" withText />
-            </div>
-            <div className="hidden md:flex items-center space-x-8">
-              <Link href="/" className="text-gray-600 hover:text-gray-900">Home</Link>
-              <a href="https://jazeeljabbar.substack.com/" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-gray-900">Blog</a>
-              <Link href="/about-us" className="text-gray-600 hover:text-gray-900">About Us</Link>
-            </div>
-            <div className="flex items-center space-x-4">
-              {user ? (
-                <Link href="/" className="pi-button">
-                  Go to Dashboard
-                </Link>
-              ) : (
-                <>
-                  <Link href="/auth" className="px-4 py-2 rounded-lg bg-black text-white font-medium hover:bg-gray-800 transition-colors">
-                    Login
-                  </Link>
-                  <Link href="/auth?tab=register" className="pi-button">
-                    Sign Up Free
-                  </Link>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
+      <PageHeader currentPage="help-center" />
       
       <div className="container mx-auto px-4 sm:px-6 py-12">
         <div className="max-w-4xl mx-auto">
@@ -142,25 +113,26 @@ export default function HelpCenterPage() {
           <div className="mb-16">
             <h2 className="text-2xl font-bold mb-6 text-gray-800">Popular Articles</h2>
             <div className="grid md:grid-cols-2 gap-6">
-              {popularArticles.map((article, index) => (
-                <div key={index} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                  <div className="flex items-start">
-                    <div className="p-2 bg-gray-50 rounded-lg mr-4 mt-1 flex-shrink-0">
-                      {article.icon}
-                    </div>
-                    <div>
-                      <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">{article.category}</span>
-                      <h3 className="font-semibold text-lg mb-1">{article.title}</h3>
-                      <p className="text-sm text-gray-600">{article.description}</p>
-                      <Link href={`#${article.title.toLowerCase().replace(/\s+/g, '-')}`}>
-                        <span className="text-sm font-medium text-[#F5B8DB] inline-flex items-center mt-2">
+              {popularArticles.map((article, index) => {
+                const articleId = article.title.toLowerCase().replace(/\s+/g, '-');
+                return (
+                  <div id={articleId} key={index} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                    <div className="flex items-start">
+                      <div className="p-2 bg-gray-50 rounded-lg mr-4 mt-1 flex-shrink-0">
+                        {article.icon}
+                      </div>
+                      <div>
+                        <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">{article.category}</span>
+                        <h3 className="font-semibold text-lg mb-1">{article.title}</h3>
+                        <p className="text-sm text-gray-600">{article.description}</p>
+                        <a href={`#${articleId}`} className="text-sm font-medium text-[#F5B8DB] inline-flex items-center mt-2">
                           Read more <ExternalLink className="ml-1 h-3 w-3" />
-                        </span>
-                      </Link>
+                        </a>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
           
@@ -168,37 +140,37 @@ export default function HelpCenterPage() {
           <div className="mb-16">
             <h2 className="text-2xl font-bold mb-8 text-gray-800">Help Categories</h2>
             <div className="grid md:grid-cols-3 sm:grid-cols-2 gap-6">
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow text-center">
+              <div id="getting-started" className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow text-center">
                 <div className="mx-auto w-12 h-12 bg-[#F5B8DB]/10 rounded-full flex items-center justify-center mb-4">
                   <Book className="h-6 w-6 text-[#F5B8DB]" />
                 </div>
                 <h3 className="font-semibold text-lg mb-2">Getting Started</h3>
                 <p className="text-sm text-gray-600 mb-4">New to Hope Log? Learn the basics and set up your account.</p>
-                <Link href="#getting-started">
-                  <span className="text-sm font-medium text-[#F5B8DB]">View articles</span>
-                </Link>
+                <a href="#getting-started-with-hope-log" className="text-sm font-medium text-[#F5B8DB]">
+                  View articles
+                </a>
               </div>
               
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow text-center">
+              <div id="features" className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow text-center">
                 <div className="mx-auto w-12 h-12 bg-[#9AAB63]/10 rounded-full flex items-center justify-center mb-4">
                   <FileText className="h-6 w-6 text-[#9AAB63]" />
                 </div>
                 <h3 className="font-semibold text-lg mb-2">Features</h3>
                 <p className="text-sm text-gray-600 mb-4">Learn how to use journaling, mood tracking, and other features.</p>
-                <Link href="#features">
-                  <span className="text-sm font-medium text-[#F5B8DB]">View articles</span>
-                </Link>
+                <a href="#understanding-mood-tracking" className="text-sm font-medium text-[#F5B8DB]">
+                  View articles
+                </a>
               </div>
               
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow text-center">
+              <div id="account" className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow text-center">
                 <div className="mx-auto w-12 h-12 bg-[#B6CAEB]/10 rounded-full flex items-center justify-center mb-4">
                   <HelpCircle className="h-6 w-6 text-[#B6CAEB]" />
                 </div>
                 <h3 className="font-semibold text-lg mb-2">Account & Security</h3>
                 <p className="text-sm text-gray-600 mb-4">Manage your account, privacy settings, and data security.</p>
-                <Link href="#account">
-                  <span className="text-sm font-medium text-[#F5B8DB]">View articles</span>
-                </Link>
+                <a href="#privacy-and-data-security" className="text-sm font-medium text-[#F5B8DB]">
+                  View articles
+                </a>
               </div>
             </div>
           </div>
@@ -244,7 +216,10 @@ export default function HelpCenterPage() {
             <div className="grid md:grid-cols-3 gap-6">
               <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100">
                 <div className="aspect-video bg-gray-100 flex items-center justify-center">
-                  <Video className="h-12 w-12 text-gray-300" />
+                  <div className="text-center">
+                    <Video className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+                    <p className="text-sm text-gray-400">Video coming soon</p>
+                  </div>
                 </div>
                 <div className="p-4">
                   <h3 className="font-medium mb-1">Getting Started with Hope Log</h3>
@@ -254,7 +229,10 @@ export default function HelpCenterPage() {
               
               <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100">
                 <div className="aspect-video bg-gray-100 flex items-center justify-center">
-                  <Video className="h-12 w-12 text-gray-300" />
+                  <div className="text-center">
+                    <Video className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+                    <p className="text-sm text-gray-400">Video coming soon</p>
+                  </div>
                 </div>
                 <div className="p-4">
                   <h3 className="font-medium mb-1">Daily Journaling Guide</h3>
@@ -264,7 +242,10 @@ export default function HelpCenterPage() {
               
               <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100">
                 <div className="aspect-video bg-gray-100 flex items-center justify-center">
-                  <Video className="h-12 w-12 text-gray-300" />
+                  <div className="text-center">
+                    <Video className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+                    <p className="text-sm text-gray-400">Video coming soon</p>
+                  </div>
                 </div>
                 <div className="p-4">
                   <h3 className="font-medium mb-1">Understanding Your Insights</h3>
@@ -288,6 +269,8 @@ export default function HelpCenterPage() {
           </div>
         </div>
       </div>
+      
+      <PageFooter />
     </div>
   );
 }
