@@ -359,7 +359,7 @@ Your role is to:
   app.post("/api/journal-entries", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     
-    const { content, userId, transcript = null, date = null, timezone = null } = req.body;
+    const { content, userId, transcript = null, date = null } = req.body;
     if (req.user?.id !== userId) return res.sendStatus(403);
     
     try {

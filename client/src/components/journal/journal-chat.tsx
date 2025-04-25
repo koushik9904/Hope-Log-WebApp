@@ -166,9 +166,8 @@ export function JournalChat({ userId }: JournalChatProps) {
             : userMessages.join('\n\n')
         : "Journal entry from chat";
       
-      // Get user's local date and timezone
+      // Get user's local date
       const localDate = new Date();
-      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       
       // Use the regular journal entry endpoint but specify this is a journal entry (not chat)
       const res = await apiRequest("POST", "/api/journal-entries", {
@@ -176,8 +175,7 @@ export function JournalChat({ userId }: JournalChatProps) {
         content: summaryContent,
         transcript: transcript,
         isJournal: true,
-        date: localDate.toISOString(),
-        timezone: timezone
+        date: localDate.toISOString()
       });
       
       return await res.json();
@@ -228,17 +226,15 @@ export function JournalChat({ userId }: JournalChatProps) {
   // Save long-form journal entry
   const saveJournalEntryMutation = useMutation({
     mutationFn: async (content: string) => {
-      // Get user's local date and timezone
+      // Get user's local date
       const localDate = new Date();
-      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       
       const res = await apiRequest("POST", "/api/journal-entries", {
         content,
         userId,
         isJournal: true,
         analyzeSentiment: true,
-        date: localDate.toISOString(),
-        timezone: timezone
+        date: localDate.toISOString()
       });
       return await res.json();
     },
