@@ -4,6 +4,9 @@ import { useAuth } from '@/hooks/use-auth';
 import { JournalChat } from '@/components/journal/journal-chat';
 import { SimplePageHeader } from '@/components/layout/simple-page-header';
 import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Calendar } from 'lucide-react';
+import { isSameDay, formatLocalDate } from '@/lib/utils';
 
 export default function ChatPage() {
   const { user } = useAuth();
@@ -14,6 +17,9 @@ export default function ChatPage() {
   const searchParams = new URLSearchParams(window.location.search);
   const dateParam = searchParams.get('date');
   const selectedDate = dateParam ? new Date(dateParam) : new Date();
+  
+  // Check if selected date is a past date (not today)
+  const isPastDate = dateParam && !isSameDay(selectedDate, new Date());
   
   // Prevent users from creating entries for future dates
   useEffect(() => {
@@ -46,6 +52,15 @@ export default function ChatPage() {
         backLink="/journal"
         backLinkText="Back to Journal"
       />
+      
+      {isPastDate && (
+        <Alert className="mt-4 bg-blue-50 border-blue-200">
+          <Calendar className="h-4 w-4 text-blue-500" />
+          <AlertDescription className="flex items-center text-blue-700">
+            You are chatting with Hope Log for <strong className="mx-1">{formatLocalDate(selectedDate.toISOString())}</strong>
+          </AlertDescription>
+        </Alert>
+      )}
       
       <div className="mt-6">
         <JournalChat userId={user.id} selectedDate={selectedDate} />

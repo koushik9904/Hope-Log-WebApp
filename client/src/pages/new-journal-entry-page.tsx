@@ -11,6 +11,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { EntryTypeSelector } from "@/components/journal/entry-type-selector";
+import { prepareLocalDateForStorage, formatLocalDate, isSameDay } from "@/lib/utils";
 
 export default function NewJournalEntryPage() {
   const [location, navigate] = useLocation();
@@ -34,10 +35,11 @@ export default function NewJournalEntryPage() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   
-  // Check if this is a past date entry
-  const isPastDate = dateParam && new Date(dateParam).toDateString() !== new Date().toDateString();
+  // Check if this is a past date entry using our isSameDay utility function
+  const isPastDate = dateParam && !isSameDay(new Date(dateParam), new Date());
 
   // Validate date is not in the future - compare dates only (not time)
+  // Prepare dates for comparison by setting time to start of day
   const entryDateOnly = new Date(entryDate);
   entryDateOnly.setHours(0, 0, 0, 0);
   const todayOnly = new Date();
@@ -79,19 +81,8 @@ export default function NewJournalEntryPage() {
       if (!user) throw new Error("You must be logged in to create a journal entry");
       if (isFutureDate) throw new Error("Cannot create journal entries for future dates");
 
-      // Use the selected date with local time components
-      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      
-      // Ensure we preserve the date but use local time
-      const now = new Date(); 
-      const localDate = new Date(entryDate);
-      // Set hours/minutes/seconds from current time if it's today's entry
-      if (!isPastDate) {
-        localDate.setHours(now.getHours());
-        localDate.setMinutes(now.getMinutes());
-        localDate.setSeconds(now.getSeconds());
-        localDate.setMilliseconds(now.getMilliseconds());
-      }
+      // Use prepareLocalDateForStorage to ensure proper timezone handling
+      const localDate = prepareLocalDateForStorage(entryDate);
 
       const res = await apiRequest("POST", "/api/journal-entries", {
         content,
@@ -164,12 +155,7 @@ export default function NewJournalEntryPage() {
                 <Calendar className="h-4 w-4" />
                 <AlertTitle>Past Date Entry</AlertTitle>
                 <AlertDescription>
-                  You are creating a journal entry for {entryDate.toLocaleDateString('en-US', {
-                    weekday: 'long',
-                    month: 'long',
-                    day: 'numeric',
-                    year: 'numeric'
-                  })}
+                  You are creating a journal entry for {formatLocalDate(entryDate.toISOString())}
                 </AlertDescription>
               </Alert>
             )}
@@ -200,12 +186,7 @@ export default function NewJournalEntryPage() {
               {isPastDate && (
                 <CardDescription className="flex items-center gap-1 text-amber-600">
                   <Calendar className="h-4 w-4" />
-                  Creating entry for {entryDate.toLocaleDateString('en-US', {
-                    weekday: 'long',
-                    month: 'long',
-                    day: 'numeric',
-                    year: 'numeric'
-                  })}
+                  Creating entry for {formatLocalDate(entryDate.toISOString())}
                 </CardDescription>
               )}
             </CardHeader>
