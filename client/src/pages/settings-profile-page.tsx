@@ -6,6 +6,7 @@ import { User, Upload, Save, RefreshCw } from "lucide-react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -26,7 +27,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useToast } from "@/hooks/use-toast";
-import { Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // Profile form schema
 const profileFormSchema = z.object({
@@ -226,18 +227,29 @@ export default function SettingsProfilePage() {
                 <div className="flex flex-col space-y-1.5">
                   <Label htmlFor="timezone">Time Zone</Label>
                   <Select
-                    value={Intl.DateTimeFormat().resolvedOptions().timeZone}
+                    defaultValue={Intl.DateTimeFormat().resolvedOptions().timeZone}
                     onValueChange={(value) => {
-                      // Save timezone preference
-                      apiRequest("PATCH", "/api/user/preferences", {
+                      // Save timezone preference using notification preferences endpoint
+                      apiRequest("PATCH", "/api/notification-preferences", {
                         timezone: value
+                      }).then(() => {
+                        toast({
+                          title: "Time zone updated",
+                          description: "Your time zone preference has been saved.",
+                        });
+                      }).catch((error) => {
+                        toast({
+                          title: "Error updating time zone",
+                          description: error.message,
+                          variant: "destructive"
+                        });
                       });
                     }}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select time zone" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="max-h-[300px]">
                       {Intl.supportedValuesOf('timeZone').map((zone) => (
                         <SelectItem key={zone} value={zone}>
                           {zone}
@@ -245,6 +257,9 @@ export default function SettingsProfilePage() {
                       ))}
                     </SelectContent>
                   </Select>
+                  <p className="text-sm text-gray-500 mt-2">
+                    This setting affects how dates are displayed in your journal and when daily reminders are sent.
+                  </p>
                 </div>
               </div>
             </form>

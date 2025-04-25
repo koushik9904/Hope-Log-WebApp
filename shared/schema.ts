@@ -46,6 +46,7 @@ export const journalEntries = pgTable("journal_entries", {
   isAiResponse: boolean("is_ai_response").notNull().default(false),
   isJournal: boolean("is_journal").notNull().default(false),
   transcript: text("transcript"),  // For storing complete chat transcripts when saving
+  timezone: text("timezone"),  // Store the user's timezone when entry was created
   sentiment: jsonb("sentiment").$type<{
     score: number;
     emotions: string[];
@@ -181,6 +182,7 @@ export const notificationPreferences = pgTable("notification_preferences", {
   emailNotifications: boolean("email_notifications").default(true).notNull(),
   browserNotifications: boolean("browser_notifications").default(true).notNull(),
   reminderTime: text("reminder_time").default("09:00").notNull(), // Default time for daily reminders (24hr format)
+  timezone: text("timezone"), // User's preferred timezone for date/time display
   createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
   updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
 });
