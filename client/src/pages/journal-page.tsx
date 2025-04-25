@@ -248,11 +248,17 @@ export default function JournalPage() {
   
   // Group entries by date for the chronological view
   const entriesByDate = sortedEntries.reduce<Record<string, JournalEntry[]>>((acc, entry) => {
-    // Convert to user's local timezone
+    // Convert to user's local timezone properly
     const entryDate = new Date(entry.date);
-    const userTimezone = entry.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
-    const localDate = new Date(entryDate.toLocaleString('en-US', { timeZone: userTimezone }));
-    const dateStr = localDate.toISOString().split('T')[0];
+    
+    // Get the local date parts using the browser's timezone
+    const year = entryDate.getFullYear();
+    const month = entryDate.getMonth();
+    const day = entryDate.getDate();
+    
+    // Create a new Date object with only the date portion (no time) in local timezone
+    const localDateOnly = new Date(year, month, day);
+    const dateStr = localDateOnly.toISOString().split('T')[0];
     
     if (!acc[dateStr]) acc[dateStr] = [];
     acc[dateStr].push(entry);
@@ -515,9 +521,16 @@ export default function JournalPage() {
             ) : (
               <div className="space-y-6">
                 {/* Allow adding journal entries for the selected date if not present */}
-                {!Object.keys(entriesByDate).some(dateStr => 
-                  dateStr === selectedDate.toISOString().split('T')[0]
-                ) && (
+                {!Object.keys(entriesByDate).some(dateStr => {
+                  // Create a date object from selectedDate with only date part (no time)
+                  const year = selectedDate.getFullYear();
+                  const month = selectedDate.getMonth();
+                  const day = selectedDate.getDate();
+                  const selectedDateOnly = new Date(year, month, day);
+                  const selectedDateStr = selectedDateOnly.toISOString().split('T')[0];
+                  
+                  return dateStr === selectedDateStr;
+                }) && (
                   <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 mb-6">
                     <div className="mb-4">
                       <h3 className="font-medium text-xl text-center">No entries for {selectedDate.toLocaleDateString('en-US', {
@@ -540,8 +553,14 @@ export default function JournalPage() {
                   .filter(([dateString]) => {
                     // Show entries for selected date
                     if (!selectedDate) return true;
-                    // Use YYYY-MM-DD format for consistent comparison
-                    const selectedDateStr = selectedDate.toISOString().split('T')[0];
+                    
+                    // Create a date object from selectedDate with only date part (no time)
+                    const year = selectedDate.getFullYear();
+                    const month = selectedDate.getMonth();
+                    const day = selectedDate.getDate();
+                    const selectedDateOnly = new Date(year, month, day);
+                    const selectedDateStr = selectedDateOnly.toISOString().split('T')[0];
+                    
                     return dateString === selectedDateStr;
                   })
                   .map(([date, dateEntries]) => (
