@@ -82,12 +82,13 @@ export default function NewJournalEntryPage() {
       if (isFutureDate) throw new Error("Cannot create journal entries for future dates");
 
       // Use prepareLocalDateForStorage to ensure proper timezone handling
-      const localDate = prepareLocalDateForStorage(entryDate);
+      // This now returns an ISO string directly with correct date preservation
+      const dateISOString = prepareLocalDateForStorage(entryDate);
 
       const res = await apiRequest("POST", "/api/journal-entries", {
         content,
         userId: user.id,
-        date: localDate.toISOString(),
+        date: dateISOString,
         isJournal: true
       });
 

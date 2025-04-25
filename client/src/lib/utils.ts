@@ -10,22 +10,27 @@ export function cn(...inputs: ClassValue[]) {
  * This ensures that when a date is sent to the server, it's properly interpreted as the user's local date.
  * 
  * @param date The date to prepare for storage
- * @returns A new Date object with corrected timezone handling
+ * @returns A string in ISO format with correctly preserved day
  */
-export function prepareLocalDateForStorage(date: Date): Date {
-  // Create a new date object with the specific year, month, and day from the input date
-  // This guarantees we work with the actual local calendar day the user selected
+export function prepareLocalDateForStorage(date: Date): string {
+  // Get the exact local year, month, and day components from the input date
   const year = date.getFullYear();
-  const month = date.getMonth();
+  const month = date.getMonth(); // 0-based
   const day = date.getDate();
   
-  // Create a new date with the local components and set to noon (to avoid DST issues)
-  const localDate = new Date(year, month, day, 12, 0, 0, 0);
+  // Force the UTC date to have the same calendar date components
+  // by creating a new date in UTC with the local component values
+  // This bypasses timezone conversion issues
+  const utcDate = new Date(Date.UTC(year, month, day, 12, 0, 0, 0));
   
-  // Log for debugging
-  console.log(`Original date: ${date.toISOString()}, Prepared date: ${localDate.toISOString()}`);
+  // Add timezone offset information for debugging
+  const tzOffset = date.getTimezoneOffset();
+  console.log(`Local timezone offset: ${tzOffset} minutes`);
+  console.log(`Original date: ${date.toLocaleDateString()} (${date.toISOString()})`);
+  console.log(`UTC date: ${utcDate.toUTCString()} (${utcDate.toISOString()})`);
   
-  return localDate;
+  // Return the ISO string directly to bypass any further timezone conversions
+  return utcDate.toISOString();
 }
 
 /**

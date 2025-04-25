@@ -110,13 +110,13 @@ export function JournalChat({ userId, selectedDate }: JournalChatProps) {
       
       // Add user message to local chat history - using the display content
       // Use local date to ensure proper timezone for user's entries
-      const localDate = prepareLocalDateForStorage(new Date());
+      const dateISOString = prepareLocalDateForStorage(new Date());
       
       const userMessage = {
         id: nextId,
         content: displayContent, // show the display version to the user
         isAiResponse: false,
-        date: localDate.toISOString()
+        date: dateISOString
       };
       
       setChatHistory(prev => [...prev, userMessage]);
@@ -137,13 +137,13 @@ export function JournalChat({ userId, selectedDate }: JournalChatProps) {
       
       // Add AI response to local chat history
       // Use prepareLocalDateForStorage to ensure proper timezone handling
-      const aiResponseLocalDate = prepareLocalDateForStorage(new Date());
+      const aiResponseDateISOString = prepareLocalDateForStorage(new Date());
       
       setChatHistory(prev => [...prev, {
         id: nextId + 1,
         content: aiResponse.content,
         isAiResponse: true,
-        date: aiResponseLocalDate.toISOString()
+        date: aiResponseDateISOString
       }]);
       
       setNextId(prevId => prevId + 2);
@@ -156,7 +156,7 @@ export function JournalChat({ userId, selectedDate }: JournalChatProps) {
         }
       }, 100);
       
-      return [userMessage, { id: nextId + 1, content: aiResponse.content, isAiResponse: true, date: aiResponseLocalDate.toISOString() }];
+      return [userMessage, { id: nextId + 1, content: aiResponse.content, isAiResponse: true, date: aiResponseDateISOString }];
     },
     onError: (error) => {
       console.error("Failed to get AI response:", error);
@@ -193,14 +193,15 @@ export function JournalChat({ userId, selectedDate }: JournalChatProps) {
       
       // Use the regular journal entry endpoint but specify this is a journal entry (not chat)
       // Use prepareLocalDateForStorage to ensure proper timezone handling
-      const localDate = prepareLocalDateForStorage(entryDate);
+      // This now returns the ISO string directly with proper date preservation
+      const dateISOString = prepareLocalDateForStorage(entryDate);
       
       const res = await apiRequest("POST", "/api/journal-entries", {
         userId,
         content: summaryContent,
         transcript: transcript,
         isJournal: true,
-        date: localDate.toISOString()
+        date: dateISOString
       });
       
       return await res.json();
@@ -253,14 +254,15 @@ export function JournalChat({ userId, selectedDate }: JournalChatProps) {
     mutationFn: async (content: string) => {
       // Use the selected date from props or current date
       // Use prepareLocalDateForStorage to ensure proper timezone handling
-      const localDate = prepareLocalDateForStorage(entryDate);
+      // This now returns the ISO string directly with proper date preservation
+      const dateISOString = prepareLocalDateForStorage(entryDate);
       
       const res = await apiRequest("POST", "/api/journal-entries", {
         content,
         userId,
         isJournal: true,
         analyzeSentiment: true,
-        date: localDate.toISOString()
+        date: dateISOString
       });
       return await res.json();
     },
