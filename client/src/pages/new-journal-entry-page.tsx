@@ -30,11 +30,19 @@ export default function NewJournalEntryPage() {
     dateParam ? new Date(dateParam) : new Date()
   );
 
+  // Create a today variable to use for comparisons
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
   // Check if this is a past date entry
   const isPastDate = dateParam && new Date(dateParam).toDateString() !== new Date().toDateString();
 
-  // Validate date is not in the future
-  const isFutureDate = entryDate > new Date();
+  // Validate date is not in the future - compare dates only (not time)
+  const entryDateOnly = new Date(entryDate);
+  entryDateOnly.setHours(0, 0, 0, 0);
+  const todayOnly = new Date();
+  todayOnly.setHours(0, 0, 0, 0);
+  const isFutureDate = entryDateOnly > todayOnly;
   
   // Set entry type from URL parameter if available
   useEffect(() => {
