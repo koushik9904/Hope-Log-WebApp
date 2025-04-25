@@ -21,12 +21,16 @@ import {
   Download,
   BarChart,
   BarChart2,
-  PenLine
+  PenLine,
+  Calendar,
+  Info,
+  AlertCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { HopeLogLogo } from "@/components/ui/hope-log-logo";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 type JournalChatProps = {
   userId: number;
@@ -48,6 +52,15 @@ export function JournalChat({ userId, selectedDate }: JournalChatProps) {
   const [message, setMessage] = useState("");
   const [journalEntry, setJournalEntry] = useState("");
   const [activeTab, setActiveTab] = useState<string>("chat");
+  
+  // Check if the selected date is in the past (not today)
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const selectedDateOnly = new Date(entryDate);
+  selectedDateOnly.setHours(0, 0, 0, 0);
+  
+  const isPastDate = selectedDateOnly < today;
   const [searchTerm, setSearchTerm] = useState("");
   const [showSummary, setShowSummary] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -400,6 +413,16 @@ export function JournalChat({ userId, selectedDate }: JournalChatProps) {
         
         <TabsContent value="chat" className="mt-0 space-y-4 flex flex-col h-full">
           <div className="chat-container flex-grow flex flex-col">
+            {/* Past date notification */}
+            {isPastDate && (
+              <Alert className="mb-3 bg-blue-50 border-blue-200">
+                <Calendar className="h-4 w-4 text-blue-500" />
+                <AlertDescription className="flex items-center text-blue-700">
+                  You are chatting with Hope Log for <strong className="mx-1">{entryDate.toLocaleDateString('en-US', {weekday: 'long', month: 'long', day: 'numeric'})}</strong>
+                </AlertDescription>
+              </Alert>
+            )}
+            
             {/* Sentiment Analysis Summary (when requested) */}
             {showSummary && (
             <div className="bg-white rounded-lg p-4 border border-[#F5B8DB]/20 mb-4">
