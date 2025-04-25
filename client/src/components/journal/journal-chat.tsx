@@ -26,7 +26,7 @@ import {
   Info,
   AlertCircle
 } from "lucide-react";
-import { cn, prepareLocalDateForStorage, formatLocalDate } from "@/lib/utils";
+import { cn, prepareLocalDateForStorage, formatLocalDate, isSameDay } from "@/lib/utils";
 import { HopeLogLogo } from "@/components/ui/hope-log-logo";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
@@ -48,19 +48,28 @@ const SUGGESTED_PROMPTS = [
 export function JournalChat({ userId, selectedDate }: JournalChatProps) {
   // If selectedDate is provided, use it; otherwise, use current date
   const entryDate = selectedDate || new Date();
+  
+  console.log(`🚨 JournalChat component - Selected date: ${entryDate.toLocaleDateString()} (${entryDate.toISOString()})`);
   const { toast } = useToast();
   const [message, setMessage] = useState("");
   const [journalEntry, setJournalEntry] = useState("");
   const [activeTab, setActiveTab] = useState<string>("chat");
   
   // Check if the selected date is in the past (not today)
+  // Simple date comparison to avoid timezone issues
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
   
-  const selectedDateOnly = new Date(entryDate);
-  selectedDateOnly.setHours(0, 0, 0, 0);
+  // Create a function to check if dates are the same day (avoid import issues)
+  const areSameDay = (date1: Date, date2: Date): boolean => {
+    return (
+      date1.getFullYear() === date2.getFullYear() &&
+      date1.getMonth() === date2.getMonth() &&
+      date1.getDate() === date2.getDate()
+    );
+  };
   
-  const isPastDate = selectedDateOnly < today;
+  // Use our local function instead of the imported one
+  const isPastDate = !areSameDay(entryDate, today);
   const [searchTerm, setSearchTerm] = useState("");
   const [showSummary, setShowSummary] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -693,7 +702,7 @@ export function JournalChat({ userId, selectedDate }: JournalChatProps) {
             <Alert className="mb-3 bg-blue-50 border-blue-200">
               <Calendar className="h-4 w-4 text-blue-500" />
               <AlertDescription className="flex items-center text-blue-700">
-                You are journaling for <strong className="mx-1">{entryDate.toLocaleDateString('en-US', {weekday: 'long', month: 'long', day: 'numeric'})}</strong>
+                You are journaling for <strong className="mx-1">{formatLocalDate(prepareLocalDateForStorage(entryDate))}</strong>
               </AlertDescription>
             </Alert>
           )}
