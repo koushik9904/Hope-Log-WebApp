@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { MessageSquare, Pencil, Calendar, AlertCircle } from "lucide-react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
+import { prepareLocalDateForStorage } from "@/lib/utils";
 
 interface EntryTypeSelectorProps {
   selectedDate?: Date;
@@ -19,7 +20,13 @@ export function EntryTypeSelector({
   linkMode = false
 }: EntryTypeSelectorProps) {
   const { toast } = useToast();
-  const dateParam = selectedDate.toISOString().split('T')[0];
+  
+  // Use our special date formatter to prevent timezone issues
+  const dateISOString = prepareLocalDateForStorage(selectedDate);
+  const dateParam = dateISOString.split('T')[0];
+  
+  console.log(`🚨 Selected date in selector: ${selectedDate}`);
+  console.log(`🚨 Formatted date for URL: ${dateParam}`);
   
   // Check if the selected date is in the future
   const today = new Date();
