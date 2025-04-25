@@ -629,6 +629,11 @@ export function JournalChat({ userId }: JournalChatProps) {
                 type="button"
                 className="rounded-full w-10 h-10 flex items-center justify-center bg-[#F5B8DB] hover:bg-[#F5B8DB]/80 transition-all"
                 disabled={addEntryMutation.isPending}
+                onClick={() => toast({
+                  title: "Coming Soon",
+                  description: "Voice recording feature will be available in the next update.",
+                  variant: "default"
+                })}
               >
                 <Mic className="h-5 w-5 text-white" />
               </button>

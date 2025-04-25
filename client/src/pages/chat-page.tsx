@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/hooks/use-auth';
 import { JournalChat } from '@/components/journal/journal-chat';
-import { PageHeader } from '@/components/layout/page-header';
+import { SimplePageHeader } from '@/components/layout/simple-page-header';
 import { useToast } from '@/hooks/use-toast';
 
 export default function ChatPage() {
@@ -36,7 +36,7 @@ export default function ChatPage() {
 
   return (
     <div className="container px-4 mx-auto max-w-6xl py-6">
-      <PageHeader
+      <SimplePageHeader
         title="Chat with Hope Log"
         description="Have a thoughtful conversation with Hope Log. Your conversation can be saved as a journal entry when you're done."
         backLink="/journal"
