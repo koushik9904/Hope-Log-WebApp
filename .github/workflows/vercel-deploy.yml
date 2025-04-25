@@ -1,0 +1,36 @@
+name: Deploy to Vercel
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'README.md'
+      - '*.md'
+
+jobs:
+  deploy:
+    name: Deploy to Vercel
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Install Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: 'npm'
+
+    - name: Install Dependencies
+      run: npm install --legacy-peer-deps
+
+    - name: Build Project
+      run: npm run build
+
+    - name: Deploy to Vercel
+      run: |
+        URL=$(npx vercel deploy --prod --token ${{ secrets.VERCEL_TOKEN }} --yes)
+        echo "Deployment URL: $URL"
+        echo "DEPLOYMENT_URL=$URL" >> $GITHUB_ENV

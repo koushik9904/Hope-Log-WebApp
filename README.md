@@ -1,48 +1,106 @@
 # Hope Log
 
-Hope Log is an advanced AI-powered journaling and mental wellness platform. It provides a comprehensive, personalized digital experience for mental health tracking, journaling, and personal growth.
+![Hope Log Logo](./attached_assets/HopeLog_logo-Photoroom.png)
+
+## About
+
+Hope Log is an advanced AI-powered journaling web application designed to provide users with a conversational mental wellness experience. The platform helps users track emotions, set and monitor goals and habits, and receive AI-generated insights based on their entries.
 
 ## Features
 
-- **AI-Enhanced Journaling**: Write journal entries or have conversational chats with the AI
-- **Sentiment Analysis**: Track emotions and get insights on your mental state
-- **Goal Setting and Tracking**: Set personal goals and monitor your progress
-- **Mood Tracking**: Record and visualize your mood over time
-- **Weekly Summaries**: Get AI-generated summaries of your journal entries
-- **Guided Reflection**: Use AI-powered prompts to guide your journaling experience
+### Core Features
+- **Conversational Journaling**: Interact with an AI that responds like an empathetic friend, asking questions and maintaining memory of past conversations
+- **Journal Entry Management**: Create, view, edit, and delete journal entries with rich content support
+- **Mood Tracking**: Record and visualize mood patterns over time
+- **Goal Setting & Habit Tracking**: Set, monitor, and achieve personal goals and habits
+- **AI-Generated Insights**: Receive personalized insights, weekly summaries, and sentiment analysis of your entries
+- **Reminder System**: Get notifications to maintain your journaling practice
 
-## Tech Stack
+### Technical Features
+- **RAG Implementation**: Utilizes vector embeddings for context-aware AI responses
+- **Sentiment Analysis**: Automatically analyzes the emotional tone of journal entries
+- **Subscription Management**: Tiered subscription model with PayPal integration
+- **OAuth Authentication**: Secure login with Google account support
+- **Responsive Design**: Beautiful user interface that works across devices
 
-- **Frontend**: React, TypeScript, Tailwind CSS, Shadcn UI components
-- **Backend**: Express.js with TypeScript
+## Technology Stack
+
+- **Frontend**: React, TypeScript, Tailwind CSS
+- **Backend**: Node.js, Express
 - **Database**: PostgreSQL with Drizzle ORM
-- **Authentication**: OAuth (Google) and local authentication
-- **AI Integration**: OpenAI API for text generation and analysis
-- **Payments**: PayPal integration for subscription management
+- **AI Integration**: OpenAI API
+- **Authentication**: Passport.js with OAuth support
+- **Payment Processing**: PayPal subscription integration
 
-## Getting Started
+## Installation
 
-1. Clone this repository
-2. Install dependencies: `npm install`
-3. Set up environment variables (see `.env.example`)
-4. Set up the database: `npm run db:push`
-5. Start the development server: `npm run dev`
+1. Clone the repository:
+```bash
+git clone https://github.com/jazeeljabbar/hopelog-ver2.git
+cd hopelog-ver2
+```
 
-## Environment Variables
+2. Install dependencies:
+```bash
+npm install
+```
 
-To run this project, you will need to add the following environment variables:
+3. Set up environment variables in `.env`:
+```
+DATABASE_URL=your_postgresql_connection_string
+OPENAI_API_KEY=your_openai_api_key
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+PAYPAL_CLIENT_ID=your_paypal_client_id
+PAYPAL_CLIENT_SECRET=your_paypal_client_secret
+```
 
-- `DATABASE_URL`: PostgreSQL connection string
-- `OPENAI_API_KEY`: API key for OpenAI
-- `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`: For Google OAuth
-- `SESSION_SECRET`: Secret for session management
+4. Push database schema:
+```bash
+npm run db:push
+```
 
-## Subscription Model
+5. Start the development server:
+```bash
+npm run dev
+```
 
-Hope Log offers a tiered subscription model:
-- **Free Plan**: Basic journaling and limited AI analysis
-- **Premium Plan**: Full access to all features, including unlimited AI conversations and advanced analytics
+## Usage
 
-## Contributors
+### Journal Entries
+- Create new entries through the chat interface or traditional journal editor
+- View your entries organized by date
+- Get AI-generated insights about your emotional patterns
 
-- Jazeel Jabbar (Project Lead)
+### Goals & Habits
+- Set measurable goals with deadlines
+- Track daily habits to build positive routines
+- Receive AI-suggested goals based on your journal content
+
+### Account Management
+- Configure notification preferences
+- Manage subscription tiers
+- Update profile settings
+
+## Deployment
+
+The application can be deployed on any Node.js hosting platform that supports PostgreSQL databases.
+
+## Partners & Collaboration
+
+Hope Log collaborates with leading mental health institutions:
+
+- NIMHANS (National Institute of Mental Health and Neurosciences)
+- Tata Memorial Hospital
+- IIT Hyderabad
+- IIIT Hyderabad
+- University of Hyderabad
+
+## License
+
+MIT License
+
+## Contact
+
+- Website: [jazeeljabbar.substack.com](https://jazeeljabbar.substack.com/)
+- Email: info@hopelog.ai

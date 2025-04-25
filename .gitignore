@@ -9,6 +9,8 @@ node_modules/
 # Production
 /build
 /dist
+/.next/
+/out/
 
 # Misc
 .DS_Store
@@ -19,6 +21,7 @@ node_modules/
 .env.production.local
 .env*
 .cache/
+*.pem
 
 # Debug logs
 npm-debug.log*
@@ -34,7 +37,14 @@ yarn-error.log*
 *.sln
 *.sw?
 
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
 # Replit specific
 .replit
 .replignore
 .config
+
+# Vercel
+.vercel

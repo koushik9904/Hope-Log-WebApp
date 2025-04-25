@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: "Poppins";
+  src: url("./assets/fonts/Poppins/Poppins-Regular.ttf") format("truetype"),
+    url("./assets/fonts/Poppins/Poppins-Medium.ttf") format("truetype"),
+    url("./assets/fonts//Poppins/Poppins-SemiBold.ttf") format("truetype");
+}
+
+* {
+  font-family: "Poppins", sans-serif;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgb(46 46 64 / var(--tw-bg-opacity, 1));
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background-color: rgb(46 46 64 / var(--tw-bg-opacity, 1));
+}

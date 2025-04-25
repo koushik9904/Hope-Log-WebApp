@@ -26,6 +26,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useToast } from "@/hooks/use-toast";
+import { Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // Profile form schema
 const profileFormSchema = z.object({
@@ -47,7 +48,7 @@ type ProfileFormValues = z.infer<typeof profileFormSchema>;
 export default function SettingsProfilePage() {
   const { user } = useAuth();
   const { toast } = useToast();
-  
+
   // Profile form
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -58,7 +59,7 @@ export default function SettingsProfilePage() {
       bio: ""
     },
   });
-  
+
   // Update profile mutation
   const updateProfileMutation = useMutation({
     mutationFn: async (data: ProfileFormValues) => {
@@ -80,12 +81,12 @@ export default function SettingsProfilePage() {
       });
     }
   });
-  
+
   // Handle profile form submission
   const onProfileSubmit = (data: ProfileFormValues) => {
     updateProfileMutation.mutate(data);
   };
-  
+
   if (!user) return null;
 
   return (
@@ -97,7 +98,7 @@ export default function SettingsProfilePage() {
             Manage your profile information
           </p>
         </div>
-        
+
         <Card className="bg-white border-0 shadow-sm">
           <CardHeader className="border-b border-gray-100">
             <CardTitle className="font-['Montserrat_Variable']">Profile Information</CardTitle>
@@ -126,7 +127,7 @@ export default function SettingsProfilePage() {
                     </div>
                   </div>
                 </div>
-                
+
                 <FormField
                   control={profileForm.control}
                   name="username"
@@ -143,7 +144,7 @@ export default function SettingsProfilePage() {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={profileForm.control}
                   name="email"
@@ -160,7 +161,7 @@ export default function SettingsProfilePage() {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={profileForm.control}
                   name="fullName"
@@ -174,7 +175,7 @@ export default function SettingsProfilePage() {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={profileForm.control}
                   name="bio"
@@ -191,7 +192,7 @@ export default function SettingsProfilePage() {
                     </FormItem>
                   )}
                 />
-                
+
                 <Button 
                   type="submit" 
                   className="bg-[#F5B8DB] hover:bg-[#f096c9] text-white"
@@ -211,6 +212,42 @@ export default function SettingsProfilePage() {
                 </Button>
               </form>
             </Form>
+          </CardContent>
+        </Card>
+
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle>Time Zone Settings</CardTitle>
+            <CardDescription>Configure your preferred time zone for journal entries</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form>
+              <div className="grid w-full items-center gap-4">
+                <div className="flex flex-col space-y-1.5">
+                  <Label htmlFor="timezone">Time Zone</Label>
+                  <Select
+                    value={Intl.DateTimeFormat().resolvedOptions().timeZone}
+                    onValueChange={(value) => {
+                      // Save timezone preference
+                      apiRequest("PATCH", "/api/user/preferences", {
+                        timezone: value
+                      });
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select time zone" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Intl.supportedValuesOf('timeZone').map((zone) => (
+                        <SelectItem key={zone} value={zone}>
+                          {zone}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </form>
           </CardContent>
         </Card>
       </div>

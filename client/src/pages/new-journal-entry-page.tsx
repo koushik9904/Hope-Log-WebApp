@@ -20,16 +20,16 @@ export default function NewJournalEntryPage() {
   const [showEntrySelector, setShowEntrySelector] = useState(true);
   const [entryType, setEntryType] = useState<'journal' | 'chat' | null>(null);
   const queryClient = useQueryClient();
-  
+
   // Get date and type parameters from URL if present
   const params = new URLSearchParams(window.location.search);
   const dateParam = params.get('date');
   const typeParam = params.get('type');
-  
+
   const [entryDate, setEntryDate] = useState<Date>(
     dateParam ? new Date(dateParam) : new Date()
   );
-  
+
   // Set entry type from URL parameter if available
   useEffect(() => {
     if (typeParam === 'journal' || typeParam === 'chat') {
@@ -37,36 +37,42 @@ export default function NewJournalEntryPage() {
       setShowEntrySelector(false);
     }
   }, [typeParam]);
-  
+
   // Check if this is a past date entry
   const isPastDate = dateParam && new Date(dateParam).toDateString() !== new Date().toDateString();
-  
+
   // Validate date is not in the future
   const isFutureDate = entryDate > new Date();
-  
+
   // Handle entry type selection
   const handleEntryTypeSelect = (type: 'chat' | 'journal') => {
     setEntryType(type);
     setShowEntrySelector(false);
-    
+
     // If chat is selected, redirect to chat page
     if (type === 'chat') {
       navigate(`/chat${dateParam ? `?date=${dateParam}` : ''}`);
     }
   };
-  
+
   const createJournalMutation = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error("You must be logged in to create a journal entry");
       if (isFutureDate) throw new Error("Cannot create journal entries for future dates");
-      
+
+      // Convert date to user's timezone
+      const localDate = new Date(entryDate);
+      const userTimezoneOffset = localDate.getTimezoneOffset() * 60000;
+      const userLocalDate = new Date(localDate.getTime() - userTimezoneOffset);
+
       const res = await apiRequest("POST", "/api/journal-entries", {
         content,
         userId: user.id,
-        date: entryDate.toISOString(), // Use the selected date
-        isJournal: true // This is a direct journal entry
+        date: userLocalDate.toISOString(),
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        isJournal: true
       });
-      
+
       return await res.json();
     },
     onSuccess: () => {
@@ -74,12 +80,12 @@ export default function NewJournalEntryPage() {
         title: "Journal entry created",
         description: "Your journal entry has been saved successfully."
       });
-      
+
       // Invalidate journal entries query to refresh the list
       queryClient.invalidateQueries({
         queryKey: [`/api/journal-entries/${user?.id}`]
       });
-      
+
       // Navigate back to journal list
       navigate("/journal");
     },
@@ -92,10 +98,10 @@ export default function NewJournalEntryPage() {
       });
     }
   });
-  
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!content.trim()) {
       toast({
         variant: "destructive",
@@ -104,10 +110,10 @@ export default function NewJournalEntryPage() {
       });
       return;
     }
-    
+
     createJournalMutation.mutate();
   };
-  
+
   return (
     <DashboardLayout>
       <div className="container mx-auto p-4">
@@ -121,11 +127,11 @@ export default function NewJournalEntryPage() {
             Back to Journal
           </Button>
         </div>
-        
+
         {showEntrySelector ? (
           <div className="mb-8">
             <h1 className="text-2xl font-bold mb-6">How would you like to journal today?</h1>
-            
+
             {isPastDate && (
               <Alert className="mb-6">
                 <Calendar className="h-4 w-4" />
@@ -140,7 +146,7 @@ export default function NewJournalEntryPage() {
                 </AlertDescription>
               </Alert>
             )}
-            
+
             {isFutureDate && (
               <Alert variant="destructive" className="mb-6">
                 <AlertCircle className="h-4 w-4" />
@@ -150,7 +156,7 @@ export default function NewJournalEntryPage() {
                 </AlertDescription>
               </Alert>
             )}
-            
+
             <EntryTypeSelector 
               selectedDate={entryDate}
               onSelectType={handleEntryTypeSelect}
@@ -186,7 +192,7 @@ export default function NewJournalEntryPage() {
                   </AlertDescription>
                 </Alert>
               )}
-              
+
               {isPastDate && !isFutureDate && (
                 <Alert className="mb-4">
                   <Calendar className="h-4 w-4" />
@@ -196,7 +202,7 @@ export default function NewJournalEntryPage() {
                   </AlertDescription>
                 </Alert>
               )}
-              
+
               <form onSubmit={handleSubmit}>
                 <div className="mb-4">
                   <Textarea

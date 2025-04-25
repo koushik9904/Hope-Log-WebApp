@@ -248,9 +248,11 @@ export default function JournalPage() {
   
   // Group entries by date for the chronological view
   const entriesByDate = sortedEntries.reduce<Record<string, JournalEntry[]>>((acc, entry) => {
-    // Format date to YYYY-MM-DD for consistent key generation
+    // Convert to user's local timezone
     const entryDate = new Date(entry.date);
-    const dateStr = entryDate.toISOString().split('T')[0];
+    const userTimezone = entry.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const localDate = new Date(entryDate.toLocaleString('en-US', { timeZone: userTimezone }));
+    const dateStr = localDate.toISOString().split('T')[0];
     
     if (!acc[dateStr]) acc[dateStr] = [];
     acc[dateStr].push(entry);
