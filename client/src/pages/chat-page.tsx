@@ -16,7 +16,22 @@ export default function ChatPage() {
   // Get the date from URL query param if available
   const searchParams = new URLSearchParams(window.location.search);
   const dateParam = searchParams.get('date');
-  const selectedDate = dateParam ? new Date(dateParam) : new Date();
+  
+  // Parse the date parameter carefully to handle potential timezone issues
+  const selectedDate = dateParam ? (() => {
+    console.log(`🚨 Chat page - Date param from URL: ${dateParam}`);
+    
+    try {
+      const [year, month, day] = dateParam.split('-').map(num => parseInt(num));
+      // Month is 0-indexed in JavaScript Date
+      const parsedDate = new Date(year, month - 1, day);
+      console.log(`🚨 Chat page - Parsed date: ${parsedDate.toLocaleDateString()} (${parsedDate.toISOString()})`);
+      return parsedDate;
+    } catch (err) {
+      console.error("Error parsing date param:", err);
+      return new Date();
+    }
+  })() : new Date();
   
   // Check if selected date is a past date (not today)
   const isPastDate = dateParam && !isSameDay(selectedDate, new Date());

@@ -14,48 +14,29 @@ export function cn(...inputs: ClassValue[]) {
  * @returns A string in local format with forced correct date values
  */
 export function prepareLocalDateForStorage(date: Date): string {
-  // Get the current local date string (April 24, 2025)
-  const localDateString = date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
+  // SUPER EXPLICIT DATE HANDLING
+  // This is an aggressive fix that completely ignores timezone conversion
+  // and works directly with the date's numeric components
   
-  console.log(`🚨 EMERGENCY FIX: Using local date string: ${localDateString}`);
+  // Extract the local date components
+  const year = date.getFullYear();
+  const month = date.getMonth(); // 0-indexed
+  const day = date.getDate();
   
-  // Extract the month, day, and year from the localDateString
-  const dateRegex = /(\w+) (\d+), (\d+)/;
-  const match = localDateString.match(dateRegex);
+  console.log(`🚨 EMERGENCY Date components: Year=${year}, Month=${month + 1}, Day=${day}`);
   
-  if (!match) {
-    console.error('Date regex failed to match local date string');
-    return new Date().toISOString(); // Fallback to current date
-  }
+  // Get the current time components for the timestamp
+  const now = new Date();
+  const hours = now.getHours();
+  const minutes = now.getMinutes();
+  const seconds = now.getSeconds();
+  const ms = now.getMilliseconds();
   
-  // Convert month name to month number (0-indexed)
-  const monthNames = ["January", "February", "March", "April", "May", "June", 
-                      "July", "August", "September", "October", "November", "December"];
-  const monthName = match[1];
-  const monthNum = monthNames.findIndex(m => m === monthName);
+  // Create a UTC date string with the EXACT date components but current time
+  // Format: YYYY-MM-DDThh:mm:ss.sssZ
+  const utcDateString = `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}T${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${ms.toString().padStart(3, '0')}Z`;
   
-  if (monthNum === -1) {
-    console.error(`Invalid month name: ${monthName}`);
-    return new Date().toISOString(); // Fallback to current date
-  }
-  
-  const day = parseInt(match[2]);
-  const year = parseInt(match[3]);
-  
-  // Get the current time components
-  const hours = date.getHours();
-  const minutes = date.getMinutes();
-  const seconds = date.getSeconds();
-  const ms = date.getMilliseconds();
-  
-  // Create a UTC date with the correct date but preserve the current time
-  const utcDateString = `${year}-${(monthNum + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}T${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${ms.toString().padStart(3, '0')}Z`;
-  
-  console.log(`🚨 FORCED DATE STRING WITH CURRENT TIME: ${utcDateString}`);
+  console.log(`🚨 FORCED DATE STRING: ${utcDateString}`);
   return utcDateString;
 }
 

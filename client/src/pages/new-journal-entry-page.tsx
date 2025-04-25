@@ -27,16 +27,33 @@ export default function NewJournalEntryPage() {
   const dateParam = params.get('date');
   const typeParam = params.get('type');
 
-  const [entryDate, setEntryDate] = useState<Date>(
-    dateParam ? new Date(dateParam) : new Date()
-  );
+  // Special handling for date parameter to prevent timezone issues
+  const [entryDate, setEntryDate] = useState<Date>(() => {
+    if (!dateParam) return new Date();
+    
+    // Parse the date parameter carefully to avoid timezone issues
+    // The format is YYYY-MM-DD from the URL
+    console.log(`🚨 Date param from URL: ${dateParam}`);
+    
+    try {
+      const [year, month, day] = dateParam.split('-').map(num => parseInt(num));
+      // Month is 0-indexed in JavaScript Date
+      const parsedDate = new Date(year, month - 1, day);
+      console.log(`🚨 Parsed date: ${parsedDate.toLocaleDateString()} (${parsedDate.toISOString()})`);
+      return parsedDate;
+    } catch (err) {
+      console.error("Error parsing date param:", err);
+      return new Date();
+    }
+  });
 
   // Create a today variable to use for comparisons
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   
   // Check if this is a past date entry using our isSameDay utility function
-  const isPastDate = dateParam && !isSameDay(new Date(dateParam), new Date());
+  // Use the properly parsed entryDate instead of directly parsing dateParam again
+  const isPastDate = !isSameDay(entryDate, new Date());
 
   // Validate date is not in the future - compare dates only (not time)
   // Prepare dates for comparison by setting time to start of day
