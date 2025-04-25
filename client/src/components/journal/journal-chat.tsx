@@ -26,7 +26,7 @@ import {
   Info,
   AlertCircle
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, prepareLocalDateForStorage, formatLocalDate } from "@/lib/utils";
 import { HopeLogLogo } from "@/components/ui/hope-log-logo";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
@@ -109,11 +109,14 @@ export function JournalChat({ userId, selectedDate }: JournalChatProps) {
       }
       
       // Add user message to local chat history - using the display content
+      // Use local date to ensure proper timezone for user's entries
+      const localDate = prepareLocalDateForStorage(new Date());
+      
       const userMessage = {
         id: nextId,
         content: displayContent, // show the display version to the user
         isAiResponse: false,
-        date: new Date().toISOString()
+        date: localDate.toISOString()
       };
       
       setChatHistory(prev => [...prev, userMessage]);
@@ -133,11 +136,14 @@ export function JournalChat({ userId, selectedDate }: JournalChatProps) {
       const aiResponse = await res.json();
       
       // Add AI response to local chat history
+      // Use prepareLocalDateForStorage to ensure proper timezone handling
+      const aiResponseLocalDate = prepareLocalDateForStorage(new Date());
+      
       setChatHistory(prev => [...prev, {
         id: nextId + 1,
         content: aiResponse.content,
         isAiResponse: true,
-        date: new Date().toISOString()
+        date: aiResponseLocalDate.toISOString()
       }]);
       
       setNextId(prevId => prevId + 2);
@@ -150,7 +156,7 @@ export function JournalChat({ userId, selectedDate }: JournalChatProps) {
         }
       }, 100);
       
-      return [userMessage, { id: nextId + 1, content: aiResponse.content, isAiResponse: true, date: new Date().toISOString() }];
+      return [userMessage, { id: nextId + 1, content: aiResponse.content, isAiResponse: true, date: aiResponseLocalDate.toISOString() }];
     },
     onError: (error) => {
       console.error("Failed to get AI response:", error);
@@ -186,12 +192,15 @@ export function JournalChat({ userId, selectedDate }: JournalChatProps) {
       // This ensures we use the selected date and not always today's date
       
       // Use the regular journal entry endpoint but specify this is a journal entry (not chat)
+      // Use prepareLocalDateForStorage to ensure proper timezone handling
+      const localDate = prepareLocalDateForStorage(entryDate);
+      
       const res = await apiRequest("POST", "/api/journal-entries", {
         userId,
         content: summaryContent,
         transcript: transcript,
         isJournal: true,
-        date: entryDate.toISOString()
+        date: localDate.toISOString()
       });
       
       return await res.json();
@@ -243,13 +252,15 @@ export function JournalChat({ userId, selectedDate }: JournalChatProps) {
   const saveJournalEntryMutation = useMutation({
     mutationFn: async (content: string) => {
       // Use the selected date from props or current date
+      // Use prepareLocalDateForStorage to ensure proper timezone handling
+      const localDate = prepareLocalDateForStorage(entryDate);
       
       const res = await apiRequest("POST", "/api/journal-entries", {
         content,
         userId,
         isJournal: true,
         analyzeSentiment: true,
-        date: entryDate.toISOString()
+        date: localDate.toISOString()
       });
       return await res.json();
     },
@@ -675,6 +686,16 @@ export function JournalChat({ userId, selectedDate }: JournalChatProps) {
         </TabsContent>
         
         <TabsContent value="journal" className="mt-0 space-y-4">
+          {/* Past date notification for journal tab */}
+          {isPastDate && (
+            <Alert className="mb-3 bg-blue-50 border-blue-200">
+              <Calendar className="h-4 w-4 text-blue-500" />
+              <AlertDescription className="flex items-center text-blue-700">
+                You are journaling for <strong className="mx-1">{entryDate.toLocaleDateString('en-US', {weekday: 'long', month: 'long', day: 'numeric'})}</strong>
+              </AlertDescription>
+            </Alert>
+          )}
+          
           <div className="bg-white rounded-lg p-4 border border-[#9AAB63]/30">
             <h3 className="font-semibold text-gray-800 flex items-center mb-2">
               <PenLine className="h-4 w-4 mr-1.5 text-[#9AAB63]" />
