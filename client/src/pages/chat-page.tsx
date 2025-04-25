@@ -17,10 +17,14 @@ export default function ChatPage() {
   
   // Prevent users from creating entries for future dates
   useEffect(() => {
+    // Create dates with time set to midnight for proper comparison
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
-    if (selectedDate > today) {
+    const selectedDateOnly = new Date(selectedDate);
+    selectedDateOnly.setHours(0, 0, 0, 0);
+    
+    if (selectedDateOnly > today) {
       toast({
         title: "Cannot create future entries",
         description: "Journal entries can only be created for today or past dates",
@@ -44,7 +48,7 @@ export default function ChatPage() {
       />
       
       <div className="mt-6">
-        <JournalChat userId={user.id} />
+        <JournalChat userId={user.id} selectedDate={selectedDate} />
       </div>
     </div>
   );
