@@ -1301,11 +1301,38 @@ export default function GoalsPage() {
         )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="mb-6">
-            <TabsTrigger value="goals">Goals</TabsTrigger>
-            <TabsTrigger value="tasks">Tasks</TabsTrigger>
-            <TabsTrigger value="habits">Habits</TabsTrigger>
-          </TabsList>
+          <div className="flex justify-between items-center mb-6">
+            <TabsList>
+              <TabsTrigger value="goals">Goals</TabsTrigger>
+              <TabsTrigger value="tasks">Tasks</TabsTrigger>
+              <TabsTrigger value="habits">Habits</TabsTrigger>
+            </TabsList>
+            
+            {activeTab === "tasks" && (
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button className="bg-[#9AAB63] hover:bg-[#8a9a58] text-white flex items-center gap-2">
+                    <Plus className="h-4 w-4" /> Add Task
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[600px] bg-white">
+                  <DialogHeader>
+                    <DialogTitle className="font-['Montserrat_Variable']">Create New Task</DialogTitle>
+                    <DialogDescription>
+                      Add a new task to track your progress
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="py-4">
+                    {user && (
+                      <div className="mt-4">
+                        <TaskForm userId={user.id} />
+                      </div>
+                    )}
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
           
           <TabsContent value="goals">
             {/* AI-suggested goals section */}
