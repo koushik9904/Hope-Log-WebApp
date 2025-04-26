@@ -989,34 +989,31 @@ export default function GoalsPage() {
                 </Badge>
               )}
             </Button>
-            
-            {activeTab === "goals" && (
-              <Dialog 
-                open={showNewGoalDialog} 
-                onOpenChange={(open) => {
-                  // Reset form when opening the dialog
-                  if (open) {
-                    goalForm.reset({
-                      name: "",
-                      description: "",
-                      targetDate: "",
-                      category: "Personal",
-                      target: 100,
-                      progress: 0,
-                      unit: "%",
-                      colorScheme: 1,
-                      userId: user?.id
-                    });
-                  }
-                  setShowNewGoalDialog(open);
-                }}
-              >
-                <DialogTrigger asChild>
-                  <Button className="bg-[#F5B8DB] hover:bg-[#f096c9] text-white flex items-center gap-2">
-                    <Plus className="h-4 w-4" /> New Goal
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[500px] bg-white">
+          </div>
+        </div>
+                
+        {/* This Dialog content will be moved to inside the tab content */}
+        <Dialog 
+          open={showNewGoalDialog} 
+          onOpenChange={(open) => {
+            // Reset form when opening the dialog
+            if (open) {
+              goalForm.reset({
+                name: "",
+                description: "",
+                targetDate: "",
+                category: "Personal",
+                target: 100,
+                progress: 0,
+                unit: "%",
+                colorScheme: 1,
+                userId: user?.id
+              });
+            }
+            setShowNewGoalDialog(open);
+          }}
+        >
+          <DialogContent className="sm:max-w-[500px] bg-white">
                   <DialogHeader>
                     <DialogTitle className="font-['Montserrat_Variable']">Add New Goal</DialogTitle>
                     <DialogDescription>
@@ -1257,6 +1254,15 @@ export default function GoalsPage() {
           </div>
           
           <TabsContent value="goals">
+            {/* Add Goal button */}
+            <div className="flex justify-end mb-6">
+              <DialogTrigger asChild onClick={() => setShowNewGoalDialog(true)}>
+                <Button className="bg-[#F5B8DB] hover:bg-[#f096c9] text-white flex items-center gap-2">
+                  <Plus className="h-4 w-4" /> Add Goal
+                </Button>
+              </DialogTrigger>
+            </div>
+            
             {/* AI-suggested goals section */}
             {filteredAiSuggestedGoals.length > 0 && (
               <Card className="bg-white border-0 shadow-sm mb-8">
