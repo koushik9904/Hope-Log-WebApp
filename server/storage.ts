@@ -22,7 +22,11 @@ export interface IStorage {
   // User methods
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, userData: Partial<User>): Promise<User>;
+  verifyUser(id: number): Promise<User>;
+  resetPassword(email: string, newPassword: string): Promise<boolean>;
   getAllUsers(): Promise<User[]>;
   
   // System settings methods
@@ -112,9 +116,62 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
   
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const result = await db.select().from(users).where(eq(users.email, email));
+    return result[0];
+  }
+  
   async createUser(insertUser: InsertUser): Promise<User> {
     const result = await db.insert(users).values(insertUser).returning();
     return result[0];
+  }
+  
+  async updateUser(id: number, userData: Partial<User>): Promise<User> {
+    const result = await db
+      .update(users)
+      .set(userData)
+      .where(eq(users.id, id))
+      .returning();
+      
+    if (result.length === 0) {
+      throw new Error(`User with id ${id} not found`);
+    }
+    
+    return result[0];
+  }
+  
+  async verifyUser(id: number): Promise<User> {
+    const result = await db
+      .update(users)
+      .set({ isVerified: true })
+      .where(eq(users.id, id))
+      .returning();
+      
+    if (result.length === 0) {
+      throw new Error(`User with id ${id} not found`);
+    }
+    
+    return result[0];
+  }
+  
+  async resetPassword(email: string, newPassword: string): Promise<boolean> {
+    try {
+      const user = await this.getUserByEmail(email);
+      
+      if (!user) {
+        return false;
+      }
+      
+      await db
+        .update(users)
+        .set({ password: newPassword })
+        .where(eq(users.id, user.id));
+      
+      return true;
+    } catch (error) {
+      console.error("Error resetting password:", error);
+      return false;
+    }
   }
   
   async getAllUsers(): Promise<User[]> {

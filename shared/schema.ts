@@ -9,11 +9,15 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   firstName: text("first_name"),
   lastName: text("last_name"),
-  email: text("email"),
+  email: text("email").notNull().unique(), // Now required and unique
   avatar: text("avatar"),
   provider: text("provider"), // 'local', 'google', 'apple'
   providerId: text("provider_id"),
   isAdmin: boolean("is_admin").default(false),
+  isVerified: boolean("is_verified").default(false), // New field for email verification
+  verificationToken: text("verification_token"), // For email verification
+  resetPasswordToken: text("reset_password_token"), // For password reset
+  resetPasswordExpires: timestamp("reset_password_expires", { mode: 'string' }),
   subscriptionTier: text("subscription_tier").default("free").notNull(), // 'free', 'pro'
   subscriptionStatus: text("subscription_status").default("active").notNull(), // 'active', 'trial', 'expired', 'cancelled'
   subscriptionExpiresAt: timestamp("subscription_expires_at", { mode: 'string' }),
@@ -29,6 +33,10 @@ export const insertUserSchema = createInsertSchema(users).pick({
   provider: true,
   providerId: true,
   isAdmin: true,
+  isVerified: true,
+  verificationToken: true,
+  resetPasswordToken: true,
+  resetPasswordExpires: true,
   subscriptionTier: true,
   subscriptionStatus: true,
   subscriptionExpiresAt: true,

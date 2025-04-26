@@ -1,7 +1,8 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { z } from "zod";
-import { setupAuth } from "./auth";
+import * as crypto from "crypto";
+import { setupAuth, hashPassword } from "./auth";
 import { storage } from "./storage";
 import { 
   generateAIResponse, 
@@ -17,10 +18,176 @@ import adminStatsRoutes from "./routes/admin-stats";
 import subscriptionRoutes from "./routes/subscription";
 import paypalSettingsRoutes from "./routes/paypal-settings";
 import { setupHabitRoutes } from "./routes/habits";
+import { User } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes
   await setupAuth(app);
+
+  // User API
+  app.get("/api/users/:id", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const userId = Number(req.params.id);
+    if (req.user?.id !== userId && !req.user?.isAdmin) return res.sendStatus(403);
+    
+    try {
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      // Don't send the password back to the client
+      const { password, ...userWithoutPassword } = user;
+      res.json(userWithoutPassword);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ error: "Failed to fetch user" });
+    }
+  });
+  
+  app.patch("/api/users/:id", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const userId = Number(req.params.id);
+    if (req.user?.id !== userId && !req.user?.isAdmin) return res.sendStatus(403);
+    
+    try {
+      // Only allow certain fields to be updated
+      const allowedFields = ['firstName', 'lastName', 'email', 'avatar'];
+      const updateData: Partial<User> = {};
+      
+      for (const field of allowedFields) {
+        if (req.body[field] !== undefined) {
+          // Use type assertion to handle dynamic field assignment
+          (updateData as any)[field] = req.body[field];
+        }
+      }
+      
+      // Check if the email is being updated
+      if (updateData.email && updateData.email !== req.user.email) {
+        // If email is changed, user needs to be re-verified
+        updateData.isVerified = false;
+        // Generate new verification token
+        updateData.verificationToken = crypto.randomBytes(20).toString('hex');
+        
+        // Send verification email
+        // This will be implemented later
+      }
+      
+      const updatedUser = await storage.updateUser(userId, updateData);
+      
+      // Don't send password back
+      const { password, ...userWithoutPassword } = updatedUser;
+      res.json(userWithoutPassword);
+    } catch (error) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ error: "Failed to update user" });
+    }
+  });
+  
+  // Email verification
+  app.get("/api/verify-email/:token", async (req, res) => {
+    try {
+      const token = req.params.token;
+      
+      // Find user with this token
+      const users = await storage.getAllUsers();
+      const user = users.find(u => u.verificationToken === token);
+      
+      if (!user) {
+        return res.status(400).json({ error: "Invalid verification token" });
+      }
+      
+      // Update user to verified status
+      await storage.verifyUser(user.id);
+      
+      // Redirect to login page with success message
+      res.redirect('/#/auth?verified=true');
+    } catch (error) {
+      console.error("Error verifying email:", error);
+      res.status(500).json({ error: "Failed to verify email" });
+    }
+  });
+  
+  // Forgot password
+  app.post("/api/forgot-password", async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ error: "Email is required" });
+      }
+      
+      // Find user by email
+      const user = await storage.getUserByEmail(email);
+      
+      if (!user) {
+        // Don't reveal that the user doesn't exist
+        return res.status(200).json({ message: "If the email exists, a reset link has been sent" });
+      }
+      
+      // Generate reset token and expiry
+      const resetToken = crypto.randomBytes(20).toString('hex');
+      const resetExpiry = new Date();
+      resetExpiry.setHours(resetExpiry.getHours() + 1); // Token valid for 1 hour
+      
+      // Update user with reset token and expiry
+      await storage.updateUser(user.id, {
+        resetPasswordToken: resetToken,
+        resetPasswordExpires: resetExpiry.toISOString()
+      });
+      
+      // Send password reset email
+      // This will be implemented later
+      
+      res.status(200).json({ message: "If the email exists, a reset link has been sent" });
+    } catch (error) {
+      console.error("Error processing forgot password:", error);
+      res.status(500).json({ error: "Failed to process forgot password request" });
+    }
+  });
+  
+  // Reset password
+  app.post("/api/reset-password/:token", async (req, res) => {
+    try {
+      const { password } = req.body;
+      const token = req.params.token;
+      
+      if (!password) {
+        return res.status(400).json({ error: "Password is required" });
+      }
+      
+      // Find user with this token and ensure it's not expired
+      const users = await storage.getAllUsers();
+      const now = new Date();
+      
+      const user = users.find(u => 
+        u.resetPasswordToken === token && 
+        u.resetPasswordExpires && 
+        new Date(u.resetPasswordExpires) > now
+      );
+      
+      if (!user) {
+        return res.status(400).json({ error: "Invalid or expired reset token" });
+      }
+      
+      // Hash the new password
+      const hashedPassword = await hashPassword(password);
+      
+      // Update user with new password and clear the reset token
+      await storage.updateUser(user.id, {
+        password: hashedPassword,
+        resetPasswordToken: null,
+        resetPasswordExpires: null
+      });
+      
+      res.status(200).json({ message: "Password has been reset successfully" });
+    } catch (error) {
+      console.error("Error resetting password:", error);
+      res.status(500).json({ error: "Failed to reset password" });
+    }
+  });
 
   // Journal Entries API
   app.get("/api/journal-entries/:userId", async (req, res) => {
