@@ -24,12 +24,15 @@ const loginSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
-const registerSchema = insertUserSchema.extend({
-  confirmPassword: z.string().min(6, "Password must be at least 6 characters"),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
+const registerSchema = insertUserSchema
+  .omit({ username: true }) // Remove username field
+  .extend({
+    name: z.string().min(1, "Name is required"), // Add mandatory name field
+    confirmPassword: z.string().min(6, "Password must be at least 6 characters"),
+  }).refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  });
 
 // Define the login data with email instead of username
 type LoginData = {
@@ -75,7 +78,7 @@ export default function AuthPage() {
   const registerForm = useForm<RegisterData>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      username: "",
+      name: "",
       email: "",
       password: "",
       confirmPassword: "",
@@ -316,12 +319,12 @@ export default function AuthPage() {
                   <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-3 mb-1">
                     <FormField
                       control={registerForm.control}
-                      name="username"
+                      name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm">Username</FormLabel>
+                          <FormLabel className="text-sm">Name <span className="text-red-500">*</span></FormLabel>
                           <FormControl>
-                            <Input className="pi-input h-9" placeholder="Choose a username" {...field} />
+                            <Input className="pi-input h-9" placeholder="Enter your full name" {...field} />
                           </FormControl>
                           <FormMessage className="text-xs" />
                         </FormItem>

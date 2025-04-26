@@ -5,13 +5,13 @@ import { z } from "zod";
 // Users table
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
+  username: text("username"), // Made optional for backward compatibility
   password: text("password").notNull(),
   name: text("name").notNull(), // Mandatory name field (replaces firstName)
   displayName: text("display_name"), // Optional display name
   firstName: text("first_name"), // Keep for backward compatibility
   lastName: text("last_name"), // Keep for backward compatibility
-  email: text("email").notNull().unique(), // Required and unique
+  email: text("email").notNull().unique(), // Required and unique as primary identifier
   avatar: text("avatar"),
   pronouns: text("pronouns"), // Optional pronouns field
   dateOfBirth: date("date_of_birth"), // Optional DOB
@@ -32,13 +32,12 @@ export const users = pgTable("users", {
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
   password: true,
-  name: true, // New required field
-  displayName: true, // New optional field
+  name: true, // Required field
+  displayName: true, // Optional field
   firstName: true, // Keeping for backward compatibility
   lastName: true, // Keeping for backward compatibility
-  email: true,
+  email: true, // Primary identifier
   avatar: true,
   pronouns: true, // New optional field
   dateOfBirth: true, // New optional field
