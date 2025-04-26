@@ -44,6 +44,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useToast } from "@/hooks/use-toast";
+import { AvatarSelector } from "@/components/profile/avatar-selector";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // Common hobby suggestions
@@ -313,51 +314,20 @@ export default function SettingsProfilePage() {
           <CardContent className="space-y-6 pt-6">
             <Form {...profileForm}>
               <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-24 h-24 rounded-full bg-[#FFF8E8] flex items-center justify-center text-[#F5B8DB] overflow-hidden">
-                    {avatarPreview || (user?.avatar && typeof user.avatar === 'string') ? (
-                      <img
-                        src={avatarPreview || user.avatar || ''}
-                        alt="Profile"
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <User className="h-12 w-12" />
-                    )}
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Profile Picture</h3>
-                    <p className="text-sm text-gray-500 mb-2">PNG, JPG or GIF, max 2MB</p>
-                    <div className="flex gap-2">
-                      <input
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={handleAvatarUpload}
-                        accept="image/png, image/jpeg, image/gif"
-                        className="hidden"
-                      />
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        className="flex gap-1 bg-white"
-                        onClick={() => fileInputRef.current?.click()}
-                        type="button"
-                      >
-                        <Upload className="h-4 w-4" />
-                        Upload
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        className="text-red-600 bg-white"
-                        onClick={handleRemoveAvatar}
-                        type="button"
-                      >
-                        Remove
-                      </Button>
-                    </div>
-                  </div>
-                </div>
+                {/* Use our enhanced AvatarSelector component */}
+                <AvatarSelector 
+                  userId={user.id} 
+                  currentAvatar={avatarPreview || user?.avatar || undefined}
+                  onAvatarChange={(newAvatarUrl: string) => {
+                    if (newAvatarUrl) {
+                      setAvatarPreview(newAvatarUrl);
+                      profileForm.setValue('avatar', newAvatarUrl);
+                    } else {
+                      setAvatarPreview(null);
+                      profileForm.setValue('avatar', '');
+                    }
+                  }}
+                />
 
                 <FormField
                   control={profileForm.control}
