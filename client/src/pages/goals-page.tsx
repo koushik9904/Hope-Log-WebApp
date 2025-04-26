@@ -454,8 +454,14 @@ export default function GoalsPage() {
       return newTask;
     },
     onSuccess: () => {
+      // Invalidate goals queries
       queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}`] });
+      
+      // Invalidate tasks queries - match both formats used in the application
       queryClient.invalidateQueries({ queryKey: [`/api/tasks/${user?.id}`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/tasks', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['/api/tasks'] }); // Catch-all for task-related queries
+      
       setShowConvertToTaskDialog(false);
       
       toast({
