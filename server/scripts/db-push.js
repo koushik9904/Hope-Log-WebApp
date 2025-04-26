@@ -1,5 +1,5 @@
 // Script to push Drizzle schema to database
-const { exec } = require('child_process');
+import { exec } from 'child_process';
 
 console.log('Pushing schema to database...');
 
