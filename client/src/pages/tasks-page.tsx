@@ -96,16 +96,24 @@ export default function TasksPage() {
   }
 
   // Fetch AI-suggested tasks
-  const { data: aiSuggestions, isLoading: isSuggestionsLoading } = useQuery<TasksSuggestionResponse>({
+  const { 
+    data: aiSuggestions, 
+    isLoading: isSuggestionsLoading 
+  } = useQuery<TasksSuggestionResponse>({
     queryKey: [`/api/tasks/${user?.id}/suggestions`],
     enabled: !!user?.id,
     staleTime: 300000, // 5 minutes
     retry: false, // Don't retry since our endpoint might not exist yet
-    onSettled: () => {
-      // Set default tasks on load completion
-      setAiSuggestedTasks(AI_SUGGESTED_TASKS);
+    onError: () => {
+      console.log("Failed to fetch AI task suggestions - using example data");
     }
   });
+  
+  // Set default tasks when component mounts
+  useEffect(() => {
+    // Initialize with example data
+    setAiSuggestedTasks(AI_SUGGESTED_TASKS);
+  }, []);
   
   // Update AI suggested tasks when data is loaded
   useEffect(() => {

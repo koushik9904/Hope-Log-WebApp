@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { insertTaskSchema } from '@shared/schema';
 import { storage } from '../storage';
 import { Express } from 'express';
+import { generateTaskSuggestions } from '../openai';
 
 // Setup function that will be called from main routes.ts
 export function setupTaskRoutes(app: Express) {
@@ -61,6 +62,37 @@ export function setupTaskRoutes(app: Express) {
     } catch (error) {
       console.error('Error fetching task:', error);
       res.status(500).json({ error: 'Failed to fetch task' });
+    }
+  });
+  
+  // Get AI-suggested tasks based on journal entries
+  router.get('/:userId/suggestions', async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) return res.sendStatus(401);
+      
+      const userId = parseInt(req.params.userId);
+      if (req.user?.id !== userId) return res.sendStatus(403);
+      
+      // Get recent journal entries for analysis
+      const journalEntries = await storage.getRecentJournalEntriesByUserId(userId, 10);
+      
+      // Filter to only include actual journal entries, not chat messages
+      const filteredEntries = journalEntries.filter(entry => entry.isJournal);
+      
+      if (filteredEntries.length === 0) {
+        return res.json({ tasks: [] });
+      }
+      
+      // Get existing tasks to avoid duplicates
+      const existingTasks = await storage.getTasksByUserId(userId);
+      
+      // Generate suggestions based on journal content
+      const suggestions = await generateTaskSuggestions(filteredEntries, existingTasks);
+      
+      res.json(suggestions);
+    } catch (error) {
+      console.error("Error generating task suggestions:", error);
+      res.status(500).json({ error: "Failed to generate task suggestions" });
     }
   });
 
