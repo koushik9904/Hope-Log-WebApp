@@ -285,6 +285,9 @@ export default function GoalsPage() {
   // Filter AI-suggested goals to remove any that already exist in the user's goals list
   const [filteredAiSuggestedGoals, setFilteredAiSuggestedGoals] = useState<typeof AI_SUGGESTED_GOALS>([]);
   
+  // Task filter for the tasks tab
+  const [taskFilter, setTaskFilter] = useState<string>("all");
+  
   // Process AI suggestions when they're loaded
   useEffect(() => {
     if (aiSuggestions.goals && aiSuggestions.goals.length > 0) {
@@ -1723,29 +1726,20 @@ export default function GoalsPage() {
               </CardHeader>
               <CardContent className="pt-6">
                 <div className="flex justify-between items-center mb-6">
-                  <div>
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button className="bg-[#9AAB63] hover:bg-[#8a9a58] text-white">
-                          <Plus className="h-4 w-4 mr-2" /> Add Task
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-[600px] bg-white">
-                        <DialogHeader>
-                          <DialogTitle className="font-['Montserrat_Variable']">Create New Task</DialogTitle>
-                          <DialogDescription>
-                            Add a new task to track your progress
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="py-4">
-                          {user && (
-                            <div className="mt-4">
-                              <TaskForm userId={user.id} />
-                            </div>
-                          )}
-                        </div>
-                      </DialogContent>
-                    </Dialog>
+                  <div className="flex items-center gap-2">
+                    <Select
+                      value={taskFilter}
+                      onValueChange={setTaskFilter}
+                    >
+                      <SelectTrigger className="w-[180px] bg-white">
+                        <SelectValue placeholder="Filter tasks" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Tasks</SelectItem>
+                        <SelectItem value="completed">Completed</SelectItem>
+                        <SelectItem value="incomplete">Incomplete</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
                 
