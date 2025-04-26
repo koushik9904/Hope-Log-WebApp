@@ -338,325 +338,321 @@ export default function TasksPage() {
           className="mb-8"
         />
 
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-        <div className="flex flex-wrap gap-2">
-          {/* Goal Filter Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-1">
-                <Filter className="h-4 w-4" />
-                {selectedGoalId === null 
-                  ? "Filter by Goal" 
-                  : selectedGoalId === 0 
-                    ? "Tasks without Goal" 
-                    : `Goal: ${goals.find(g => g.id === selectedGoalId)?.name?.substring(0, 15) || "Selected"}`}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuLabel>Select a Goal</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => setSelectedGoalId(null)}>
-                All Tasks
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setSelectedGoalId(0)}>
-                Tasks without goal
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              {goals.map((goal) => (
-                <DropdownMenuItem key={goal.id} onClick={() => setSelectedGoalId(goal.id)}>
-                  {goal.name}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+          <div className="flex flex-wrap gap-2">
+            {/* Goal Filter Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-1">
+                  <Filter className="h-4 w-4" />
+                  {selectedGoalId === null 
+                    ? "Filter by Goal" 
+                    : selectedGoalId === 0 
+                      ? "Tasks without Goal" 
+                      : `Goal: ${goals.find(g => g.id === selectedGoalId)?.name?.substring(0, 15) || "Selected"}`}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuLabel>Select a Goal</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setSelectedGoalId(null)}>
+                  All Tasks
                 </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                <DropdownMenuItem onClick={() => setSelectedGoalId(0)}>
+                  Tasks without goal
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                {goals.map((goal) => (
+                  <DropdownMenuItem key={goal.id} onClick={() => setSelectedGoalId(goal.id)}>
+                    {goal.name}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
 
-          {/* Status Filter Tabs */}
-          <Tabs defaultValue="all" onValueChange={(value) => setFilter(value as any)}>
-            <TabsList className="h-9">
-              <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="pending">Pending</TabsTrigger>
-              <TabsTrigger value="completed">Completed</TabsTrigger>
-            </TabsList>
-          </Tabs>
-          
-          {/* Date Range Filter */}
-          <Popover open={dateRangeOpen} onOpenChange={setDateRangeOpen}>
-            <PopoverTrigger asChild>
-              <Button 
-                variant={dateFilterActive ? "default" : "outline"} 
-                size="sm" 
-                className={`gap-1 ${dateFilterActive ? "bg-[#9AAB63] hover:bg-[#8a9a58]" : ""}`}
-              >
-                <CalendarDays className="h-4 w-4" />
-                {dateFilterActive 
-                  ? `${format(dateRange.from!, 'MMM d')}${dateRange.to ? ` - ${format(dateRange.to, 'MMM d')}` : ''}` 
-                  : "Date Range"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <div className="p-3 border-b">
-                <h3 className="font-medium text-sm">Select Date Range</h3>
-                <p className="text-xs text-muted-foreground mt-1">Filter tasks by due date</p>
-              </div>
-              <CalendarComponent
-                initialFocus
-                mode="range"
-                selected={{
-                  from: dateRange.from,
-                  to: dateRange.to
-                }}
-                onSelect={(range) => {
-                  if (range) {
-                    setDateRange({
-                      from: range.from,
-                      to: range.to || range.from
-                    });
-                    setDateFilterActive(!!range.from);
-                  } else {
-                    setDateRange({ from: undefined, to: undefined });
-                    setDateFilterActive(false);
-                  }
-                }}
-                numberOfMonths={1}
-                disabled={{ before: subDays(new Date(), 365), after: addDays(new Date(), 365) }}
-              />
-              {dateFilterActive && (
-                <div className="p-3 border-t flex justify-end">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={clearDateFilter}
-                  >
-                    Clear
-                  </Button>
+            {/* Status Filter Tabs */}
+            <Tabs defaultValue="all" onValueChange={(value) => setFilter(value as any)}>
+              <TabsList className="h-9">
+                <TabsTrigger value="all">All</TabsTrigger>
+                <TabsTrigger value="pending">Pending</TabsTrigger>
+                <TabsTrigger value="completed">Completed</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            
+            {/* Date Range Filter */}
+            <Popover open={dateRangeOpen} onOpenChange={setDateRangeOpen}>
+              <PopoverTrigger asChild>
+                <Button 
+                  variant={dateFilterActive ? "default" : "outline"} 
+                  size="sm" 
+                  className={`gap-1 ${dateFilterActive ? "bg-[#9AAB63] hover:bg-[#8a9a58]" : ""}`}
+                >
+                  <CalendarDays className="h-4 w-4" />
+                  {dateFilterActive 
+                    ? `${format(dateRange.from!, 'MMM d')}${dateRange.to ? ` - ${format(dateRange.to, 'MMM d')}` : ''}` 
+                    : "Date Range"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <div className="p-3 border-b">
+                  <h3 className="font-medium text-sm">Select Date Range</h3>
+                  <p className="text-xs text-muted-foreground mt-1">Filter tasks by due date</p>
                 </div>
-              )}
-            </PopoverContent>
-          </Popover>
-          
-          {/* Sort Options */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-1">
-                {sortDirection === 'asc' ? <SortAsc className="h-4 w-4" /> : <SortDesc className="h-4 w-4" />}
-                Sort
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuLabel>Sort Tasks</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              
-              <DropdownMenuGroup>
-                <DropdownMenuRadioGroup value={sortBy} onValueChange={(value) => setSortBy(value as any)}>
-                  <DropdownMenuRadioItem value="dueDate">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    Due Date
-                  </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="priority">
-                    <AlertCircle className="h-4 w-4 mr-2" />
-                    Priority
-                  </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="createdAt">
-                    <Clock className="h-4 w-4 mr-2" />
-                    Date Created
-                  </DropdownMenuRadioItem>
-                </DropdownMenuRadioGroup>
-              </DropdownMenuGroup>
-              
-              <DropdownMenuSeparator />
-              
-              <DropdownMenuItem onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}>
-                {sortDirection === 'asc' ? (
-                  <>
-                    <SortAsc className="h-4 w-4 mr-2" />
-                    Ascending
-                  </>
-                ) : (
-                  <>
-                    <SortDesc className="h-4 w-4 mr-2" />
-                    Descending
-                  </>
+                <CalendarComponent
+                  initialFocus
+                  mode="range"
+                  selected={{
+                    from: dateRange.from,
+                    to: dateRange.to
+                  }}
+                  onSelect={(range) => {
+                    if (range) {
+                      setDateRange({
+                        from: range.from,
+                        to: range.to || range.from
+                      });
+                      setDateFilterActive(!!range.from);
+                    } else {
+                      setDateRange({ from: undefined, to: undefined });
+                      setDateFilterActive(false);
+                    }
+                  }}
+                  numberOfMonths={1}
+                  disabled={{ before: subDays(new Date(), 365), after: addDays(new Date(), 365) }}
+                />
+                {dateFilterActive && (
+                  <div className="p-3 border-t flex justify-end">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={clearDateFilter}
+                    >
+                      Clear
+                    </Button>
+                  </div>
                 )}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+              </PopoverContent>
+            </Popover>
+            
+            {/* Sort Options */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-1">
+                  {sortDirection === 'asc' ? <SortAsc className="h-4 w-4" /> : <SortDesc className="h-4 w-4" />}
+                  Sort
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuLabel>Sort Tasks</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                
+                <DropdownMenuGroup>
+                  <DropdownMenuRadioGroup value={sortBy} onValueChange={(value) => setSortBy(value as any)}>
+                    <DropdownMenuRadioItem value="dueDate">
+                      <Calendar className="h-4 w-4 mr-2" />
+                      Due Date
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="priority">
+                      <AlertCircle className="h-4 w-4 mr-2" />
+                      Priority
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="createdAt">
+                      <Clock className="h-4 w-4 mr-2" />
+                      Date Created
+                    </DropdownMenuRadioItem>
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuGroup>
+                
+                <DropdownMenuSeparator />
+                
+                <DropdownMenuItem onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}>
+                  {sortDirection === 'asc' ? (
+                    <>
+                      <SortAsc className="h-4 w-4 mr-2" />
+                      Ascending
+                    </>
+                  ) : (
+                    <>
+                      <SortDesc className="h-4 w-4 mr-2" />
+                      Descending
+                    </>
+                  )}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          <Button onClick={() => setIsCreateDialogOpen(true)} size="sm" className="gap-1">
+            <Plus className="h-4 w-4" />
+            Add Task
+          </Button>
         </div>
 
-        <Button onClick={() => setIsCreateDialogOpen(true)} size="sm" className="gap-1">
-          <Plus className="h-4 w-4" />
-          Add Task
-        </Button>
-      </div>
-
-      {/* AI-suggested section with tabs for tasks and goals */}
-      {(aiSuggestedTasks.length > 0 || aiSuggestedGoals.length > 0) && (
-        <Card className="bg-white border-0 shadow-sm mb-8">
-          <CardHeader className="border-b border-gray-100">
-            <CardTitle className="font-['Montserrat_Variable'] flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-[#B6CAEB]" />
-              AI Suggestions
-            </CardTitle>
-            <CardDescription>
-              Personalized suggestions based on your journal entries and wellness patterns
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <Tabs defaultValue="tasks" className="w-full">
-              <TabsList className="mb-6">
-                <TabsTrigger value="tasks" className="relative">
-                  Tasks 
-                  {aiSuggestedTasks.length > 0 && (
-                    <span className="ml-2 bg-[#9AAB63] text-white text-xs px-2 py-0.5 rounded-full">
-                      {aiSuggestedTasks.length}
-                    </span>
-                  )}
-                </TabsTrigger>
-                <TabsTrigger value="goals" className="relative">
-                  Goals
-                  {aiSuggestedGoals.length > 0 && (
-                    <span className="ml-2 bg-[#F5B8DB] text-white text-xs px-2 py-0.5 rounded-full">
-                      {aiSuggestedGoals.length}
-                    </span>
-                  )}
-                </TabsTrigger>
-              </TabsList>
-              
-              {/* Task suggestions tab */}
-              <TabsContent value="tasks">
-                {aiSuggestedTasks.length === 0 ? (
-                  <div className="text-center p-8 text-gray-500">
-                    No task suggestions available right now
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {aiSuggestedTasks.map(task => (
-                      <div key={task.id} className="bg-[#f0f6ff] p-4 rounded-xl border border-[#B6CAEB] border-opacity-30">
-                        <h4 className="font-medium text-gray-800 mb-2">{task.title}</h4>
-                        <p className="text-sm text-gray-600 mb-3">{task.description}</p>
-                        <div className="text-xs text-gray-500 italic mb-3">
-                          <Lightbulb className="h-3 w-3 inline mr-1" />
-                          {task.source}
-                        </div>
-                        <div className="flex items-center gap-2 mt-3">
-                          <Badge className={`${
-                            task.priority === 'high' 
-                              ? 'bg-red-100 text-red-700' 
-                              : task.priority === 'low' 
-                                ? 'bg-green-100 text-green-700' 
-                                : 'bg-orange-100 text-orange-700'
-                          }`}>
-                            {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)} priority
-                          </Badge>
-                          <div className="flex-1"></div>
-                          <Button 
-                            onClick={() => addSuggestedTask(task)}
-                            className="bg-[#9AAB63] hover:bg-[#8a9a58] text-white text-xs px-3"
-                            size="sm"
-                          >
-                            <Check className="h-3.5 w-3.5 mr-1.5" /> Add Task
-                          </Button>
-                          <Button 
-                            variant="outline"
-                            onClick={() => {
-                              setAiSuggestedTasks(prev => prev.filter(t => t.id !== task.id));
-                            }}
-                            className="text-gray-500 text-xs px-2 border-gray-300 bg-white"
-                            size="sm"
-                          >
-                            <X className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </TabsContent>
-              
-              {/* Goal suggestions tab */}
-              <TabsContent value="goals">
-                {aiSuggestedGoals.length === 0 ? (
-                  <div className="text-center p-8 text-gray-500">
-                    No goal suggestions available right now
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {aiSuggestedGoals.map(goal => (
-                      <div key={goal.id} className="bg-[#fff8f9] p-5 rounded-xl border border-[#F5B8DB] border-opacity-30">
-                        <h4 className="font-medium text-gray-800 text-lg mb-3">{goal.name}</h4>
-                        <p className="text-sm text-gray-600 mb-4">{goal.description}</p>
-                        
-                        {goal.relatedTasks && goal.relatedTasks.length > 0 && (
-                          <div className="mb-4">
-                            <h5 className="text-sm font-medium text-gray-700 mb-2">Related Tasks:</h5>
-                            <ul className="list-disc pl-5 space-y-1">
-                              {goal.relatedTasks.map((task, i) => (
-                                <li key={i} className="text-sm text-gray-600">{task}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                        
-                        <div className="flex items-center gap-2 mt-4">
-                          <div className="text-xs text-gray-500 italic">
+        {/* AI-suggested section with tabs for tasks and goals */}
+        {(aiSuggestedTasks.length > 0 || aiSuggestedGoals.length > 0) && (
+          <Card className="bg-white border-0 shadow-sm mb-8">
+            <CardHeader className="border-b border-gray-100">
+              <CardTitle className="font-['Montserrat_Variable'] flex items-center gap-2">
+                <AlertCircle className="h-5 w-5 text-[#B6CAEB]" />
+                AI Suggestions
+              </CardTitle>
+              <CardDescription>
+                Personalized suggestions based on your journal entries and wellness patterns
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <Tabs defaultValue="tasks" className="w-full">
+                <TabsList className="mb-6">
+                  <TabsTrigger value="tasks" className="relative">
+                    Tasks 
+                    {aiSuggestedTasks.length > 0 && (
+                      <span className="ml-2 bg-[#9AAB63] text-white text-xs px-2 py-0.5 rounded-full">
+                        {aiSuggestedTasks.length}
+                      </span>
+                    )}
+                  </TabsTrigger>
+                  <TabsTrigger value="goals" className="relative">
+                    Goals
+                    {aiSuggestedGoals.length > 0 && (
+                      <span className="ml-2 bg-[#F5B8DB] text-white text-xs px-2 py-0.5 rounded-full">
+                        {aiSuggestedGoals.length}
+                      </span>
+                    )}
+                  </TabsTrigger>
+                </TabsList>
+                
+                {/* Task suggestions tab */}
+                <TabsContent value="tasks">
+                  {aiSuggestedTasks.length === 0 ? (
+                    <div className="text-center p-8 text-gray-500">
+                      No task suggestions available right now
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {aiSuggestedTasks.map(task => (
+                        <div key={task.id} className="bg-[#f0f6ff] p-4 rounded-xl border border-[#B6CAEB] border-opacity-30">
+                          <h4 className="font-medium text-gray-800 mb-2">{task.title}</h4>
+                          <p className="text-sm text-gray-600 mb-3">{task.description}</p>
+                          <div className="text-xs text-gray-500 italic mb-3">
                             <Lightbulb className="h-3 w-3 inline mr-1" />
-                            Based on your journal entries
+                            {task.source}
                           </div>
-                          <div className="flex-1"></div>
-                          <Button 
-                            onClick={() => addSuggestedGoal(goal)}
-                            className="bg-[#F5B8DB] hover:bg-[#e29bc2] text-white text-xs px-3"
-                            size="sm"
-                          >
-                            <Check className="h-3.5 w-3.5 mr-1.5" /> Create Goal
-                          </Button>
-                          <Button 
-                            variant="outline"
-                            onClick={() => {
-                              setAiSuggestedGoals(prev => prev.filter(g => g.id !== goal.id));
-                            }}
-                            className="text-gray-500 text-xs px-2 border-gray-300 bg-white"
-                            size="sm"
-                          >
-                            <X className="h-3.5 w-3.5" />
-                          </Button>
+                          <div className="flex items-center gap-2 mt-3">
+                            <Badge className={`${
+                              task.priority === 'high' 
+                                ? 'bg-red-100 text-red-700' 
+                                : task.priority === 'low' 
+                                  ? 'bg-green-100 text-green-700' 
+                                  : 'bg-orange-100 text-orange-700'
+                            }`}>
+                              {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)} priority
+                            </Badge>
+                            <div className="flex-1"></div>
+                            <Button 
+                              onClick={() => addSuggestedTask(task)}
+                              className="bg-[#9AAB63] hover:bg-[#8a9a58] text-white text-xs px-3"
+                              size="sm"
+                            >
+                              <Check className="h-3.5 w-3.5 mr-1.5" /> Add Task
+                            </Button>
+                            <Button 
+                              variant="outline"
+                              onClick={() => {
+                                setAiSuggestedTasks(prev => prev.filter(t => t.id !== task.id));
+                              }}
+                              className="text-gray-500 text-xs px-2 border-gray-300 bg-white"
+                              size="sm"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
-      )}
+                      ))}
+                    </div>
+                  )}
+                </TabsContent>
+                
+                {/* Goal suggestions tab */}
+                <TabsContent value="goals">
+                  {aiSuggestedGoals.length === 0 ? (
+                    <div className="text-center p-8 text-gray-500">
+                      No goal suggestions available right now
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {aiSuggestedGoals.map(goal => (
+                        <div key={goal.id} className="bg-[#fff8f9] p-5 rounded-xl border border-[#F5B8DB] border-opacity-30">
+                          <h4 className="font-medium text-gray-800 text-lg mb-3">{goal.name}</h4>
+                          <p className="text-sm text-gray-600 mb-4">{goal.description}</p>
+                          
+                          {goal.relatedTasks && goal.relatedTasks.length > 0 && (
+                            <div className="mb-4">
+                              <h5 className="text-sm font-medium text-gray-700 mb-2">Related Tasks:</h5>
+                              <ul className="list-disc pl-5 space-y-1">
+                                {goal.relatedTasks.map((task, i) => (
+                                  <li key={i} className="text-sm text-gray-600">{task}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          
+                          <div className="flex items-center gap-2 mt-4">
+                            <div className="flex-1"></div>
+                            <Button 
+                              onClick={() => addSuggestedGoal(goal)}
+                              className="bg-[#F5B8DB] hover:bg-[#f096c9] text-white text-xs"
+                              size="sm"
+                            >
+                              <Check className="h-3.5 w-3.5 mr-1.5" /> Add Goal
+                            </Button>
+                            <Button 
+                              variant="outline"
+                              onClick={() => {
+                                setAiSuggestedGoals(prev => prev.filter(g => g.id !== goal.id));
+                              }}
+                              className="text-gray-500 text-xs border-gray-300 bg-white"
+                              size="sm"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+        )}
 
-      <div className="bg-white dark:bg-gray-950 rounded-lg shadow-sm p-6 mb-8">
-        <h2 className="text-xl font-semibold mb-4">
-          {selectedGoalId === null
-            ? 'All Tasks'
-            : selectedGoalId === 0
-            ? 'Tasks without Goal'
-            : `Tasks for: ${goals.find((g) => g.id === selectedGoalId)?.name || 'Selected Goal'}`}
-        </h2>
-        <TaskList 
-          userId={user.id} 
-          selectedGoalId={selectedGoalId} 
-          statusFilter={filter}
-          sortBy={sortBy}
-          sortDirection={sortDirection}
-          dateRange={dateFilterActive ? dateRange : undefined}
-        />
-      </div>
+        <div className="bg-white dark:bg-gray-950 rounded-lg shadow-sm p-6 mb-8">
+          <h2 className="text-xl font-semibold mb-4">
+            {selectedGoalId === null
+              ? 'All Tasks'
+              : selectedGoalId === 0
+              ? 'Tasks without Goal'
+              : `Tasks for: ${goals.find((g) => g.id === selectedGoalId)?.name || 'Selected Goal'}`}
+          </h2>
+          <TaskList 
+            userId={user.id} 
+            selectedGoalId={selectedGoalId} 
+            statusFilter={filter}
+            sortBy={sortBy}
+            sortDirection={sortDirection}
+            dateRange={dateFilterActive ? dateRange : undefined}
+          />
+        </div>
 
-      {/* Create Task Dialog */}
-      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Create New Task</DialogTitle>
-          </DialogHeader>
-          <TaskForm userId={user.id} onSuccess={() => setIsCreateDialogOpen(false)} />
-        </DialogContent>
-      </Dialog>
+        {/* Create Task Dialog */}
+        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Create New Task</DialogTitle>
+            </DialogHeader>
+            <TaskForm userId={user.id} onSuccess={() => setIsCreateDialogOpen(false)} />
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
   );
