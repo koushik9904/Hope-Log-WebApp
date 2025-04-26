@@ -18,6 +18,7 @@ import adminStatsRoutes from "./routes/admin-stats";
 import subscriptionRoutes from "./routes/subscription";
 import paypalSettingsRoutes from "./routes/paypal-settings";
 import { setupHabitRoutes } from "./routes/habits";
+import { registerAvatarRoutes } from "./routes/avatar";
 import { User } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -1044,6 +1045,9 @@ Your role is to:
   app.use("/api/subscription", subscriptionRoutes);
   app.use("/api", paypalSettingsRoutes);
 
+  // Register avatar routes
+  registerAvatarRoutes(app);
+  
   const httpServer = createServer(app);
   return httpServer;
 }

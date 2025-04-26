@@ -577,6 +577,7 @@ export async function setupAuth(app: Express) {
                 user = await storage.createUser({
                   username: `google-${profile.id}`,
                   password: await hashPassword(randomBytes(16).toString('hex')),
+                  name: `${profile.name?.givenName || ''} ${profile.name?.familyName || ''}`.trim() || 'Google User',
                   firstName: profile.name?.givenName || '',
                   lastName: profile.name?.familyName || '',
                   email: profile.emails?.[0]?.value || '',
