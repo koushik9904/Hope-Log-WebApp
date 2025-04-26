@@ -29,6 +29,18 @@ interface DeletedHabit {
   completedToday: boolean;
   deletedAt: string;
 }
+
+interface Task {
+  id: number;
+  userId: number;
+  title: string;
+  description: string | null;
+  dueDate: string | null;
+  priority: string;
+  status: string;
+  completedAt: string | null;
+  goalId: number | null;
+}
 import { 
   AlertCircle,
   Check,
@@ -260,6 +272,13 @@ export default function GoalsPage() {
     staleTime: 60000, // 1 minute
   });
   
+  // Fetch all tasks for displaying under goals
+  const { data: allTasks = [] } = useQuery<Task[]>({
+    queryKey: [`/api/tasks/${user?.id}`],
+    enabled: !!user?.id,
+    staleTime: 60000, // 1 minute
+  });
+  
   // Define the interface for AI suggestions from the API
   interface AISuggestion {
     name: string;
@@ -438,8 +457,8 @@ export default function GoalsPage() {
       const task = {
         title: goalToConvert.name,
         description: goalToConvert.description || "",
-        // Only include dueDate if it's not null or empty
-        ...(goalToConvert.targetDate ? { dueDate: goalToConvert.targetDate } : {}),
+        // Don't worry about dueDate being null or empty
+        // Just include it as undefined and let the API handle it
         priority: "medium",
         userId: user?.id,
       };
@@ -1641,6 +1660,54 @@ export default function GoalsPage() {
                                     )}
                                   </div>
                                 </div>
+                                
+                                {/* Display related tasks */}
+                                {allTasks.filter(task => task.goalId === goal.id).length > 0 && (
+                                  <div className="mt-3 pt-3 border-t border-gray-200">
+                                    <h5 className="text-xs font-medium text-gray-700 mb-2">Related Tasks:</h5>
+                                    <div className="space-y-2">
+                                      {allTasks
+                                        .filter(task => task.goalId === goal.id)
+                                        .map(task => (
+                                          <div key={task.id} className="flex items-center text-sm">
+                                            <div className="flex-shrink-0 mr-2">
+                                              <Checkbox 
+                                                id={`task-${task.id}`}
+                                                checked={!!task.completedAt}
+                                                onCheckedChange={(checked) => {
+                                                  if (checked) {
+                                                    // Update task to mark as completed with current date
+                                                    apiRequest("PATCH", `/api/tasks/${task.id}`, {
+                                                      completedAt: new Date().toISOString()
+                                                    }).then(() => {
+                                                      queryClient.invalidateQueries({ queryKey: [`/api/tasks/${user?.id}`] });
+                                                      queryClient.invalidateQueries({ queryKey: ['/api/tasks', user?.id] });
+                                                    });
+                                                  } else {
+                                                    // Update task to mark as not completed
+                                                    apiRequest("PATCH", `/api/tasks/${task.id}`, {
+                                                      completedAt: null
+                                                    }).then(() => {
+                                                      queryClient.invalidateQueries({ queryKey: [`/api/tasks/${user?.id}`] });
+                                                      queryClient.invalidateQueries({ queryKey: ['/api/tasks', user?.id] });
+                                                    });
+                                                  }
+                                                }}
+                                                className="h-4 w-4 border-gray-300 rounded"
+                                              />
+                                            </div>
+                                            <label 
+                                              htmlFor={`task-${task.id}`}
+                                              className={`text-sm ${task.completedAt ? 'line-through text-gray-400' : 'text-gray-700'}`}
+                                            >
+                                              {task.title}
+                                            </label>
+                                          </div>
+                                        ))
+                                      }
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                             ))}
                           </div>
