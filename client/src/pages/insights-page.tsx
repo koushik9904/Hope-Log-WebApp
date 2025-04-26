@@ -37,7 +37,8 @@ import {
   JournalingStats, 
   MoodAnalytics, 
   ReflectionPatterns, 
-  Correlations 
+  Correlations,
+  EmotionsAnalytics
 } from "@/components/insights";
 
 export default function InsightsPage() {
