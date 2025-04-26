@@ -1680,6 +1680,26 @@ export default function GoalsPage() {
           </TabsContent>
           
           <TabsContent value="tasks">
+            {/* Add Task button */}
+            <div className="flex justify-end mb-6">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button className="bg-[#9AAB63] hover:bg-[#8a9a58] text-white flex items-center gap-2">
+                    <Plus className="h-4 w-4" /> Add Task
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[600px] bg-white">
+                  <DialogHeader>
+                    <DialogTitle>Create New Task</DialogTitle>
+                  </DialogHeader>
+                  <TaskForm userId={user?.id || 0} onSuccess={() => {
+                    queryClient.invalidateQueries({ queryKey: [`/api/tasks/${user?.id}`] });
+                    queryClient.invalidateQueries({ queryKey: ['/api/tasks', user?.id] });
+                  }} />
+                </DialogContent>
+              </Dialog>
+            </div>
+            
             <Card className="bg-white border-0 shadow-sm mb-6">
               <CardHeader className="border-b border-gray-100">
                 <CardTitle className="font-['Montserrat_Variable']">Your Tasks</CardTitle>
@@ -1832,23 +1852,6 @@ export default function GoalsPage() {
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
-
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button className="bg-[#9AAB63] hover:bg-[#8a9a58] text-white flex items-center gap-2">
-                        <Plus className="h-4 w-4" /> Add Task
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[600px] bg-white">
-                      <DialogHeader>
-                        <DialogTitle>Create New Task</DialogTitle>
-                      </DialogHeader>
-                      <TaskForm userId={user?.id || 0} onSuccess={() => {
-                        queryClient.invalidateQueries({ queryKey: [`/api/tasks/${user?.id}`] });
-                        queryClient.invalidateQueries({ queryKey: ['/api/tasks', user?.id] });
-                      }} />
-                    </DialogContent>
-                  </Dialog>
                 </div>
                 
                 {user && <TaskList 
@@ -1864,6 +1867,87 @@ export default function GoalsPage() {
           </TabsContent>
           
           <TabsContent value="habits">
+            {/* Add Habit Button */}
+            <div className="flex justify-end mb-6">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button className="bg-[#B6CAEB] hover:bg-[#95b9e5] text-white flex items-center gap-2">
+                    <Plus className="h-4 w-4" /> Add Habit
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[500px] bg-white">
+                  <DialogHeader>
+                    <DialogTitle className="font-['Montserrat_Variable']">Create New Habit</DialogTitle>
+                    <DialogDescription>
+                      Create a new habit to track regularly
+                    </DialogDescription>
+                  </DialogHeader>
+                  <form onSubmit={onHabitSubmit} className="space-y-6 py-4">
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="habit-title">Habit Name</Label>
+                        <Input 
+                          id="habit-title" 
+                          placeholder="e.g. Morning meditation" 
+                          onChange={(e) => setNewHabit({...newHabit, title: e.target.value})}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="habit-description">Description (optional)</Label>
+                        <Input 
+                          id="habit-description" 
+                          placeholder="Brief description of your habit" 
+                          onChange={(e) => setNewHabit({...newHabit, description: e.target.value})}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="habit-frequency">Frequency</Label>
+                        <Select 
+                          onValueChange={(value) => setNewHabit({...newHabit, frequency: value as any})}
+                          defaultValue="daily"
+                        >
+                          <SelectTrigger className="bg-white">
+                            <SelectValue placeholder="Select frequency" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="daily">Daily</SelectItem>
+                            <SelectItem value="weekly">Weekly</SelectItem>
+                            <SelectItem value="monthly">Monthly</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={() => {
+                          // Reset the form fields
+                          setNewHabit({
+                            title: "",
+                            description: "",
+                            frequency: "daily",
+                            userId: user?.id
+                          });
+                        }}
+                        className="bg-white"
+                      >
+                        Cancel
+                      </Button>
+                      <Button 
+                        type="submit" 
+                        className="bg-[#B6CAEB] hover:bg-[#95b9e5] text-white"
+                        disabled={addHabitMutation.isPending}
+                      >
+                        {addHabitMutation.isPending ? "Adding..." : "Add Habit"}
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </div>
+            
             {/* Edit Habit Dialog */}
             <Dialog open={showEditHabitDialog} onOpenChange={setShowEditHabitDialog}>
               <DialogContent className="sm:max-w-[500px] bg-white">
