@@ -24,7 +24,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
         <div className="flex items-center">
           <div>
             <h1 className="text-xl font-semibold font-['Montserrat_Variable'] text-white">
-              Welcome back, {user?.username}
+              Welcome back, {user?.displayName || user?.name || user?.username}
             </h1>
             <p className="text-gray-400 text-sm">{formattedDate}</p>
           </div>
@@ -36,7 +36,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
           <div className="relative group">
             <button className="flex items-center space-x-2">
               <div className="w-9 h-9 rounded-full bg-gray-700 flex items-center justify-center text-white font-medium">
-                {user?.username.charAt(0).toUpperCase()}
+                {(user?.displayName || user?.name || user?.username)?.charAt(0).toUpperCase()}
               </div>
             </button>
             
