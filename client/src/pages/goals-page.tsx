@@ -48,6 +48,10 @@ import {
   Clock,
   Edit,
   Lightbulb,
+  Filter,
+  CalendarDays,
+  SortAsc,
+  SortDesc,
   Plus,
   PencilLine,
   PlusCircle,
@@ -58,7 +62,6 @@ import {
   Trash2,
   TrendingUp,
   CheckCircle,
-  Calendar,
   X,
   MoreHorizontal
 } from "lucide-react";
@@ -111,7 +114,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuGroup,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { format, addDays, subDays, startOfDay, endOfDay, isWithinInterval } from "date-fns";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -1847,7 +1856,7 @@ export default function GoalsPage() {
                     <Tabs defaultValue={taskFilter} onValueChange={(value) => setTaskFilter(value)}>
                       <TabsList className="h-9">
                         <TabsTrigger value="all">All</TabsTrigger>
-                        <TabsTrigger value="incomplete">Pending</TabsTrigger>
+                        <TabsTrigger value="pending">Pending</TabsTrigger>
                         <TabsTrigger value="completed">Completed</TabsTrigger>
                       </TabsList>
                     </Tabs>
@@ -1922,7 +1931,7 @@ export default function GoalsPage() {
                         <DropdownMenuGroup>
                           <DropdownMenuRadioGroup value={taskSortBy} onValueChange={(value) => setTaskSortBy(value as any)}>
                             <DropdownMenuRadioItem value="dueDate">
-                              <Calendar className="h-4 w-4 mr-2" />
+                              <CalendarDays className="h-4 w-4 mr-2" />
                               Due Date
                             </DropdownMenuRadioItem>
                             <DropdownMenuRadioItem value="priority">
@@ -1976,7 +1985,7 @@ export default function GoalsPage() {
                 {user && <TaskList 
                   userId={user.id} 
                   selectedGoalId={taskSelectedGoalId} 
-                  statusFilter={taskFilter === "all" ? undefined : taskFilter as "completed" | "incomplete"} 
+                  statusFilter={taskFilter === "all" ? undefined : taskFilter as "completed" | "pending"} 
                   sortBy={taskSortBy}
                   sortDirection={taskSortDirection}
                   dateRange={taskDateFilterActive ? taskDateRange : undefined}
