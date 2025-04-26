@@ -332,10 +332,23 @@ export default function AuthPage() {
                     />
                     <FormField
                       control={registerForm.control}
+                      name="username"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm">Username (Optional)</FormLabel>
+                          <FormControl>
+                            <Input className="pi-input h-9" placeholder="Choose a username" {...field} />
+                          </FormControl>
+                          <FormMessage className="text-xs" />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={registerForm.control}
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm">Email</FormLabel>
+                          <FormLabel className="text-sm">Email <span className="text-red-500">*</span></FormLabel>
                           <FormControl>
                             <Input className="pi-input h-9" type="email" placeholder="Enter your email address" {...field} />
                           </FormControl>
