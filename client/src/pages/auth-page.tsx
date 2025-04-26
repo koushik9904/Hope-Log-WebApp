@@ -19,7 +19,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 
 const loginSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters"),
+  email: z.string().email("Please enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
@@ -30,7 +30,12 @@ const registerSchema = insertUserSchema.extend({
   path: ["confirmPassword"],
 });
 
-type LoginData = z.infer<typeof loginSchema>;
+// Define the login data with email instead of username
+type LoginData = {
+  email: string;
+  password: string;
+};
+
 type RegisterData = z.infer<typeof registerSchema>;
 
 export default function AuthPage() {
@@ -60,7 +65,7 @@ export default function AuthPage() {
   const loginForm = useForm<LoginData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      username: "",
+      email: "",
       password: "",
     },
   });
@@ -69,6 +74,7 @@ export default function AuthPage() {
     resolver: zodResolver(registerSchema),
     defaultValues: {
       username: "",
+      email: "",
       password: "",
       confirmPassword: "",
     },
@@ -251,12 +257,12 @@ export default function AuthPage() {
                   <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-3 mb-1">
                     <FormField
                       control={loginForm.control}
-                      name="username"
+                      name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm">Username</FormLabel>
+                          <FormLabel className="text-sm">Email</FormLabel>
                           <FormControl>
-                            <Input className="pi-input h-9" placeholder="Enter your username" {...field} />
+                            <Input className="pi-input h-9" type="email" placeholder="Enter your email address" {...field} />
                           </FormControl>
                           <FormMessage className="text-xs" />
                         </FormItem>
@@ -297,6 +303,19 @@ export default function AuthPage() {
                           <FormLabel className="text-sm">Username</FormLabel>
                           <FormControl>
                             <Input className="pi-input h-9" placeholder="Choose a username" {...field} />
+                          </FormControl>
+                          <FormMessage className="text-xs" />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={registerForm.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm">Email</FormLabel>
+                          <FormControl>
+                            <Input className="pi-input h-9" type="email" placeholder="Enter your email address" {...field} />
                           </FormControl>
                           <FormMessage className="text-xs" />
                         </FormItem>

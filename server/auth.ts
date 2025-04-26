@@ -129,15 +129,34 @@ export async function setupAuth(app: Express) {
   app.use(passport.session());
 
   passport.use(
-    new LocalStrategy(async (username, password, done) => {
-      console.log("LocalStrategy: Attempting to authenticate user:", username);
+    new LocalStrategy({
+      usernameField: 'email', // Change username field to email
+      passwordField: 'password'
+    }, async (email, password, done) => {
+      console.log("LocalStrategy: Attempting to authenticate user with email:", email);
       try {
-        const user = await storage.getUserByUsername(username);
+        // First try to find user by email
+        const user = await storage.getUserByEmail(email);
         console.log("LocalStrategy: User lookup result:", user ? "Found" : "Not found");
         
         if (!user) {
-          console.log("LocalStrategy: Authentication failed - user not found");
-          return done(null, false);
+          // As a fallback, check if they're trying to use username instead of email
+          const userByUsername = await storage.getUserByUsername(email);
+          if (!userByUsername) {
+            console.log("LocalStrategy: Authentication failed - user not found by email or username");
+            return done(null, false);
+          }
+          console.log("LocalStrategy: Found user by username instead of email");
+          
+          const passwordMatch = await comparePasswords(password, userByUsername.password);
+          console.log("LocalStrategy: Password comparison result:", passwordMatch ? "Match" : "No match");
+          
+          if (!passwordMatch) {
+            console.log("LocalStrategy: Authentication failed - password incorrect");
+            return done(null, false);
+          }
+          
+          return done(null, userByUsername);
         }
         
         const passwordMatch = await comparePasswords(password, user.password);
