@@ -4,6 +4,8 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Goal as GoalBase, Habit } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import TaskForm from "@/components/goals/task-form";
+import TaskList from "@/components/goals/task-list";
 
 // Extended Goal type with the new fields
 interface Goal extends GoalBase {
