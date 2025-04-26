@@ -82,12 +82,45 @@ export default function TaskList({ userId, selectedGoalId }: TaskListProps) {
 
   // Toggle task completion
   const toggleCompletionMutation = useMutation({
-    mutationFn: async ({ id, completed }: { id: number; completed: boolean }) => {
-      const res = await apiRequest('PATCH', `/api/tasks/${id}`, { completed });
-      return res.json();
+    mutationFn: async ({ id, completed, goalId }: { id: number; completed: boolean; goalId?: number | null }) => {
+      // Add completedAt date when marking as completed
+      const data: any = { completed };
+      if (completed) {
+        data.completedAt = new Date().toISOString();
+      } else {
+        data.completedAt = null;
+      }
+      
+      const res = await apiRequest('PATCH', `/api/tasks/${id}`, data);
+      const updatedTask = await res.json();
+      
+      // If task belongs to a goal, update the goal progress
+      if (goalId && completed !== undefined) {
+        // First get all tasks for this goal
+        const tasksRes = await fetch(`/api/tasks/goal/${goalId}`);
+        if (!tasksRes.ok) {
+          throw new Error('Failed to fetch goal tasks');
+        }
+        
+        const goalTasks = await tasksRes.json();
+        
+        // Calculate new progress based on completed tasks
+        const totalTasks = goalTasks.length;
+        const completedTasks = completed 
+          ? goalTasks.filter((t: Task) => t.completed || t.id === id).length
+          : goalTasks.filter((t: Task) => t.completed && t.id !== id).length;
+        
+        const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+        
+        // Update the goal progress
+        await apiRequest('PATCH', `/api/goals/${goalId}`, { progress });
+      }
+      
+      return updatedTask;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/tasks', userId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/goals', userId] });
       if (selectedGoalId) {
         queryClient.invalidateQueries({ queryKey: ['/api/tasks/goal', selectedGoalId] });
       }
@@ -136,6 +169,7 @@ export default function TaskList({ userId, selectedGoalId }: TaskListProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/tasks', userId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/goals', userId] });
       if (selectedGoalId) {
         queryClient.invalidateQueries({ queryKey: ['/api/tasks/goal', selectedGoalId] });
       }
@@ -154,9 +188,117 @@ export default function TaskList({ userId, selectedGoalId }: TaskListProps) {
       });
     },
   });
+  
+  // Create a new goal and move task to it
+  const createGoalAndMoveMutation = useMutation({
+    mutationFn: async ({ name, userId, target, progress, category, taskId }: {
+      name: string;
+      userId: number;
+      target: number;
+      progress: number;
+      category: string;
+      taskId: number;
+    }) => {
+      // First create the goal
+      const createRes = await apiRequest('POST', '/api/goals', {
+        name,
+        userId,
+        target,
+        progress,
+        category
+      });
+      
+      if (!createRes.ok) {
+        throw new Error('Failed to create goal');
+      }
+      
+      const goal = await createRes.json();
+      
+      // Then move the task to the new goal
+      const moveRes = await apiRequest('PATCH', `/api/tasks/${taskId}`, { 
+        goalId: goal.id 
+      });
+      
+      return moveRes.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/tasks', userId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/goals', userId] });
+      if (selectedGoalId) {
+        queryClient.invalidateQueries({ queryKey: ['/api/tasks/goal', selectedGoalId] });
+      }
+      toast({
+        title: 'Goal created',
+        description: 'New goal created and task moved successfully.',
+      });
+      setMoveTaskDialogOpen(false);
+      setIsCreatingNewGoal(false);
+    },
+    onError: (error) => {
+      console.error('Failed to create goal and move task:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to create goal and move task. Please try again.',
+        variant: 'destructive',
+      });
+    },
+  });
+  
+  // Convert task to goal
+  const convertTaskToGoalMutation = useMutation({
+    mutationFn: async ({ taskId, goalName, description, userId }: {
+      taskId: number;
+      goalName: string;
+      description: string;
+      userId: number;
+    }) => {
+      // First create the goal
+      const createRes = await apiRequest('POST', '/api/goals', {
+        name: goalName,
+        description,
+        userId,
+        target: 100,
+        progress: 0,
+        category: "Personal"
+      });
+      
+      if (!createRes.ok) {
+        throw new Error('Failed to create goal');
+      }
+      
+      // Then delete the original task
+      await apiRequest('DELETE', `/api/tasks/${taskId}`);
+      
+      return createRes.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/tasks', userId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/goals', userId] });
+      if (selectedGoalId) {
+        queryClient.invalidateQueries({ queryKey: ['/api/tasks/goal', selectedGoalId] });
+      }
+      toast({
+        title: 'Task converted',
+        description: 'Task has been converted to a goal successfully.',
+      });
+      setConvertToGoalDialogOpen(false);
+    },
+    onError: (error) => {
+      console.error('Failed to convert task to goal:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to convert task to goal. Please try again.',
+        variant: 'destructive',
+      });
+    },
+  });
 
   const handleToggleCompletion = (task: Task) => {
-    toggleCompletionMutation.mutate({ id: task.id, completed: !task.completed });
+    toggleCompletionMutation.mutate({ 
+      id: task.id, 
+      completed: !task.completed,
+      goalId: task.goalId
+    });
   };
 
   const handleEdit = (task: Task) => {
@@ -359,43 +501,142 @@ export default function TaskList({ userId, selectedGoalId }: TaskListProps) {
 
       {/* Move Task Dialog */}
       <Dialog open={moveTaskDialogOpen} onOpenChange={setMoveTaskDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[500px] max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>Move Task to Another Goal</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <h4 className="font-medium">Select Goal:</h4>
-              <div className="grid grid-cols-1 gap-2">
-                <Button
-                  key="no-goal"
-                  variant={selectedGoalForMove === null ? "default" : "outline"}
-                  className="justify-start"
-                  onClick={() => setSelectedGoalForMove(null)}
-                >
-                  No Goal (Independent Task)
-                </Button>
-                {goalsQuery.data?.map((goal) => (
-                  <Button
-                    key={goal.id}
-                    variant={selectedGoalForMove === goal.id ? "default" : "outline"}
-                    className="justify-start"
-                    onClick={() => setSelectedGoalForMove(goal.id)}
+              
+              {isCreatingNewGoal ? (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="new-goal-name">Goal Name</Label>
+                    <Input 
+                      id="new-goal-name" 
+                      value={newGoalName} 
+                      onChange={(e) => setNewGoalName(e.target.value)}
+                      placeholder="Enter goal name" 
+                    />
+                  </div>
+                  <div className="flex justify-end space-x-2">
+                    <Button variant="outline" onClick={() => setIsCreatingNewGoal(false)}>
+                      Cancel
+                    </Button>
+                    <Button 
+                      onClick={() => {
+                        // Create goal and then move task
+                        if (newGoalName && taskToMove) {
+                          createGoalAndMoveMutation.mutate({
+                            name: newGoalName,
+                            userId: userId,
+                            target: 100,
+                            progress: 0,
+                            category: "Personal",
+                            taskId: taskToMove.id
+                          });
+                        }
+                      }}
+                      disabled={!newGoalName.trim()}
+                    >
+                      Create & Move
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <ScrollArea className="h-[40vh]">
+                    <div className="grid grid-cols-1 gap-2 pr-4">
+                      <Button
+                        key="no-goal"
+                        variant={selectedGoalForMove === null ? "default" : "outline"}
+                        className="justify-start"
+                        onClick={() => setSelectedGoalForMove(null)}
+                      >
+                        No Goal (Independent Task)
+                      </Button>
+                      {goalsQuery.data?.map((goal) => (
+                        <Button
+                          key={goal.id}
+                          variant={selectedGoalForMove === goal.id ? "default" : "outline"}
+                          className="justify-start"
+                          onClick={() => setSelectedGoalForMove(goal.id)}
+                        >
+                          {goal.name}
+                        </Button>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                  
+                  <Button 
+                    onClick={() => {
+                      setIsCreatingNewGoal(true);
+                      setNewGoalName(taskToMove?.title || "");
+                    }}
+                    variant="outline" 
+                    className="w-full mt-4 flex items-center justify-center"
                   >
-                    {goal.name}
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create New Goal
                   </Button>
-                ))}
-              </div>
-            </div>
-            <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setMoveTaskDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleMoveTask}>
-                Move Task
-              </Button>
+                  
+                  <div className="flex justify-end space-x-2 mt-4">
+                    <Button variant="outline" onClick={() => setMoveTaskDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleMoveTask}>
+                      Move Task
+                    </Button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Convert Task to Goal Dialog */}
+      <Dialog open={convertToGoalDialogOpen} onOpenChange={setConvertToGoalDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Convert Task to Goal</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <p className="text-muted-foreground text-sm">
+              Converting this task to a goal will create a new goal and delete the original task.
+            </p>
+            
+            <div className="space-y-2">
+              <Label htmlFor="goal-name">Goal Name</Label>
+              <Input 
+                id="goal-name" 
+                value={newGoalName} 
+                onChange={(e) => setNewGoalName(e.target.value)}
+                placeholder="Enter goal name" 
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConvertToGoalDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                if (newGoalName && taskToConvert) {
+                  convertTaskToGoalMutation.mutate({
+                    taskId: taskToConvert.id,
+                    goalName: newGoalName,
+                    description: taskToConvert.description || "",
+                    userId: userId
+                  });
+                }
+              }}
+              disabled={!newGoalName.trim()}
+            >
+              Convert to Goal
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

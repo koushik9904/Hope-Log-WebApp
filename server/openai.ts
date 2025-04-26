@@ -549,8 +549,9 @@ export async function generateGoalSuggestions(
 // Generate task suggestions based on journal entries
 export async function generateTaskSuggestions(
   recentEntries: { content: string; date: string }[],
-  existingTasks: { title: string; completed: boolean }[] = []
-): Promise<{ tasks: { name: string; description: string }[] }> {
+  existingTasks: { title: string; completed: boolean }[] = [],
+  existingGoals: { name: string; progress: number }[] = []
+): Promise<{ tasks: { name: string; description: string }[]; goalSuggestions: { name: string; description: string; relatedTasks: string[] }[] }> {
   try {
     // Extract the content of the journal entries
     const entriesText = recentEntries
@@ -562,17 +563,25 @@ export async function generateTaskSuggestions(
           `- ${task.title} (${task.completed ? 'Completed' : 'Pending'})`
         ).join('\n')}`
       : "The user currently has no active tasks.";
+      
+    const existingGoalsText = existingGoals.length > 0
+      ? `Current goals:\n${existingGoals.map(goal => 
+          `- ${goal.name} (Progress: ${goal.progress}%)`
+        ).join('\n')}`
+      : "The user currently has no active goals.";
     
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         {
           role: "system",
-          content: `You are an AI wellness assistant that helps identify actionable tasks from journal entries.
+          content: `You are an AI wellness assistant that helps identify actionable tasks and meaningful goals from journal entries.
           
-          Based on the user's journal entries, suggest short-term, discrete tasks that would support their wellness journey.
+          Based on the user's journal entries, suggest:
+          1. Short-term, discrete tasks that would support their wellness journey
+          2. Potential goals that could connect multiple tasks under a common purpose
           
-          Guidelines:
+          For TASKS - Guidelines:
           - Suggest 4-6 tasks in total
           - Tasks should be specific, immediate actions that can be completed in a single sitting
           - Each task should be concrete and achievable within 1-2 days
@@ -581,23 +590,35 @@ export async function generateTaskSuggestions(
           - Base suggestions on the user's actual journal content, not generic advice
           - Tasks should be simpler and more immediate than goals
           
-          Return a JSON object with a 'tasks' array containing objects with:
-          - 'name': short title (5-7 words max)
-          - 'description': 1-2 sentence explanation of the benefit`
+          For GOALS - Guidelines:
+          - Suggest 2-3 potential goals that connect multiple tasks
+          - Goals should represent larger achievements that might take weeks to complete
+          - Include 2-4 related task names that would help accomplish each goal
+          - Goals should be specific and personally meaningful based on journal entries
+          - Avoid suggesting goals the user already has
+          
+          Return a JSON object with:
+          1. 'tasks' array containing objects with:
+             - 'name': short title (5-7 words max)
+             - 'description': 1-2 sentence explanation of the benefit
+          2. 'goalSuggestions' array containing objects with:
+             - 'name': short goal title (3-7 words)
+             - 'description': brief explanation of the goal's importance
+             - 'relatedTasks': array of short task names that would contribute to this goal`
         },
         {
           role: "user",
-          content: `Here are my recent journal entries:\n\n${entriesText}\n\n${existingTasksText}`
+          content: `Here are my recent journal entries:\n\n${entriesText}\n\n${existingTasksText}\n\n${existingGoalsText}`
         }
       ],
       response_format: { type: "json_object" },
       temperature: 0.7,
     });
 
-    const content = response.choices[0].message.content || '{"tasks":[]}';
+    const content = response.choices[0].message.content || '{"tasks":[], "goalSuggestions":[]}';
     return JSON.parse(content);
   } catch (error) {
     console.error("Error generating task suggestions:", error);
-    return { tasks: [] };
+    return { tasks: [], goalSuggestions: [] };
   }
 }

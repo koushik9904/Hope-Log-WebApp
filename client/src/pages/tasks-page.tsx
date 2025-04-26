@@ -73,6 +73,12 @@ export default function TasksPage() {
   const [selectedGoalId, setSelectedGoalId] = useState<number | null>(null);
   const [filter, setFilter] = useState<'all' | 'completed' | 'pending'>('all');
   const [aiSuggestedTasks, setAiSuggestedTasks] = useState<typeof AI_SUGGESTED_TASKS>([]);
+  const [aiSuggestedGoals, setAiSuggestedGoals] = useState<{
+    id: string;
+    name: string;
+    description: string;
+    relatedTasks: string[];
+  }[]>([]);
   
   // Fetch goals for filter dropdown
   const { data: goals = [] } = useQuery<Goal[]>({
@@ -85,14 +91,21 @@ export default function TasksPage() {
     },
   });
   
-  // Define interface for task suggestions
+  // Define interface for task and goal suggestions
   interface TaskSuggestion {
     name: string;
     description: string;
   }
   
+  interface GoalSuggestion {
+    name: string;
+    description: string;
+    relatedTasks: string[];
+  }
+  
   interface TasksSuggestionResponse {
     tasks: TaskSuggestion[];
+    goalSuggestions: GoalSuggestion[];
   }
 
   // Fetch AI-suggested tasks
