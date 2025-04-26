@@ -1,37 +1,51 @@
-import { useState, useRef, ChangeEvent } from "react";
-import { User, Upload, Sparkles, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { 
-  Dialog,
-  DialogContent, 
-  DialogDescription, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogTrigger,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger
-} from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import React, { useState, useRef } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { 
+  Popover, 
+  PopoverContent, 
+  PopoverTrigger 
+} from "@/components/ui/popover";
+import { 
+  Tabs, 
+  TabsContent, 
+  TabsList, 
+  TabsTrigger 
+} from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Loader2, Upload, Camera, Pencil, Check, RefreshCw } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
-// Standard avatar options (using placeholder service)
-const STANDARD_AVATARS = [
-  "https://api.dicebear.com/7.x/lorelei/svg?seed=Luna&backgroundColor=ffeaef",
-  "https://api.dicebear.com/7.x/lorelei/svg?seed=Stella&backgroundColor=bbceed",
-  "https://api.dicebear.com/7.x/lorelei/svg?seed=Nova&backgroundColor=c4f0c8",
-  "https://api.dicebear.com/7.x/adventurer/svg?seed=Felix&backgroundColor=ffeaef",
-  "https://api.dicebear.com/7.x/adventurer/svg?seed=Leo&backgroundColor=bbceed",
-  "https://api.dicebear.com/7.x/adventurer/svg?seed=Kai&backgroundColor=c4f0c8",
-  "https://api.dicebear.com/7.x/bottts/svg?seed=Zeta&backgroundColor=ffeaef",
-  "https://api.dicebear.com/7.x/bottts/svg?seed=Omega&backgroundColor=c4f0c8",
+// These are style types for DiceBear avatars
+const AVATAR_STYLES = [
+  { id: "adventurer", name: "Adventurer" },
+  { id: "adventurer-neutral", name: "Adventurer Neutral" },
+  { id: "avataaars", name: "Avataaars" },
+  { id: "big-ears", name: "Big Ears" },
+  { id: "big-ears-neutral", name: "Big Ears Neutral" },
+  { id: "bottts", name: "Bottts" },
+  { id: "croodles", name: "Croodles" },
+  { id: "fun-emoji", name: "Fun Emoji" },
+  { id: "icons", name: "Icons" },
+  { id: "identicon", name: "Identicon" },
+  { id: "initials", name: "Initials" },
+  { id: "lorelei", name: "Lorelei" },
+  { id: "lorelei-neutral", name: "Lorelei Neutral" },
+  { id: "micah", name: "Micah" },
+  { id: "notionists", name: "Notionists" },
+  { id: "pixel-art", name: "Pixel Art" },
+  { id: "shapes", name: "Shapes" }
 ];
 
 export interface AvatarSelectorProps {
@@ -41,349 +55,352 @@ export interface AvatarSelectorProps {
 }
 
 export function AvatarSelector({ userId, currentAvatar, onAvatarChange }: AvatarSelectorProps) {
-  const [activeTab, setActiveTab] = useState("upload");
-  const [selectedStandardAvatar, setSelectedStandardAvatar] = useState<string | null>(null);
-  const [uploadPreview, setUploadPreview] = useState<string | null>(null);
-  const [avatarPrompt, setAvatarPrompt] = useState("");
-  const [generatedAvatars, setGeneratedAvatars] = useState<string[]>([]);
-  const [selectedGeneratedAvatar, setSelectedGeneratedAvatar] = useState<string | null>(null);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedStyle, setSelectedStyle] = useState("lorelei");
+  const [selectedSeed, setSelectedSeed] = useState<string>(""); 
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [generatedAvatars, setGeneratedAvatars] = useState<string[]>([]);
+  const [showAiDialog, setShowAiDialog] = useState(false);
+  const [loadingPreview, setLoadingPreview] = useState(false);
 
-  // Handle file selection for upload
-  const handleFileSelect = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    
-    // File size validation (2MB limit)
-    if (file.size > 2 * 1024 * 1024) {
-      toast({
-        title: "File too large",
-        description: "Please select an image under 2MB",
-        variant: "destructive"
-      });
-      return;
+  // Create a random seed if none exists
+  React.useEffect(() => {
+    if (!selectedSeed) {
+      setSelectedSeed(Math.random().toString(36).substring(2, 10));
     }
-    
-    // Show preview
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setUploadPreview(reader.result as string);
-      setSelectedStandardAvatar(null);
-      setSelectedGeneratedAvatar(null);
-    };
-    reader.readAsDataURL(file);
-  };
-  
-  // Handle selection of standard avatar
-  const handleStandardAvatarSelect = (avatarUrl: string) => {
-    setSelectedStandardAvatar(avatarUrl);
-    setUploadPreview(null);
-    setSelectedGeneratedAvatar(null);
-  };
-  
-  // Handle selection of AI-generated avatar
-  const handleGeneratedAvatarSelect = (avatarUrl: string) => {
-    setSelectedGeneratedAvatar(avatarUrl);
-    setUploadPreview(null);
-    setSelectedStandardAvatar(null);
+  }, [selectedSeed]);
+
+  // Generate DiceBear avatar URL
+  const getDiceBearUrl = (style: string, seed: string) => {
+    return `https://api.dicebear.com/7.x/${style}/svg?seed=${seed}`;
   };
 
-  // Handle AI avatar generation
-  const generateAvatars = async () => {
-    if (!avatarPrompt.trim()) {
-      toast({
-        title: "Prompt required",
-        description: "Please enter a description for your avatar",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    setIsGenerating(true);
-    
-    try {
-      const response = await apiRequest("POST", "/api/avatar/generate", {
-        prompt: avatarPrompt
+  // File upload mutation
+  const uploadMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("avatar", file);
+      
+      const response = await fetch(`/api/users/${userId}/avatar`, {
+        method: "POST",
+        body: formData,
+        credentials: "include"
       });
       
       if (!response.ok) {
-        throw new Error("Failed to generate avatars");
+        throw new Error("Failed to upload avatar");
       }
       
-      const data = await response.json();
-      setGeneratedAvatars(data.avatars || []);
-      
-      if (data.avatars && data.avatars.length > 0) {
-        // Auto-select the first generated avatar
-        setSelectedGeneratedAvatar(data.avatars[0]);
-        setUploadPreview(null);
-        setSelectedStandardAvatar(null);
-      }
-      
-      toast({
-        title: "Avatars generated",
-        description: "Please select your favorite generated avatar"
-      });
-    } catch (error) {
-      toast({
-        title: "Generation failed",
-        description: error instanceof Error ? error.message : "Failed to generate avatars",
-        variant: "destructive"
-      });
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  // Save the selected avatar
-  const saveAvatar = async () => {
-    try {
-      let avatarUrl = "";
-      
-      if (uploadPreview) {
-        // Handle custom upload
-        const formData = new FormData();
-        const blob = await fetch(uploadPreview).then(r => r.blob());
-        formData.append('avatar', blob);
-        
-        const response = await fetch(`/api/users/${userId}/avatar`, {
-          method: 'POST',
-          body: formData,
-        });
-        
-        if (!response.ok) throw new Error('Failed to upload avatar');
-        
-        const data = await response.json();
-        avatarUrl = data.avatarUrl;
-      } else if (selectedStandardAvatar) {
-        // Handle standard avatar selection
-        const response = await apiRequest("POST", `/api/users/${userId}/avatar/standard`, {
-          avatarUrl: selectedStandardAvatar
-        });
-        
-        if (!response.ok) throw new Error('Failed to set standard avatar');
-        
-        const data = await response.json();
-        avatarUrl = data.avatarUrl;
-      } else if (selectedGeneratedAvatar) {
-        // Handle AI-generated avatar selection
-        const response = await apiRequest("POST", `/api/users/${userId}/avatar/generated`, {
-          avatarUrl: selectedGeneratedAvatar
-        });
-        
-        if (!response.ok) throw new Error('Failed to set generated avatar');
-        
-        const data = await response.json();
-        avatarUrl = data.avatarUrl;
-      } else {
-        throw new Error("No avatar selected");
-      }
-      
-      onAvatarChange(avatarUrl);
-      setIsDialogOpen(false);
-      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      onAvatarChange(data.avatarUrl);
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       toast({
         title: "Avatar updated",
-        description: "Your profile picture has been updated"
+        description: "Your avatar has been successfully updated.",
       });
-    } catch (error) {
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Upload failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Standard avatar selection mutation
+  const standardAvatarMutation = useMutation({
+    mutationFn: async (avatarUrl: string) => {
+      const res = await apiRequest("POST", `/api/users/${userId}/avatar/standard`, { avatarUrl });
+      return await res.json();
+    },
+    onSuccess: (data) => {
+      onAvatarChange(data.avatarUrl);
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      toast({
+        title: "Avatar updated",
+        description: "Your avatar has been successfully updated.",
+      });
+    },
+    onError: (error: Error) => {
       toast({
         title: "Update failed",
-        description: error instanceof Error ? error.message : "Unknown error",
-        variant: "destructive"
+        description: error.message,
+        variant: "destructive",
       });
+    }
+  });
+
+  // AI avatar generation mutation
+  const generateAvatarMutation = useMutation({
+    mutationFn: async (prompt: string) => {
+      const res = await apiRequest("POST", `/api/avatar/generate`, { prompt });
+      return await res.json();
+    },
+    onSuccess: (data) => {
+      setGeneratedAvatars(data.avatars || []);
+      if (data.avatars && data.avatars.length > 0) {
+        setShowAiDialog(true);
+      }
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Generation failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Save AI avatar mutation
+  const saveAiAvatarMutation = useMutation({
+    mutationFn: async (avatarUrl: string) => {
+      const res = await apiRequest("POST", `/api/users/${userId}/avatar/generated`, { avatarUrl });
+      return await res.json();
+    },
+    onSuccess: (data) => {
+      onAvatarChange(data.avatarUrl);
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      setShowAiDialog(false);
+      toast({
+        title: "Avatar updated",
+        description: "Your AI-generated avatar has been set successfully.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Update failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Handle file change
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) { // 2MB limit
+        toast({
+          title: "File too large",
+          description: "Please select an image under 2MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      uploadMutation.mutate(file);
     }
   };
 
+  // Handle standard avatar selection
+  const handleSelectStandardAvatar = () => {
+    const avatarUrl = getDiceBearUrl(selectedStyle, selectedSeed);
+    standardAvatarMutation.mutate(avatarUrl);
+  };
+
+  // Generate a new random seed
+  const generateNewSeed = () => {
+    setLoadingPreview(true);
+    setSelectedSeed(Math.random().toString(36).substring(2, 10));
+    setTimeout(() => setLoadingPreview(false), 500);
+  };
+
+  // Generate AI avatar
+  const handleGenerateAiAvatar = () => {
+    if (!aiPrompt.trim()) {
+      toast({
+        title: "Prompt required",
+        description: "Please enter a description for your avatar",
+        variant: "destructive",
+      });
+      return;
+    }
+    generateAvatarMutation.mutate(aiPrompt);
+  };
+
+  // Save the selected AI avatar
+  const handleSaveAiAvatar = (avatarUrl: string) => {
+    saveAiAvatarMutation.mutate(avatarUrl);
+  };
+
+  // Current avatar display
+  const currentAvatarDisplay = (
+    <Avatar className="h-24 w-24 border-2 border-primary">
+      <AvatarImage src={currentAvatar || undefined} alt="Current avatar" />
+      <AvatarFallback>
+        {typeof currentAvatar === 'string' && currentAvatar.includes('initials') 
+          ? userId.toString().substring(0, 2).toUpperCase()
+          : 'U'}
+      </AvatarFallback>
+    </Avatar>
+  );
+  
   return (
-    <div className="flex items-center gap-4">
-      <div className="w-24 h-24 rounded-full bg-[#FFF8E8] flex items-center justify-center text-[#F5B8DB] overflow-hidden">
-        {currentAvatar && typeof currentAvatar === 'string' && currentAvatar.length > 0 ? (
-          <img
-            src={currentAvatar}
-            alt="Profile"
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <User className="h-12 w-12" />
-        )}
-      </div>
-      <div>
-        <h3 className="font-medium">Profile Picture</h3>
-        <p className="text-sm text-gray-500 mb-2">Select or generate your avatar</p>
-        <div className="flex gap-2">
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button 
-                size="sm" 
-                variant="outline" 
-                className="flex gap-1 bg-white"
-              >
-                <Upload className="h-4 w-4" />
-                Change Avatar
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
-                <DialogTitle>Choose Your Avatar</DialogTitle>
-                <DialogDescription>
-                  Upload a custom image, select from our collection, or generate an AI avatar
-                </DialogDescription>
-              </DialogHeader>
-              
-              <Tabs defaultValue="upload" value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid grid-cols-3 mb-4">
-                  <TabsTrigger value="upload">Upload</TabsTrigger>
-                  <TabsTrigger value="standard">Standard</TabsTrigger>
-                  <TabsTrigger value="ai">AI Generate</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="upload" className="space-y-4">
-                  <div className="flex flex-col items-center justify-center gap-4">
-                    <div className="w-32 h-32 rounded-full bg-[#FFF8E8] flex items-center justify-center text-[#F5B8DB] overflow-hidden">
-                      {uploadPreview ? (
-                        <img
-                          src={uploadPreview}
-                          alt="Avatar preview"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <User className="h-16 w-16" />
-                      )}
-                    </div>
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={handleFileSelect}
-                      accept="image/png, image/jpeg, image/gif"
-                      className="hidden"
-                    />
-                    <Button 
-                      variant="outline" 
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      <Upload className="mr-2 h-4 w-4" />
-                      Select Image
-                    </Button>
-                    <p className="text-xs text-muted-foreground">
-                      PNG, JPG or GIF, max 2MB
-                    </p>
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="standard">
-                  <div className="grid grid-cols-4 gap-3">
-                    {STANDARD_AVATARS.map((avatar, index) => (
-                      <div 
-                        key={index}
-                        className={`relative cursor-pointer rounded-lg overflow-hidden transition-all ${
-                          selectedStandardAvatar === avatar ? 'ring-2 ring-[#F5B8DB] ring-offset-2' : 'hover:opacity-80'
-                        }`}
-                        onClick={() => handleStandardAvatarSelect(avatar)}
-                      >
-                        <img 
-                          src={avatar} 
-                          alt={`Standard avatar ${index + 1}`} 
-                          className="w-full aspect-square object-cover"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="ai" className="space-y-4">
-                  <div className="space-y-3">
-                    <Label htmlFor="avatar-prompt">Describe your avatar</Label>
-                    <Textarea 
-                      id="avatar-prompt"
-                      placeholder="E.g., A professional with glasses and short hair, minimalist style"
-                      value={avatarPrompt}
-                      onChange={(e) => setAvatarPrompt(e.target.value)}
-                    />
-                    <Button 
-                      onClick={generateAvatars} 
-                      disabled={isGenerating}
-                      className="w-full"
-                    >
-                      <Sparkles className="mr-2 h-4 w-4" />
-                      {isGenerating ? "Generating..." : "Generate Avatars"}
-                    </Button>
-                  </div>
-                  
-                  {generatedAvatars.length > 0 && (
-                    <div className="mt-4">
-                      <h4 className="text-sm font-medium mb-2">Generated Avatars</h4>
-                      <div className="grid grid-cols-3 gap-3">
-                        {generatedAvatars.map((avatar, index) => (
-                          <div 
-                            key={index}
-                            className={`relative cursor-pointer rounded-lg overflow-hidden transition-all ${
-                              selectedGeneratedAvatar === avatar ? 'ring-2 ring-[#F5B8DB] ring-offset-2' : 'hover:opacity-80'
-                            }`}
-                            onClick={() => handleGeneratedAvatarSelect(avatar)}
-                          >
-                            <img 
-                              src={avatar} 
-                              alt={`Generated avatar ${index + 1}`} 
-                              className="w-full aspect-square object-cover"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </TabsContent>
-              </Tabs>
-              
-              <DialogFooter>
-                <Button
-                  variant="outline"
-                  onClick={() => setIsDialogOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  onClick={saveAvatar}
-                  disabled={!uploadPreview && !selectedStandardAvatar && !selectedGeneratedAvatar}
-                >
-                  Save Avatar
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-          
-          {currentAvatar && (
+    <div className="flex flex-col items-center space-y-4">
+      <div className="relative">
+        {currentAvatarDisplay}
+        <Popover>
+          <PopoverTrigger asChild>
             <Button 
-              size="sm" 
               variant="outline" 
-              className="text-red-600 bg-white"
-              onClick={async () => {
-                try {
-                  await apiRequest("DELETE", `/api/users/${userId}/avatar`);
-                  onAvatarChange("");
-                  
-                  toast({
-                    title: "Avatar removed",
-                    description: "Your profile picture has been removed"
-                  });
-                } catch (error) {
-                  toast({
-                    title: "Failed to remove avatar",
-                    description: error instanceof Error ? error.message : "Unknown error",
-                    variant: "destructive"
-                  });
-                }
-              }}
+              size="icon" 
+              className="absolute bottom-0 right-0 rounded-full bg-background h-8 w-8 shadow-md"
             >
-              <X className="h-4 w-4 mr-1" />
-              Remove
+              <Pencil className="h-4 w-4" />
             </Button>
-          )}
-        </div>
+          </PopoverTrigger>
+          <PopoverContent className="w-80">
+            <Tabs defaultValue="standard">
+              <TabsList className="w-full grid grid-cols-3">
+                <TabsTrigger value="standard">Standard</TabsTrigger>
+                <TabsTrigger value="upload">Upload</TabsTrigger>
+                <TabsTrigger value="ai">AI Generated</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="standard" className="space-y-4 pt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="style">Avatar Style</Label>
+                  <select 
+                    id="style"
+                    className="w-full p-2 border rounded-md"
+                    value={selectedStyle}
+                    onChange={(e) => setSelectedStyle(e.target.value)}
+                  >
+                    {AVATAR_STYLES.map(style => (
+                      <option key={style.id} value={style.id}>
+                        {style.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="flex justify-center">
+                  {loadingPreview ? (
+                    <div className="h-24 w-24 flex items-center justify-center border rounded-md">
+                      <Loader2 className="h-8 w-8 animate-spin" />
+                    </div>
+                  ) : (
+                    <Avatar className="h-24 w-24 border rounded-md">
+                      <AvatarImage 
+                        src={getDiceBearUrl(selectedStyle, selectedSeed)}
+                        alt="Avatar preview" 
+                      />
+                      <AvatarFallback>Preview</AvatarFallback>
+                    </Avatar>
+                  )}
+                </div>
+                
+                <div className="flex justify-between gap-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={generateNewSeed}
+                    disabled={standardAvatarMutation.isPending}
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Randomize
+                  </Button>
+                  <Button 
+                    onClick={handleSelectStandardAvatar}
+                    disabled={standardAvatarMutation.isPending}
+                  >
+                    {standardAvatarMutation.isPending ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Check className="h-4 w-4 mr-2" />
+                    )}
+                    Select
+                  </Button>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="upload" className="space-y-4 pt-4">
+                <div className="flex flex-col items-center justify-center border-2 border-dashed rounded-md p-4 cursor-pointer hover:bg-muted/50 transition-colors"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    accept="image/png, image/jpeg, image/gif"
+                    className="hidden"
+                  />
+                  <Upload className="h-8 w-8 mb-2 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">Click to upload</p>
+                  <p className="text-xs text-muted-foreground mt-1">PNG, JPG or GIF (max 2MB)</p>
+                </div>
+                
+                {uploadMutation.isPending && (
+                  <div className="flex justify-center">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="ai" className="space-y-4 pt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="prompt">Describe your avatar</Label>
+                  <Textarea 
+                    id="prompt"
+                    placeholder="A professional portrait of me with..."
+                    value={aiPrompt}
+                    onChange={(e) => setAiPrompt(e.target.value)}
+                    className="resize-none"
+                    rows={4}
+                  />
+                </div>
+                
+                <Button 
+                  className="w-full"
+                  onClick={handleGenerateAiAvatar}
+                  disabled={generateAvatarMutation.isPending || !aiPrompt}
+                >
+                  {generateAvatarMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Camera className="h-4 w-4 mr-2" />
+                  )}
+                  Generate Avatar
+                </Button>
+              </TabsContent>
+            </Tabs>
+          </PopoverContent>
+        </Popover>
       </div>
+      
+      {/* AI Avatar Results Dialog */}
+      <Dialog open={showAiDialog} onOpenChange={setShowAiDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Choose your AI-generated avatar</DialogTitle>
+          </DialogHeader>
+          
+          <div className="grid grid-cols-1 gap-4 py-4">
+            {generatedAvatars.map((avatar, index) => (
+              <div key={index} className="flex flex-col items-center space-y-2">
+                <Avatar className="h-40 w-40 border rounded-md">
+                  <AvatarImage src={avatar} alt={`AI avatar ${index + 1}`} />
+                  <AvatarFallback>AI</AvatarFallback>
+                </Avatar>
+                <Button
+                  onClick={() => handleSaveAiAvatar(avatar)}
+                  disabled={saveAiAvatarMutation.isPending}
+                >
+                  {saveAiAvatarMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Check className="h-4 w-4 mr-2" />
+                  )}
+                  Select this avatar
+                </Button>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

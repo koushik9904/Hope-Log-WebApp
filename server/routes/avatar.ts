@@ -4,6 +4,7 @@ import * as path from "path";
 import * as fs from "fs";
 import { storage } from "../storage";
 import { OpenAI } from "openai";
+import { setupDirectories } from '../scripts/setup-directories';
 
 // Define custom Request type for multer
 declare global {
@@ -36,24 +37,9 @@ const upload = multer({
   }
 });
 
-// Ensure avatar directories exist
-const ensureAvatarDirs = () => {
-  const uploadDir = path.join(process.cwd(), 'public', 'avatars');
-  const uploadsDir = path.join(uploadDir, 'uploads');
-  const generatedDir = path.join(uploadDir, 'generated');
-  const standardDir = path.join(uploadDir, 'standard');
-  
-  [uploadDir, uploadsDir, generatedDir, standardDir].forEach(dir => {
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-      console.log(`Created directory: ${dir}`);
-    }
-  });
-};
-
 export function registerAvatarRoutes(app: Express): void {
-  // Ensure avatar directories exist
-  ensureAvatarDirs();
+  // Ensure all required directories exist
+  setupDirectories();
   
   // Upload custom avatar
   app.post("/api/users/:id/avatar", upload.single("avatar"), async (req: Request, res: Response) => {
