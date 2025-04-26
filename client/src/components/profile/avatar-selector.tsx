@@ -22,16 +22,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { apiRequest } from "@/lib/queryClient";
 
-// Standard avatar options
+// Standard avatar options (using placeholder service)
 const STANDARD_AVATARS = [
-  "/avatars/avatar1.png",
-  "/avatars/avatar2.png",
-  "/avatars/avatar3.png",
-  "/avatars/avatar4.png",
-  "/avatars/avatar5.png",
-  "/avatars/avatar6.png",
-  "/avatars/avatar7.png",
-  "/avatars/avatar8.png",
+  "https://api.dicebear.com/7.x/lorelei/svg?seed=Luna&backgroundColor=ffeaef",
+  "https://api.dicebear.com/7.x/lorelei/svg?seed=Stella&backgroundColor=bbceed",
+  "https://api.dicebear.com/7.x/lorelei/svg?seed=Nova&backgroundColor=c4f0c8",
+  "https://api.dicebear.com/7.x/adventurer/svg?seed=Felix&backgroundColor=ffeaef",
+  "https://api.dicebear.com/7.x/adventurer/svg?seed=Leo&backgroundColor=bbceed",
+  "https://api.dicebear.com/7.x/adventurer/svg?seed=Kai&backgroundColor=c4f0c8",
+  "https://api.dicebear.com/7.x/bottts/svg?seed=Zeta&backgroundColor=ffeaef",
+  "https://api.dicebear.com/7.x/bottts/svg?seed=Omega&backgroundColor=c4f0c8",
 ];
 
 export interface AvatarSelectorProps {
