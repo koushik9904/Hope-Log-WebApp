@@ -1253,6 +1253,7 @@ export default function GoalsPage() {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="mb-6">
             <TabsTrigger value="goals">Goals</TabsTrigger>
+            <TabsTrigger value="tasks">Tasks</TabsTrigger>
             <TabsTrigger value="habits">Habits</TabsTrigger>
           </TabsList>
           
@@ -1624,6 +1625,47 @@ export default function GoalsPage() {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+          
+          <TabsContent value="tasks">
+            <Card className="bg-white border-0 shadow-sm mb-6">
+              <CardHeader className="border-b border-gray-100">
+                <CardTitle className="font-['Montserrat_Variable']">Your Tasks</CardTitle>
+                <CardDescription>
+                  Manage and track your day-to-day tasks
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="flex justify-between items-center mb-6">
+                  <div>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button className="bg-[#9AAB63] hover:bg-[#8a9a58] text-white">
+                          <Plus className="h-4 w-4 mr-2" /> Add Task
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-[600px] bg-white">
+                        <DialogHeader>
+                          <DialogTitle className="font-['Montserrat_Variable']">Create New Task</DialogTitle>
+                          <DialogDescription>
+                            Add a new task to track your progress
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="py-4">
+                          {user && (
+                            <div className="mt-4">
+                              <TaskForm userId={user.id} />
+                            </div>
+                          )}
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                </div>
+                
+                {user && <TaskList userId={user.id} selectedGoalId={null} />}
+              </CardContent>
+            </Card>
           </TabsContent>
           
           <TabsContent value="habits">
