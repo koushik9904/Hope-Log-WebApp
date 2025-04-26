@@ -118,14 +118,28 @@ export const goals = pgTable("goals", {
   name: text("name").notNull(),
   description: text("description"),
   category: text("category").notNull().default("Personal"),
-  targetDate: text("target_date"),
+  startDate: timestamp("start_date", { mode: 'string' }),
+  targetDate: timestamp("target_date", { mode: 'string' }),
   target: integer("target").notNull(),
   progress: integer("progress").notNull().default(0),
   unit: text("unit").notNull().default("%"),
   colorScheme: integer("color_scheme").notNull().default(1),
+  status: text("status").notNull().default("in_progress"), // 'not_started', 'in_progress', 'completed', 'cancelled'
+  // For Gantt chart visualization
+  dependsOn: jsonb("depends_on").$type<number[]>().default([]),
+  deletedAt: timestamp("deleted_at", { mode: 'string' }),
+  createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
+  updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow()
 });
 
-export const insertGoalSchema = createInsertSchema(goals).omit({ id: true });
+export const insertGoalSchema = createInsertSchema(goals)
+  .omit({ 
+    id: true,
+    dependsOn: true,
+    deletedAt: true,
+    createdAt: true,
+    updatedAt: true
+  });
 
 export type InsertGoal = z.infer<typeof insertGoalSchema>;
 export type Goal = typeof goals.$inferSelect;
@@ -216,16 +230,48 @@ export const insertNotificationPreferencesSchema = createInsertSchema(notificati
 export type InsertNotificationPreferences = z.infer<typeof insertNotificationPreferencesSchema>;
 export type NotificationPreferences = typeof notificationPreferences.$inferSelect;
 
+// Tasks table
+export const tasks = pgTable("tasks", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  title: text("title").notNull(),
+  description: text("description"),
+  dueDate: timestamp("due_date", { mode: 'string' }),
+  completed: boolean("completed").notNull().default(false),
+  completedAt: timestamp("completed_at", { mode: 'string' }),
+  goalId: integer("goal_id").references(() => goals.id), // Optional association with a goal
+  priority: text("priority").notNull().default("medium"), // 'low', 'medium', 'high'
+  colorScheme: integer("color_scheme").notNull().default(1),
+  deletedAt: timestamp("deleted_at", { mode: 'string' }),
+  createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
+  updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow()
+});
+
+export const insertTaskSchema = createInsertSchema(tasks).omit({ 
+  id: true, 
+  completed: true, 
+  completedAt: true,
+  deletedAt: true,
+  createdAt: true, 
+  updatedAt: true 
+});
+
+export type InsertTask = z.infer<typeof insertTaskSchema>;
+export type Task = typeof tasks.$inferSelect;
+
 // Habits table
 export const habits = pgTable("habits", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
   title: text("title").notNull(),
   description: text("description"),
-  frequency: text("frequency").notNull().default("daily"),
+  frequency: text("frequency").notNull().default("daily"), // 'daily', 'weekly', 'monthly'
   streak: integer("streak").notNull().default(0),
   completedToday: boolean("completed_today").notNull().default(false),
   lastCompletedAt: timestamp("last_completed_at", { mode: 'string' }),
+  // Track completion history for calendar view
+  completionHistory: jsonb("completion_history").$type<Record<string, boolean>>().default({}),
+  colorScheme: integer("color_scheme").notNull().default(1),
   deletedAt: timestamp("deleted_at", { mode: 'string' }),
   createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
   updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow()
@@ -236,6 +282,7 @@ export const insertHabitSchema = createInsertSchema(habits).omit({
   streak: true, 
   completedToday: true, 
   lastCompletedAt: true,
+  completionHistory: true,
   deletedAt: true,
   createdAt: true, 
   updatedAt: true 

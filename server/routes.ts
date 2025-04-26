@@ -18,6 +18,7 @@ import adminStatsRoutes from "./routes/admin-stats";
 import subscriptionRoutes from "./routes/subscription";
 import paypalSettingsRoutes from "./routes/paypal-settings";
 import { setupHabitRoutes } from "./routes/habits";
+import { setupTaskRoutes } from "./routes/tasks";
 import { registerAvatarRoutes } from "./routes/avatar";
 import { User } from "@shared/schema";
 
