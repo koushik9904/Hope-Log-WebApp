@@ -86,8 +86,37 @@ export function setupTaskRoutes(app: Express) {
       // Get existing tasks to avoid duplicates
       const existingTasks = await storage.getTasksByUserId(userId);
       
+      // Format tasks for the suggestions function
+      const formattedTasks = existingTasks.map(task => ({
+        title: task.title,
+        completed: !!task.completedAt
+      }));
+      
+      // Get existing goals
+      const existingGoals = await storage.getGoalsByUserId(userId);
+      
+      // Format goals for the suggestions function
+      const formattedGoals = existingGoals.map(goal => ({
+        name: goal.name,
+        progress: goal.progress
+      }));
+      
+      // Format journal entries for the suggestions function with date
+      const formattedEntries = filteredEntries.map(entry => {
+        // Use ISO string formatting to ensure proper date format
+        const entryDate = new Date(entry.date).toISOString();
+        return {
+          content: entry.content,
+          date: entryDate
+        };
+      });
+      
       // Generate suggestions based on journal content
-      const suggestions = await generateTaskSuggestions(filteredEntries, existingTasks);
+      const suggestions = await generateTaskSuggestions(
+        formattedEntries, 
+        formattedTasks,
+        formattedGoals
+      );
       
       res.json(suggestions);
     } catch (error) {

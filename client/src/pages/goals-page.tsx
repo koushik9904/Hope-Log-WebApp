@@ -1675,24 +1675,14 @@ export default function GoalsPage() {
                                               <Checkbox 
                                                 id={`task-${task.id}`}
                                                 checked={!!task.completedAt}
-                                                onCheckedChange={(checked) => {
-                                                  if (checked) {
-                                                    // Update task to mark as completed with current date
-                                                    apiRequest("PATCH", `/api/tasks/${task.id}`, {
-                                                      completedAt: new Date().toISOString()
-                                                    }).then(() => {
-                                                      queryClient.invalidateQueries({ queryKey: [`/api/tasks/${user?.id}`] });
-                                                      queryClient.invalidateQueries({ queryKey: ['/api/tasks', user?.id] });
-                                                    });
-                                                  } else {
-                                                    // Update task to mark as not completed
-                                                    apiRequest("PATCH", `/api/tasks/${task.id}`, {
-                                                      completedAt: null
-                                                    }).then(() => {
-                                                      queryClient.invalidateQueries({ queryKey: [`/api/tasks/${user?.id}`] });
-                                                      queryClient.invalidateQueries({ queryKey: ['/api/tasks', user?.id] });
-                                                    });
-                                                  }
+                                                onCheckedChange={(checked: boolean) => {
+                                                  // Update task to mark as completed/not completed
+                                                  apiRequest("PATCH", `/api/tasks/${task.id}`, {
+                                                    completed: checked
+                                                  }).then(() => {
+                                                    queryClient.invalidateQueries({ queryKey: [`/api/tasks/${user?.id}`] });
+                                                    queryClient.invalidateQueries({ queryKey: ['/api/tasks', user?.id] });
+                                                  });
                                                 }}
                                                 className="h-4 w-4 border-gray-300 rounded"
                                               />
