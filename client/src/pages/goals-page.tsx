@@ -110,8 +110,8 @@ const goalSchema = z.object({
   }).max(50, {
     message: "Title must not be longer than 50 characters."
   }),
-  description: z.string().max(200, {
-    message: "Description must not be longer than 200 characters."
+  description: z.string().max(500, {
+    message: "Description must not be longer than 500 characters."
   }).optional(),
   targetDate: z.string()
     .refine(
@@ -141,8 +141,8 @@ const habitSchema = z.object({
     message: "Title must not be longer than 50 characters."
   }),
   frequency: z.enum(["daily", "weekly", "monthly"]),
-  description: z.string().max(200, {
-    message: "Description must not be longer than 200 characters."
+  description: z.string().max(500, {
+    message: "Description must not be longer than 500 characters."
   }).optional(),
   userId: z.number()
 });

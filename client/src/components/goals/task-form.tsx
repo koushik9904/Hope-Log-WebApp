@@ -20,6 +20,9 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 // Extend the task schema with more validations
 const taskFormSchema = insertTaskSchema.extend({
   dueDate: z.date().optional(),
+  description: z.string().max(500, {
+    message: "Description must not be longer than 500 characters."
+  }).optional(),
 });
 
 type TaskFormValues = z.infer<typeof taskFormSchema>;
