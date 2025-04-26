@@ -1648,7 +1648,7 @@ export default function GoalsPage() {
                                   <div className="flex items-center text-gray-600">
                                     {goal.targetDate ? (
                                       <>
-                                        <Calendar className="h-3.5 w-3.5 mr-1.5" />
+                                        <CalendarDays className="h-3.5 w-3.5 mr-1.5" />
                                         <span>Due {new Date(goal.targetDate).toLocaleDateString()}</span>
                                       </>
                                     ) : (
@@ -2257,7 +2257,7 @@ export default function GoalsPage() {
                         <div className="flex justify-between items-center bg-[#FFF8E8] p-3 rounded-md">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-md bg-[#F5D867] bg-opacity-20 flex items-center justify-center">
-                              <Calendar className="h-4 w-4 text-[#F5D867]" />
+                              <CalendarDays className="h-4 w-4 text-[#F5D867]" />
                             </div>
                             <span className="text-sm">Weekly</span>
                           </div>
@@ -2306,7 +2306,7 @@ export default function GoalsPage() {
                   <div className="flex items-center text-sm text-gray-600">
                     {goalToConvert.targetDate ? (
                       <>
-                        <Calendar className="h-3.5 w-3.5 mr-1.5" />
+                        <CalendarDays className="h-3.5 w-3.5 mr-1.5" />
                         <span>Due {new Date(goalToConvert.targetDate).toLocaleDateString()}</span>
                       </>
                     ) : (
