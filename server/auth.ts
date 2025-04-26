@@ -206,6 +206,7 @@ export async function setupAuth(app: Express) {
               user = await storage.createUser({
                 username: `google-${profile.id}`,
                 password: await hashPassword(randomBytes(16).toString('hex')),
+                name: `${profile.name?.givenName || ''} ${profile.name?.familyName || ''}`.trim() || 'Google User',
                 firstName: profile.name?.givenName || '',
                 lastName: profile.name?.familyName || '',
                 email: profile.emails?.[0]?.value || '',
@@ -245,6 +246,7 @@ export async function setupAuth(app: Express) {
               user = await storage.createUser({
                 username: `apple-${profile.id}`,
                 password: await hashPassword(randomBytes(16).toString('hex')),
+                name: `${profile.name?.firstName || ''} ${profile.name?.lastName || ''}`.trim() || 'Apple User',
                 firstName: profile.name?.firstName || '',
                 lastName: profile.name?.lastName || '',
                 email: profile.emails?.[0]?.value || '',

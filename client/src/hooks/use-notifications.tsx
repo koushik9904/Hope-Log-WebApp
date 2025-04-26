@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Notification } from "@shared/schema";
+import { Notification, NotificationPreferences } from "@shared/schema";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -124,5 +124,63 @@ export function useNotifications() {
     isMarkingAsRead,
     isDeleting,
     isClearing
+  };
+}
+
+export function useNotificationPreferences() {
+  const { toast } = useToast();
+  const [isUpdating, setIsUpdating] = useState(false);
+  
+  // Fetch notification preferences
+  const { 
+    data: preferences,
+    isLoading,
+    error,
+    refetch
+  } = useQuery<NotificationPreferences>({
+    queryKey: ['/api/notification-preferences'],
+    retry: 1,
+  });
+  
+  // Update notification preferences
+  const updatePreferencesMutation = useMutation({
+    mutationFn: async (data: Partial<NotificationPreferences>) => {
+      setIsUpdating(true);
+      try {
+        const response = await apiRequest('PATCH', '/api/notification-preferences', data);
+        return await response.json();
+      } finally {
+        setIsUpdating(false);
+      }
+    },
+    onSuccess: () => {
+      // Invalidate preferences query to refresh the data
+      queryClient.invalidateQueries({ queryKey: ['/api/notification-preferences'] });
+      
+      toast({
+        title: 'Preferences updated',
+        description: 'Your notification preferences have been updated',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Update failed',
+        description: `Failed to update preferences: ${error.message}`,
+        variant: 'destructive',
+      });
+    }
+  });
+  
+  // Wrapper function for mutation
+  const updatePreferences = (data: Partial<NotificationPreferences>) => 
+    updatePreferencesMutation.mutate(data);
+  
+  return {
+    preferences,
+    isLoading,
+    error,
+    refetch,
+    updatePreferences,
+    isUpdating
   };
 }
