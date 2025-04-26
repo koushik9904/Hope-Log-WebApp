@@ -1,13 +1,16 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { format } from 'date-fns';
-import { Edit, Trash, Check, X, ArrowRight, Calendar, Clock } from 'lucide-react';
+import { Edit, Trash, Check, X, ArrowRight, Calendar, Clock, Target, Plus } from 'lucide-react';
 import { Task, Goal } from '@shared/schema';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,6 +44,10 @@ export default function TaskList({ userId, selectedGoalId }: TaskListProps) {
   const [moveTaskDialogOpen, setMoveTaskDialogOpen] = useState(false);
   const [taskToMove, setTaskToMove] = useState<Task | null>(null);
   const [selectedGoalForMove, setSelectedGoalForMove] = useState<number | null>(null);
+  const [convertToGoalDialogOpen, setConvertToGoalDialogOpen] = useState(false);
+  const [taskToConvert, setTaskToConvert] = useState<Task | null>(null);
+  const [newGoalName, setNewGoalName] = useState<string>("");
+  const [isCreatingNewGoal, setIsCreatingNewGoal] = useState(false);
 
   // Fetch tasks
   const tasksQuery = useQuery<Task[]>({
@@ -261,6 +268,16 @@ export default function TaskList({ userId, selectedGoalId }: TaskListProps) {
                       <DropdownMenuItem onClick={() => openMoveDialog(task)}>
                         <ArrowRight className="mr-2 h-4 w-4" />
                         Move to goal
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => {
+                          setTaskToConvert(task);
+                          setNewGoalName(task.title);
+                          setConvertToGoalDialogOpen(true);
+                        }}
+                      >
+                        <Target className="mr-2 h-4 w-4" />
+                        Convert to goal
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem

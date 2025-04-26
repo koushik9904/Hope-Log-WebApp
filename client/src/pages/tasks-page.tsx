@@ -106,11 +106,12 @@ export default function TasksPage() {
     retry: false // Don't retry since our endpoint might not exist yet
   });
   
-  // Set default tasks when component mounts
+  // Set default tasks when component mounts (only if no AI suggestions are available)
   useEffect(() => {
-    // Initialize with example data
-    setAiSuggestedTasks(AI_SUGGESTED_TASKS);
-  }, []);
+    if (!aiSuggestions?.tasks || aiSuggestions.tasks.length === 0) {
+      setAiSuggestedTasks(AI_SUGGESTED_TASKS);
+    }
+  }, [aiSuggestions]);
   
   // Update AI suggested tasks when data is loaded
   useEffect(() => {
