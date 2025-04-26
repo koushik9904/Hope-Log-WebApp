@@ -32,6 +32,7 @@ export const users = pgTable("users", {
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
+  username: true, // Made optional
   password: true,
   name: true, // Required field
   displayName: true, // Optional field

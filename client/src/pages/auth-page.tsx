@@ -25,9 +25,9 @@ const loginSchema = z.object({
 });
 
 const registerSchema = insertUserSchema
-  .omit({ username: true }) // Remove username field
   .extend({
-    name: z.string().min(1, "Name is required"), // Add mandatory name field
+    name: z.string().min(1, "Name is required"), 
+    username: z.string().optional(), // Make username optional
     confirmPassword: z.string().min(6, "Password must be at least 6 characters"),
   }).refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
