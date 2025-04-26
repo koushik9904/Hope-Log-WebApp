@@ -19,6 +19,18 @@ async function createAdminUser() {
     
     if (existingAdmin.length > 0) {
       console.log('Admin user already exists');
+      
+      // Make sure the admin user has an email address and is verified
+      const admin = existingAdmin[0];
+      if (!admin.email || !admin.isVerified) {
+        await db.update(users)
+          .set({
+            email: admin.email || 'admin@hopelog.ai',
+            isVerified: true
+          })
+          .where(eq(users.id, admin.id));
+        console.log('Updated admin user with email and verified status');
+      }
       return;
     }
     
@@ -28,7 +40,9 @@ async function createAdminUser() {
     await db.insert(users).values({
       username: 'admin',
       password: hashedPassword,
+      email: 'admin@hopelog.ai',
       isAdmin: true,
+      isVerified: true,
     });
     
     console.log('Admin user created successfully');
