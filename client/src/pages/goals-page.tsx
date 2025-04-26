@@ -398,6 +398,10 @@ export default function GoalsPage() {
   const [goalToEdit, setGoalToEdit] = useState<Goal | null>(null);
   const [showEditGoalDialog, setShowEditGoalDialog] = useState(false);
   
+  // Convert goal to task states
+  const [goalToConvert, setGoalToConvert] = useState<Goal | null>(null);
+  const [showConvertToTaskDialog, setShowConvertToTaskDialog] = useState(false);
+  
   const editGoalMutation = useMutation({
     mutationFn: async (goal: GoalFormValues & { id: number }) => {
       const { id, ...data } = goal;
@@ -417,6 +421,51 @@ export default function GoalsPage() {
       toast({
         title: "Update failed",
         description: "There was an error updating your goal. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+  
+  // Convert goal to task mutation
+  const convertGoalToTaskMutation = useMutation({
+    mutationFn: async (goalId: number) => {
+      if (!goalToConvert) return null;
+      
+      // Create a new task from the goal
+      const task = {
+        title: goalToConvert.name,
+        description: goalToConvert.description || "",
+        dueDate: goalToConvert.targetDate || "",
+        priority: "medium",
+        userId: user?.id,
+        completed: goalToConvert.progress === 100,
+        completedAt: goalToConvert.progress === 100 ? new Date().toISOString() : null,
+      };
+      
+      // Create the task
+      const taskRes = await apiRequest("POST", "/api/tasks", task);
+      const newTask = await taskRes.json();
+      
+      // Delete the goal
+      await apiRequest("DELETE", `/api/goals/${goalId}`);
+      
+      return newTask;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/tasks/${user?.id}`] });
+      setShowConvertToTaskDialog(false);
+      
+      toast({
+        title: "Goal converted to task",
+        description: "Your goal has been successfully converted to a task"
+      });
+    },
+    onError: (error) => {
+      console.error("Error converting goal to task:", error);
+      toast({
+        title: "Conversion failed",
+        description: "There was an error converting your goal to a task. Please try again.",
         variant: "destructive"
       });
     }
@@ -1477,6 +1526,15 @@ export default function GoalsPage() {
                                       >
                                         <Edit className="h-4 w-4 mr-2" />
                                         <span>Edit</span>
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem
+                                        onClick={() => {
+                                          setGoalToConvert(goal);
+                                          setShowConvertToTaskDialog(true);
+                                        }}
+                                      >
+                                        <CheckCircle className="h-4 w-4 mr-2" />
+                                        <span>Convert to Task</span>
                                       </DropdownMenuItem>
                                       <DropdownMenuItem 
                                         onClick={() => deleteGoalMutation.mutate(goal.id)}
