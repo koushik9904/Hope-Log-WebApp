@@ -186,8 +186,8 @@ export default function InsightsPage() {
           </TabsContent>
           
           <TabsContent value="emotions">
+            <EmotionsAnalytics entries={entries} isLoading={isLoading} className="mb-6" />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <JournalingStats entries={entries} isLoading={isLoading} className="md:col-span-2" />
               <ReflectionPatterns entries={entries} isLoading={isLoading} />
               <Correlations entries={entries} moods={moods} isLoading={isLoading} />
             </div>
@@ -197,6 +197,7 @@ export default function InsightsPage() {
             <div className="grid grid-cols-1 gap-6">
               <JournalingStats entries={entries} isLoading={isLoading} />
               <ReflectionPatterns entries={entries} isLoading={isLoading} />
+              <Correlations entries={entries} moods={moods} isLoading={isLoading} />
             </div>
           </TabsContent>
         </Tabs>

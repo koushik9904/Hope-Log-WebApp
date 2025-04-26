@@ -17,6 +17,7 @@ import {
   Meh,
   Zap,
   Cloud,
+  Info as InfoIcon,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { MoodChart, MoodData } from "@/components/ui/chart";
@@ -288,6 +289,39 @@ export function MoodAnalytics({ moods, entries, timeframe = "week", isLoading, c
             <div className="text-2xl font-bold flex items-center gap-2">
               {avgMoodScore > 0 ? avgMoodScore : "N/A"}
               {avgMoodScore > 0 && getMoodEmoji(Math.round(avgMoodScore))}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <InfoIcon className="h-4 w-4 text-gray-400 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent className="w-80 p-4">
+                    <p className="font-medium mb-1">About Mood Ratings:</p>
+                    <p className="text-sm text-gray-700 mb-2">Mood is rated on a scale from 1 to 5:</p>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center"><Frown className="h-4 w-4 text-red-500" /></div>
+                        <span className="text-sm text-gray-700">1: Very Sad</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center"><Frown className="h-4 w-4 text-orange-400" /></div>
+                        <span className="text-sm text-gray-700">2: Sad</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center"><Meh className="h-4 w-4 text-yellow-500" /></div>
+                        <span className="text-sm text-gray-700">3: Neutral</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center"><Smile className="h-4 w-4 text-green-500" /></div>
+                        <span className="text-sm text-gray-700">4: Happy</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center"><Smile className="h-4 w-4 text-green-600" /></div>
+                        <span className="text-sm text-gray-700">5: Very Happy</span>
+                      </div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
             <p className="text-xs text-gray-500 mt-1">
               Based on {filteredMoods.length} mood records
@@ -398,59 +432,123 @@ export function MoodAnalytics({ moods, entries, timeframe = "week", isLoading, c
         </Card>
       </div>
       
-      {heatmapData.length > 0 && (
-        <Card className="bg-white border-0 shadow-sm mb-8">
-          <CardHeader className="border-b border-gray-100">
-            <CardTitle className="font-['Montserrat_Variable']">Mood Calendar</CardTitle>
-            <CardDescription>
-              Calendar view of your moods over time
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-6 overflow-x-auto">
-            <div className="min-w-max">
-              <div className="grid grid-cols-8 gap-1 text-xs text-center font-medium mb-1">
-                <div className="text-gray-500"></div>
-                <div className="text-gray-500">Sun</div>
-                <div className="text-gray-500">Mon</div>
-                <div className="text-gray-500">Tue</div>
-                <div className="text-gray-500">Wed</div>
-                <div className="text-gray-500">Thu</div>
-                <div className="text-gray-500">Fri</div>
-                <div className="text-gray-500">Sat</div>
+      <Card className="bg-white border-0 shadow-sm mb-8">
+        <CardHeader className="border-b border-gray-100">
+          <CardTitle className="font-['Montserrat_Variable']">Mood Calendar</CardTitle>
+          <CardDescription>
+            Calendar view of your moods over time
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-6 overflow-x-auto">
+          {filteredMoods.length > 0 ? (
+            <>
+              <div className="mb-4 flex justify-between items-center">
+                <button 
+                  className="flex items-center gap-1 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
+                  onClick={() => {
+                    const currentDate = new Date();
+                    const lastMonthDate = new Date(currentDate);
+                    lastMonthDate.setMonth(currentDate.getMonth() - 1);
+                    // In a real implementation, this would change the visible month in the calendar
+                  }}
+                >
+                  <span className="rotate-180">➔</span> Previous
+                </button>
+                
+                <h4 className="text-base font-medium">
+                  {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                </h4>
+                
+                <button 
+                  className="flex items-center gap-1 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
+                  onClick={() => {
+                    const currentDate = new Date();
+                    const nextMonthDate = new Date(currentDate);
+                    nextMonthDate.setMonth(currentDate.getMonth() + 1);
+                    // In a real implementation, this would change the visible month in the calendar
+                  }}
+                >
+                  Next <span>➔</span>
+                </button>
               </div>
               
-              {heatmapData.map((week, weekIndex) => (
-                <div key={weekIndex} className="grid grid-cols-8 gap-1 mb-1">
-                  <div className="flex items-center justify-end text-xs text-gray-500 pr-2">
-                    {week.week}
-                  </div>
-                  {week.days.map((day, dayIndex) => (
-                    <TooltipProvider key={dayIndex}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div
-                            className={`w-8 h-8 rounded-md ${day.date ? getMoodColor(day.mood) : 'bg-transparent'} flex items-center justify-center text-xs ${day.mood ? 'cursor-pointer' : ''}`}
-                          >
-                            {day.date ? (day.date ? format(parseISO(day.date), 'd') : '') : ''}
-                          </div>
-                        </TooltipTrigger>
-                        {day.date && (
-                          <TooltipContent>
-                            <p className="font-medium">{day.date ? format(parseISO(day.date), 'EEEE, MMMM d') : ''}</p>
-                            {day.mood ? (
-                              <p className="flex items-center gap-1">
-                                Mood: {getMoodLabel(day.mood)} {getMoodEmoji(day.mood)}
-                              </p>
-                            ) : (
-                              <p>No mood recorded</p>
-                            )}
-                          </TooltipContent>
-                        )}
-                      </Tooltip>
-                    </TooltipProvider>
+              <div className="bg-white rounded-lg shadow">
+                <div className="grid grid-cols-7 gap-px bg-gray-200">
+                  {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day, i) => (
+                    <div key={i} className="bg-white p-2 text-center text-sm font-medium text-gray-500">
+                      {day}
+                    </div>
                   ))}
+                  
+                  {/* Generate calendar days for current month */}
+                  {(() => {
+                    const today = new Date();
+                    const currentMonth = today.getMonth();
+                    const currentYear = today.getFullYear();
+                    
+                    const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
+                    const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
+                    
+                    const daysInMonth = lastDayOfMonth.getDate();
+                    const startingDayOfWeek = firstDayOfMonth.getDay();
+                    
+                    // Create a map for quick mood lookup by date string
+                    const moodByDate: Record<string, number> = {};
+                    filteredMoods.forEach(mood => {
+                      const moodDate = new Date(mood.date);
+                      if (moodDate.getMonth() === currentMonth && moodDate.getFullYear() === currentYear) {
+                        moodByDate[moodDate.getDate()] = mood.rating;
+                      }
+                    });
+                    
+                    const days = [];
+                    // Empty cells for days before the first day of the month
+                    for (let i = 0; i < startingDayOfWeek; i++) {
+                      days.push(
+                        <div key={`empty-${i}`} className="bg-white p-2 min-h-[70px]"></div>
+                      );
+                    }
+                    
+                    // Cells for each day of the month
+                    for (let day = 1; day <= daysInMonth; day++) {
+                      const isToday = day === today.getDate();
+                      const hasMood = day in moodByDate;
+                      
+                      days.push(
+                        <div 
+                          key={`day-${day}`} 
+                          className={`bg-white p-2 min-h-[70px] relative ${isToday ? 'ring-2 ring-[#F5B8DB] ring-inset' : ''}`}
+                        >
+                          <div className="absolute top-2 right-2 text-sm text-gray-400">
+                            {day}
+                          </div>
+                          {hasMood && (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div className={`absolute bottom-2 right-2 w-8 h-8 ${getMoodColor(moodByDate[day])} rounded-full flex items-center justify-center`}>
+                                    {getMoodEmoji(moodByDate[day])}
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p className="font-medium">
+                                    {format(new Date(currentYear, currentMonth, day), 'MMMM d, yyyy')}
+                                  </p>
+                                  <p className="flex items-center gap-1">
+                                    Mood: {getMoodLabel(moodByDate[day])}
+                                  </p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
+                        </div>
+                      );
+                    }
+                    
+                    return days;
+                  })()}
                 </div>
-              ))}
+              </div>
               
               <div className="mt-4 flex items-center justify-center gap-3">
                 <div className="flex items-center gap-1">
@@ -474,10 +572,18 @@ export function MoodAnalytics({ moods, entries, timeframe = "week", isLoading, c
                   <span className="text-xs">Very Happy</span>
                 </div>
               </div>
+            </>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <Calendar className="h-16 w-16 text-gray-300 mb-4" />
+              <h3 className="text-lg font-medium mb-2">No mood data recorded yet</h3>
+              <p className="text-gray-500 max-w-md">
+                Start tracking your mood daily to see it displayed in this calendar view.
+              </p>
             </div>
-          </CardContent>
-        </Card>
-      )}
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
