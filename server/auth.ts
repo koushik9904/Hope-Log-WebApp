@@ -198,21 +198,40 @@ export async function setupAuth(app: Express) {
         },
         async (accessToken, refreshToken, profile, done) => {
           try {
-            // Check if user already exists
-            let user = await storage.getUserByUsername(`google-${profile.id}`);
+            // Get the email from the profile
+            const email = profile.emails?.[0]?.value;
+            
+            if (!email) {
+              return done(new Error("No email provided by Google"));
+            }
+            
+            // First check if user exists by email
+            let user = await storage.getUserByEmail(email);
+            
+            // If no user found by email, check by legacy username format
+            if (!user) {
+              user = await storage.getUserByUsername(`google-${profile.id}`);
+            }
             
             if (!user) {
               // Create a new user if they don't exist
               user = await storage.createUser({
-                username: `google-${profile.id}`,
+                username: email, // Use email as username
                 password: await hashPassword(randomBytes(16).toString('hex')),
                 name: `${profile.name?.givenName || ''} ${profile.name?.familyName || ''}`.trim() || 'Google User',
                 firstName: profile.name?.givenName || '',
                 lastName: profile.name?.familyName || '',
-                email: profile.emails?.[0]?.value || '',
+                email: email,
                 avatar: profile.photos?.[0]?.value || '',
                 provider: 'google',
-                providerId: profile.id
+                providerId: profile.id,
+                isVerified: true // Google verifies emails
+              });
+            } else if (user.username !== email) {
+              // Update username to match email if different
+              user = await storage.updateUser(user.id, { 
+                username: email,
+                isVerified: true
               });
             }
             
@@ -238,21 +257,39 @@ export async function setupAuth(app: Express) {
         },
         async (accessToken, refreshToken, profile, done) => {
           try {
-            // Check if user already exists
-            let user = await storage.getUserByUsername(`apple-${profile.id}`);
+            // Get the email from the profile
+            const email = profile.emails?.[0]?.value;
+            
+            if (!email) {
+              return done(new Error("No email provided by Apple"));
+            }
+            
+            // First check if user exists by email
+            let user = await storage.getUserByEmail(email);
+            
+            // If no user found by email, check by legacy username format
+            if (!user) {
+              user = await storage.getUserByUsername(`apple-${profile.id}`);
+            }
             
             if (!user) {
               // Create a new user if they don't exist
               user = await storage.createUser({
-                username: `apple-${profile.id}`,
+                username: email, // Use email as username
                 password: await hashPassword(randomBytes(16).toString('hex')),
                 name: `${profile.name?.firstName || ''} ${profile.name?.lastName || ''}`.trim() || 'Apple User',
                 firstName: profile.name?.firstName || '',
                 lastName: profile.name?.lastName || '',
-                email: profile.emails?.[0]?.value || '',
+                email: email,
                 provider: 'apple',
                 providerId: profile.id,
                 isVerified: true // Apple already verifies emails
+              });
+            } else if (user.username !== email) {
+              // Update username to match email if different
+              user = await storage.updateUser(user.id, { 
+                username: email,
+                isVerified: true
               });
             }
             
