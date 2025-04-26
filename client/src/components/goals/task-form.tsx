@@ -224,7 +224,7 @@ export default function TaskForm({ onSuccess, initialData, userId }: TaskFormPro
                   <SelectItem value="">No goal</SelectItem>
                   {goals.map((goal) => (
                     <SelectItem key={goal.id} value={goal.id.toString()}>
-                      {goal.title}
+                      {goal.name}
                     </SelectItem>
                   ))}
                 </SelectContent>

@@ -68,7 +68,7 @@ export default function TasksPage() {
               <DropdownMenuSeparator />
               {goals.map((goal) => (
                 <DropdownMenuItem key={goal.id} onClick={() => setSelectedGoalId(goal.id)}>
-                  {goal.title}
+                  {goal.name}
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
@@ -95,7 +95,7 @@ export default function TasksPage() {
             ? 'All Tasks'
             : selectedGoalId === undefined
             ? 'Tasks without Goal'
-            : `Tasks for: ${goals.find((g) => g.id === selectedGoalId)?.title || 'Selected Goal'}`}
+            : `Tasks for: ${goals.find((g) => g.id === selectedGoalId)?.name || 'Selected Goal'}`}
         </h2>
         <TaskList userId={user.id} selectedGoalId={selectedGoalId} />
       </div>

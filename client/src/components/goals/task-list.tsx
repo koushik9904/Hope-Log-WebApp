@@ -280,7 +280,7 @@ export default function TaskList({ userId, selectedGoalId }: TaskListProps) {
                   )}
                   {task.goalId && goalsQuery.data && (
                     <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">
-                      {goalsQuery.data.find((g) => g.id === task.goalId)?.title || 'Goal'}
+                      {goalsQuery.data.find((g) => g.id === task.goalId)?.name || 'Goal'}
                     </Badge>
                   )}
                 </div>
@@ -357,7 +357,7 @@ export default function TaskList({ userId, selectedGoalId }: TaskListProps) {
                     className="justify-start"
                     onClick={() => setSelectedGoalForMove(goal.id)}
                   >
-                    {goal.title}
+                    {goal.name}
                   </Button>
                 ))}
               </div>
