@@ -59,7 +59,9 @@ const AI_SUGGESTED_TASKS = [
 // Task schema for quick task creation
 const quickTaskSchema = z.object({
   title: z.string().min(2, "Title must be at least 2 characters"),
-  description: z.string().optional(),
+  description: z.string().max(500, {
+    message: "Description must not be longer than 500 characters."
+  }).optional(),
   priority: z.string().default("medium"),
   userId: z.number()
 });
