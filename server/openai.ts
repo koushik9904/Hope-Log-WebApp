@@ -545,3 +545,59 @@ export async function generateGoalSuggestions(
     return { goals: [] };
   }
 }
+
+// Generate task suggestions based on journal entries
+export async function generateTaskSuggestions(
+  recentEntries: { content: string; date: string }[],
+  existingTasks: { title: string; completed: boolean }[] = []
+): Promise<{ tasks: { name: string; description: string }[] }> {
+  try {
+    // Extract the content of the journal entries
+    const entriesText = recentEntries
+      .map(entry => `Entry from ${new Date(entry.date).toDateString()}: ${entry.content}`)
+      .join("\n\n");
+    
+    const existingTasksText = existingTasks.length > 0
+      ? `Current tasks:\n${existingTasks.map(task => 
+          `- ${task.title} (${task.completed ? 'Completed' : 'Pending'})`
+        ).join('\n')}`
+      : "The user currently has no active tasks.";
+    
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: `You are an AI wellness assistant that helps identify actionable tasks from journal entries.
+          
+          Based on the user's journal entries, suggest short-term, discrete tasks that would support their wellness journey.
+          
+          Guidelines:
+          - Suggest 4-6 tasks in total
+          - Tasks should be specific, immediate actions that can be completed in a single sitting
+          - Each task should be concrete and achievable within 1-2 days
+          - Add a brief description of why this would be beneficial
+          - Avoid suggesting tasks the user already has
+          - Base suggestions on the user's actual journal content, not generic advice
+          - Tasks should be simpler and more immediate than goals
+          
+          Return a JSON object with a 'tasks' array containing objects with:
+          - 'name': short title (5-7 words max)
+          - 'description': 1-2 sentence explanation of the benefit`
+        },
+        {
+          role: "user",
+          content: `Here are my recent journal entries:\n\n${entriesText}\n\n${existingTasksText}`
+        }
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.7,
+    });
+
+    const content = response.choices[0].message.content || '{"tasks":[]}';
+    return JSON.parse(content);
+  } catch (error) {
+    console.error("Error generating task suggestions:", error);
+    return { tasks: [] };
+  }
+}
