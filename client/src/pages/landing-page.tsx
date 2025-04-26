@@ -817,7 +817,6 @@ export default function LandingPage() {
           <div className="max-w-4xl mx-auto bg-[#CB3B8C] rounded-2xl p-12 text-white text-center relative overflow-hidden">
             
             <div className="relative z-10">
-              <HopeLogLogo size="lg" className="mx-auto mb-6 text-white" />
               <h2 className="text-3xl md:text-4xl font-bold mb-4">Start Your Mental Wellness Journey Today</h2>
               <p className="text-xl md:text-2xl mb-8 text-white/80">
                 Join thousands of people who have transformed their mental wellbeing with Hope Log.
