@@ -137,7 +137,7 @@ export default function TaskForm({ onSuccess, initialData, userId }: TaskFormPro
             <FormItem>
               <FormLabel>Description</FormLabel>
               <FormControl>
-                <Textarea placeholder="Describe your task..." {...field} />
+                <Textarea placeholder="Describe your task..." {...field} value={field.value || ""} />
               </FormControl>
               <FormMessage />
             </FormItem>

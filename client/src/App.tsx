@@ -28,6 +28,8 @@ const NewJournalEntryPage = lazy(() => import("@/pages/new-journal-entry-page"))
 const ChatPage = lazy(() => import("@/pages/chat-page"));
 const InsightsPage = lazy(() => import("@/pages/insights-page"));
 const GoalsPage = lazy(() => import("@/pages/goals-page"));
+const TasksPage = lazy(() => import("@/pages/tasks-page"));
+const HabitsPage = lazy(() => import("@/pages/habits-page"));
 const SubscriptionPage = lazy(() => import("@/pages/subscription-page"));
 const AboutUsPage = lazy(() => import("@/pages/about-us-page"));
 const CommunityPage = lazy(() => import("@/pages/community-page"));
@@ -107,6 +109,22 @@ function Router() {
           component={() => (
             <Suspense fallback={<LoadingFallback />}>
               <GoalsPage />
+            </Suspense>
+          )} 
+        />
+        <ProtectedRoute 
+          path="/tasks" 
+          component={() => (
+            <Suspense fallback={<LoadingFallback />}>
+              <TasksPage />
+            </Suspense>
+          )} 
+        />
+        <ProtectedRoute 
+          path="/habits" 
+          component={() => (
+            <Suspense fallback={<LoadingFallback />}>
+              <HabitsPage />
             </Suspense>
           )} 
         />
