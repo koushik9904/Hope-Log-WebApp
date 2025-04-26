@@ -18,6 +18,7 @@ import * as z from 'zod';
 import { format, addDays, subDays, startOfDay, endOfDay, isWithinInterval } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -329,12 +330,13 @@ export default function TasksPage() {
   }
 
   return (
-    <div className="container p-4 mx-auto">
-      <PageHeader
-        title="Tasks"
-        description="Manage your tasks and track your daily progress"
-        className="mb-8"
-      />
+    <DashboardLayout>
+      <div className="container p-4 mx-auto">
+        <PageHeader
+          title="Tasks"
+          description="Manage your tasks and track your daily progress"
+          className="mb-8"
+        />
 
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <div className="flex flex-wrap gap-2">
@@ -655,6 +657,7 @@ export default function TasksPage() {
           <TaskForm userId={user.id} onSuccess={() => setIsCreateDialogOpen(false)} />
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }
