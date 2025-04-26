@@ -7,7 +7,9 @@ import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
-import { User as SelectUser } from "@shared/schema";
+import { User as SelectUser, users as usersTable } from "@shared/schema";
+import { db } from "./db";
+import { eq, and, gt } from "drizzle-orm";
 
 declare global {
   namespace Express {
@@ -228,7 +230,8 @@ export async function setupAuth(app: Express) {
                 lastName: profile.name?.lastName || '',
                 email: profile.emails?.[0]?.value || '',
                 provider: 'apple',
-                providerId: profile.id
+                providerId: profile.id,
+                isVerified: true // Apple already verifies emails
               });
             }
             
@@ -248,25 +251,64 @@ export async function setupAuth(app: Express) {
   });
 
   app.post("/api/register", async (req, res, next) => {
-    const existingUser = await storage.getUserByUsername(req.body.username);
-    if (existingUser) {
-      return res.status(400).send("Username already exists");
+    // Use email as username if not provided
+    if (!req.body.username && req.body.email) {
+      req.body.username = req.body.email;
     }
-
+    
+    // Check if username exists
+    const existingUsername = await storage.getUserByUsername(req.body.username);
+    if (existingUsername) {
+      return res.status(400).json({ error: "Username already exists" });
+    }
+    
+    // Check if email exists
+    if (req.body.email) {
+      const existingEmail = await storage.getUserByEmail(req.body.email);
+      if (existingEmail) {
+        return res.status(400).json({ error: "Email already exists" });
+      }
+    }
+    
+    // Generate verification token
+    const verificationToken = randomBytes(20).toString('hex');
+    
+    // Create user with verification token
     const user = await storage.createUser({
       ...req.body,
       password: await hashPassword(req.body.password),
-      provider: 'local'
+      provider: 'local',
+      isVerified: false,
+      verificationToken
     });
-
+    
+    // TODO: Send verification email
+    // We'll mock this for now, but in a real application, you'd send an email with a link
+    // to /api/verify-email/{token}
+    
+    console.log(`Verification link: ${process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : 'http://localhost:5000'}/api/verify-email/${verificationToken}`);
+    
+    // Auto-login the user after registration
     req.login(user, (err) => {
       if (err) return next(err);
-      res.status(201).json(user);
+      
+      // Don't send password back to client
+      const { password, ...userWithoutPassword } = user;
+      res.status(201).json({
+        ...userWithoutPassword,
+        verificationRequired: true
+      });
     });
   });
 
   app.post("/api/login", (req, res, next) => {
     console.log("Login attempt for username:", req.body.username);
+    
+    // Try to use email as username if provided
+    if (req.body.email && !req.body.username) {
+      req.body.username = req.body.email;
+    }
+    
     passport.authenticate("local", (err: Error | null, user: SelectUser | false, info: any) => {
       if (err) {
         console.error("Login error:", err);
@@ -277,13 +319,26 @@ export async function setupAuth(app: Express) {
         return res.status(401).json({ message: "Authentication failed" });
       }
       
+      // Check if user is verified (unless they're logging in with a social provider or admin)
+      if (user.provider === 'local' && !user.isAdmin && !user.isVerified) {
+        console.log("Login attempted with unverified account:", user.id);
+        return res.status(403).json({ 
+          message: "Email verification required", 
+          verificationRequired: true,
+          userId: user.id
+        });
+      }
+      
       req.login(user, (loginErr: Error | null) => {
         if (loginErr) {
           console.error("Session login error:", loginErr);
           return next(loginErr);
         }
         console.log("Login successful for user ID:", user.id);
-        return res.status(200).json(user);
+        
+        // Don't send the password back to the client
+        const { password, ...userWithoutPassword } = user;
+        return res.status(200).json(userWithoutPassword);
       });
     })(req, res, next);
   });
@@ -297,7 +352,153 @@ export async function setupAuth(app: Express) {
 
   app.get("/api/user", (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    res.json(req.user);
+    
+    // Don't send password back to client
+    const { password, ...userWithoutPassword } = req.user;
+    res.json(userWithoutPassword);
+  });
+  
+  // Email verification route
+  app.get("/api/verify-email/:token", async (req, res) => {
+    try {
+      const token = req.params.token;
+      
+      // Find user with this verification token
+      const users = await db.select().from(usersTable).where(eq(usersTable.verificationToken, token));
+      
+      if (users.length === 0) {
+        return res.status(400).json({ error: "Invalid verification token" });
+      }
+      
+      const user = users[0];
+      
+      // Update user to verified status
+      const verifiedUser = await storage.verifyUser(user.id);
+      
+      // Auto-login the user
+      req.login(verifiedUser, (err) => {
+        if (err) {
+          return res.status(500).json({ error: "Error during login" });
+        }
+        
+        // Redirect to home page or specified redirect URL
+        const redirectUrl = req.query.redirect || "/";
+        res.redirect(redirectUrl as string);
+      });
+    } catch (error) {
+      console.error("Error verifying email:", error);
+      res.status(500).json({ error: "An error occurred during verification" });
+    }
+  });
+  
+  // Request password reset route
+  app.post("/api/forgot-password", async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ error: "Email is required" });
+      }
+      
+      // Find user with this email
+      const user = await storage.getUserByEmail(email);
+      
+      if (!user) {
+        // Don't reveal if user exists for security reasons
+        return res.status(200).json({ message: "If an account with that email exists, a password reset link has been sent." });
+      }
+      
+      // Generate reset token
+      const resetToken = randomBytes(20).toString('hex');
+      const resetExpires = new Date(Date.now() + 3600000); // 1 hour
+      
+      // Update user with reset token and expiry
+      await db.update(usersTable)
+        .set({
+          resetPasswordToken: resetToken,
+          resetPasswordExpires: resetExpires
+        })
+        .where(eq(usersTable.id, user.id));
+      
+      // TODO: Send password reset email
+      // In a real application, you'd send an email with a link to /reset-password/{token}
+      
+      console.log(`Password reset link: ${process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : 'http://localhost:5000'}/reset-password/${resetToken}`);
+      
+      res.status(200).json({ message: "If an account with that email exists, a password reset link has been sent." });
+    } catch (error) {
+      console.error("Error requesting password reset:", error);
+      res.status(500).json({ error: "An error occurred" });
+    }
+  });
+  
+  // Reset password route - validates token
+  app.get("/api/reset-password/:token", async (req, res) => {
+    try {
+      const token = req.params.token;
+      
+      // Find user with this reset token and check if token is expired
+      const users = await db.select()
+        .from(usersTable)
+        .where(
+          and(
+            eq(usersTable.resetPasswordToken, token),
+            gt(usersTable.resetPasswordExpires as any, new Date())
+          )
+        );
+      
+      if (users.length === 0) {
+        return res.status(400).json({ error: "Password reset token is invalid or has expired" });
+      }
+      
+      // Token is valid
+      res.status(200).json({ message: "Token is valid", userId: users[0].id });
+    } catch (error) {
+      console.error("Error validating reset token:", error);
+      res.status(500).json({ error: "An error occurred" });
+    }
+  });
+  
+  // Reset password route - updates password
+  app.post("/api/reset-password/:token", async (req, res) => {
+    try {
+      const { password } = req.body;
+      const token = req.params.token;
+      
+      if (!password) {
+        return res.status(400).json({ error: "Password is required" });
+      }
+      
+      // Find user with this reset token and check if token is expired
+      const users = await db.select()
+        .from(usersTable)
+        .where(
+          and(
+            eq(usersTable.resetPasswordToken, token),
+            gt(usersTable.resetPasswordExpires as any, new Date())
+          )
+        );
+      
+      if (users.length === 0) {
+        return res.status(400).json({ error: "Password reset token is invalid or has expired" });
+      }
+      
+      const user = users[0];
+      
+      // Update user's password and clear reset token
+      await db.update(usersTable)
+        .set({
+          password: await hashPassword(password),
+          resetPasswordToken: null,
+          resetPasswordExpires: null
+        })
+        .where(eq(usersTable.id, user.id));
+      
+      res.status(200).json({ message: "Password has been reset" });
+    } catch (error) {
+      console.error("Error resetting password:", error);
+      res.status(500).json({ error: "An error occurred" });
+    }
   });
   
   // Google OAuth routes
@@ -365,7 +566,8 @@ export async function setupAuth(app: Express) {
                   email: profile.emails?.[0]?.value || '',
                   avatar: profile.photos?.[0]?.value || '',
                   provider: 'google',
-                  providerId: profile.id
+                  providerId: profile.id,
+                  isVerified: true // Google already verifies emails
                 });
               }
               
