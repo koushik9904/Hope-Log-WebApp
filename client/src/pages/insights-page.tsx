@@ -17,6 +17,12 @@ import {
   TabsList, 
   TabsTrigger 
 } from "@/components/ui/tabs";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { 
   Select, 
   SelectContent, 
@@ -85,7 +91,10 @@ export default function InsightsPage() {
           <div className="flex items-center gap-3">
             <Select
               value={timeframe}
-              onValueChange={setTimeframe}
+              onValueChange={(value) => {
+                setTimeframe(value);
+                setActiveTab(prevTab => prevTab); // Force re-render
+              }}
             >
               <SelectTrigger className="w-32 bg-white">
                 <SelectValue placeholder="Timeframe" />
@@ -98,10 +107,19 @@ export default function InsightsPage() {
               </SelectContent>
             </Select>
             
-            <Button variant="outline" className="gap-2 bg-white">
-              <Calendar className="h-4 w-4" />
-              Custom Range
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" className="gap-2 bg-white">
+                    <Calendar className="h-4 w-4" />
+                    Custom Range
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Custom date range coming soon!</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
         

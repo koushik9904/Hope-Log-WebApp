@@ -293,7 +293,9 @@ export function MoodAnalytics({ moods, entries, timeframe = "week", isLoading, c
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <InfoIcon className="h-4 w-4 text-gray-400 cursor-help" />
+                    <button type="button">
+                      <InfoIcon className="h-4 w-4 text-gray-400 cursor-help" />
+                    </button>
                   </TooltipTrigger>
                   <TooltipContent className="w-80 p-4">
                     <p className="font-medium mb-1">About Mood Ratings:</p>
