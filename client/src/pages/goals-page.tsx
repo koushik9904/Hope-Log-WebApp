@@ -343,16 +343,26 @@ export default function GoalsPage() {
     return 'daily'; // Default to daily
   };
   
-  // Filter out AI-suggested goals that already exist
+  // Filter out AI-suggested goals that already exist or are similar to existing goals
   useEffect(() => {
     if (goals.length > 0) {
-      // Filter out AI goals that already exist in the user's goals
-      const filteredGoals = aiSuggestedGoals.filter(aiGoal => 
-        !goals.some(userGoal => 
-          // Case-insensitive name comparison
-          userGoal.name.toLowerCase() === aiGoal.name.toLowerCase()
-        )
-      );
+      // Use a more comprehensive filtering approach
+      const filteredGoals = aiSuggestedGoals.filter(aiGoal => {
+        // Convert goal names to lowercase for comparison
+        const aiGoalName = aiGoal.name.toLowerCase();
+        
+        // Check if any existing goal name contains this suggested goal or vice versa
+        return !goals.some(userGoal => {
+          const userGoalName = userGoal.name.toLowerCase();
+          return userGoalName.includes(aiGoalName) || 
+                 aiGoalName.includes(userGoalName) ||
+                 // Also check for similar keywords
+                 (aiGoalName.includes("meditate") && userGoalName.includes("meditat")) ||
+                 (aiGoalName.includes("read") && userGoalName.includes("read")) ||
+                 (aiGoalName.includes("learn") && userGoalName.includes("learn"));
+        });
+      });
+      
       setFilteredAiSuggestedGoals(filteredGoals);
     } else {
       setFilteredAiSuggestedGoals(aiSuggestedGoals);
@@ -612,12 +622,23 @@ export default function GoalsPage() {
   
   // Calculate filtered AI habits - this variable will be used directly 
   // instead of storing it in state to avoid duplication
-  const filteredAiSuggestedHabits = aiSuggestedHabits.filter(aiHabit => 
-    !habits.some(userHabit => 
-      // Case-insensitive title comparison
-      userHabit.title.toLowerCase() === aiHabit.title.toLowerCase()
-    )
-  );
+  const filteredAiSuggestedHabits = aiSuggestedHabits.filter(aiHabit => {
+    // Convert habit titles to lowercase for comparison
+    const aiHabitTitle = aiHabit.title.toLowerCase();
+    
+    return !habits.some(userHabit => {
+      const userHabitTitle = userHabit.title.toLowerCase();
+      
+      // More comprehensive filtering to catch similar habits
+      return userHabitTitle.includes(aiHabitTitle) || 
+             aiHabitTitle.includes(userHabitTitle) ||
+             // Also check for keyword similarities
+             (aiHabitTitle.includes("water") && userHabitTitle.includes("water")) ||
+             (aiHabitTitle.includes("walk") && userHabitTitle.includes("walk")) ||
+             (aiHabitTitle.includes("meditate") && userHabitTitle.includes("meditat")) ||
+             (aiHabitTitle.includes("read") && userHabitTitle.includes("read"));
+    });
+  });
   
   // Toggle habit completion mutation
   const toggleHabitMutation = useMutation({
