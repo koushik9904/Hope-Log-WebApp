@@ -318,7 +318,7 @@ export default function InsightsPage() {
                               <div className="border border-gray-200 rounded-lg p-3 bg-white">
                                 <h5 className="font-medium text-sm mb-2">Tasks Completed</h5>
                                 <div className="text-2xl font-bold">
-                                  {tasks.filter(t => t.status === 'completed').length}
+                                  {tasks.filter(t => t.completed).length}
                                 </div>
                                 <div className="text-sm text-gray-500">
                                   of {tasks.length} total tasks
@@ -328,7 +328,7 @@ export default function InsightsPage() {
                               <div className="border border-gray-200 rounded-lg p-3 bg-white">
                                 <h5 className="font-medium text-sm mb-2">High Priority Completion</h5>
                                 <div className="text-2xl font-bold">
-                                  {Math.round((tasks.filter(t => t.priority === 'high' && t.status === 'completed').length / 
+                                  {Math.round((tasks.filter(t => t.priority === 'high' && t.completed).length / 
                                     (tasks.filter(t => t.priority === 'high').length || 1)) * 100)}%
                                 </div>
                                 <div className="text-sm text-gray-500">
@@ -367,7 +367,7 @@ export default function InsightsPage() {
                                 <h5 className="font-medium text-sm mb-2">Active Habits</h5>
                                 <div className="flex justify-between items-center">
                                   <span className="text-2xl font-bold">
-                                    {habits.filter(h => !h.deleted).length}
+                                    {habits.filter(h => !h.deletedAt).length}
                                   </span>
                                   <div className="text-sm text-gray-500">
                                     Currently tracking
