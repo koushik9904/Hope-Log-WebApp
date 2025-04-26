@@ -143,7 +143,10 @@ export class DatabaseStorage implements IStorage {
   async verifyUser(id: number): Promise<User> {
     const result = await db
       .update(users)
-      .set({ isVerified: true })
+      .set({ 
+        isVerified: true,
+        verificationToken: null 
+      })
       .where(eq(users.id, id))
       .returning();
       

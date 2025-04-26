@@ -416,7 +416,7 @@ export async function setupAuth(app: Express) {
       await db.update(usersTable)
         .set({
           resetPasswordToken: resetToken,
-          resetPasswordExpires: resetExpires
+          resetPasswordExpires: resetExpires.toISOString()
         })
         .where(eq(usersTable.id, user.id));
       
@@ -443,7 +443,7 @@ export async function setupAuth(app: Express) {
         .where(
           and(
             eq(usersTable.resetPasswordToken, token),
-            gt(usersTable.resetPasswordExpires as any, new Date())
+            gt(usersTable.resetPasswordExpires, new Date().toISOString())
           )
         );
       
@@ -475,7 +475,7 @@ export async function setupAuth(app: Express) {
         .where(
           and(
             eq(usersTable.resetPasswordToken, token),
-            gt(usersTable.resetPasswordExpires as any, new Date())
+            gt(usersTable.resetPasswordExpires, new Date().toISOString())
           )
         );
       
