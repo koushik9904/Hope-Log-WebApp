@@ -160,7 +160,8 @@ export function GoalsHabits({ userId }: GoalsHabitsProps) {
                   <div key={goal.id} className="bg-[#FFF8E8] p-4 rounded-2xl border border-gray-100">
                     <div className="flex justify-between items-center mb-1">
                       <h3 className="text-base font-semibold text-gray-800">{goal.name}</h3>
-                      <Badge variant={goal.status === "completed" ? "success" : "outline"}>
+                      <Badge variant={goal.status === "completed" ? "default" : "outline"} 
+                        className={goal.status === "completed" ? "bg-green-500 hover:bg-green-600" : ""}>
                         {goal.status === "not_started" ? "Not Started" : 
                           goal.status === "completed" ? "Completed" : 
                           goal.status === "cancelled" ? "Cancelled" : "In Progress"}

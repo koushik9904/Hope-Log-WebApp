@@ -3,13 +3,14 @@ import {
   JournalEntry, InsertJournalEntry, 
   Mood, InsertMood, 
   Goal, InsertGoal, 
+  Task, InsertTask,
   Habit, InsertHabit,
   Prompt, InsertPrompt, 
   Summary, InsertSummary, 
   Notification, InsertNotification,
   NotificationPreferences, InsertNotificationPreferences,
   SystemSettings, InsertSystemSettings,
-  users, journalEntries, moods, goals, habits, prompts, summaries,
+  users, journalEntries, moods, goals, tasks, habits, prompts, summaries,
   notifications, notificationPreferences, systemSettings
 } from "@shared/schema";
 import session from "express-session";
@@ -56,6 +57,15 @@ export interface IStorage {
   createGoal(goal: InsertGoal): Promise<Goal>;
   updateGoalProgress(id: number, progress: number): Promise<Goal>;
   deleteGoal(id: number): Promise<void>;
+  
+  // Task methods
+  getTasksByUserId(userId: number): Promise<Task[]>;
+  getTaskById(id: number): Promise<Task | undefined>;
+  createTask(task: InsertTask): Promise<Task>;
+  updateTask(id: number, task: Partial<Task>): Promise<Task>;
+  deleteTask(id: number): Promise<void>;
+  getCompletedTasksByUserId(userId: number): Promise<Task[]>;
+  getTasksByGoalId(goalId: number): Promise<Task[]>;
   
   // Habit methods
   getHabitsByUserId(userId: number): Promise<Habit[]>;
@@ -382,6 +392,97 @@ export class DatabaseStorage implements IStorage {
     await db
       .delete(goals)
       .where(eq(goals.id, id));
+  }
+  
+  // Task methods
+  async getTasksByUserId(userId: number): Promise<Task[]> {
+    return await db
+      .select()
+      .from(tasks)
+      .where(
+        and(
+          eq(tasks.userId, userId),
+          isNull(tasks.deletedAt)
+        )
+      )
+      .orderBy(desc(tasks.createdAt));
+  }
+  
+  async getTaskById(id: number): Promise<Task | undefined> {
+    const result = await db
+      .select()
+      .from(tasks)
+      .where(eq(tasks.id, id));
+      
+    return result[0];
+  }
+  
+  async createTask(task: InsertTask): Promise<Task> {
+    const result = await db
+      .insert(tasks)
+      .values(task)
+      .returning();
+      
+    return result[0];
+  }
+  
+  async updateTask(id: number, taskUpdate: Partial<Task>): Promise<Task> {
+    // If we're marking it completed, set the completedAt date
+    if (taskUpdate.completed === true && !taskUpdate.completedAt) {
+      taskUpdate.completedAt = new Date().toISOString();
+    }
+    
+    // If we're marking it incomplete, clear the completedAt date
+    if (taskUpdate.completed === false) {
+      taskUpdate.completedAt = null;
+    }
+    
+    const result = await db
+      .update(tasks)
+      .set(taskUpdate)
+      .where(eq(tasks.id, id))
+      .returning();
+      
+    if (result.length === 0) {
+      throw new Error(`Task with id ${id} not found`);
+    }
+    
+    return result[0];
+  }
+  
+  async deleteTask(id: number): Promise<void> {
+    // Soft delete
+    await db
+      .update(tasks)
+      .set({ deletedAt: new Date().toISOString() })
+      .where(eq(tasks.id, id));
+  }
+  
+  async getCompletedTasksByUserId(userId: number): Promise<Task[]> {
+    return await db
+      .select()
+      .from(tasks)
+      .where(
+        and(
+          eq(tasks.userId, userId),
+          eq(tasks.completed, true),
+          isNull(tasks.deletedAt)
+        )
+      )
+      .orderBy(desc(tasks.completedAt));
+  }
+  
+  async getTasksByGoalId(goalId: number): Promise<Task[]> {
+    return await db
+      .select()
+      .from(tasks)
+      .where(
+        and(
+          eq(tasks.goalId, goalId),
+          isNull(tasks.deletedAt)
+        )
+      )
+      .orderBy(desc(tasks.createdAt));
   }
   
   // Habit methods

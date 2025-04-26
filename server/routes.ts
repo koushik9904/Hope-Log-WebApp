@@ -25,6 +25,10 @@ import { User } from "@shared/schema";
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes
   await setupAuth(app);
+  
+  // Setup task and habit routes
+  setupTaskRoutes(app);
+  setupHabitRoutes(app);
 
   // User API
   app.get("/api/users/:id", async (req, res) => {
