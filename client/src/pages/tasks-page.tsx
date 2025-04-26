@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/use-auth';
-import { Plus, Filter, Lightbulb, Check, X, AlertCircle } from 'lucide-react';
+import { Plus, Filter, Lightbulb, Check, X, AlertCircle, SortAsc, SortDesc, Calendar, CalendarCheck, CalendarDays } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -15,6 +15,9 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { format, addDays, subDays, startOfDay, endOfDay, isWithinInterval } from 'date-fns';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,6 +25,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
+  DropdownMenuGroup,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
 } from '@/components/ui/dropdown-menu';
 
 // Example AI-suggested tasks
@@ -74,6 +84,17 @@ export default function TasksPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedGoalId, setSelectedGoalId] = useState<number | null>(null);
   const [filter, setFilter] = useState<'all' | 'completed' | 'pending'>('all');
+  const [sortBy, setSortBy] = useState<'dueDate' | 'priority' | 'createdAt'>('dueDate');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [dateRangeOpen, setDateRangeOpen] = useState(false);
+  const [dateRange, setDateRange] = useState<{
+    from: Date | undefined;
+    to: Date | undefined;
+  }>({
+    from: undefined,
+    to: undefined,
+  });
+  const [dateFilterActive, setDateFilterActive] = useState(false);
   const [aiSuggestedTasks, setAiSuggestedTasks] = useState<typeof AI_SUGGESTED_TASKS>([]);
   const [aiSuggestedGoals, setAiSuggestedGoals] = useState<{
     id: string;
@@ -162,6 +183,34 @@ export default function TasksPage() {
     if (name.includes('when you can') || name.includes('consider') || name.includes('maybe'))
       return 'low';
     return 'medium'; // Default
+  };
+  
+  // Helper function for clearing date filters
+  const clearDateFilter = () => {
+    setDateRange({ from: undefined, to: undefined });
+    setDateFilterActive(false);
+  };
+  
+  // Helper function to check if a date is within the selected range
+  const isDateInRange = (date: string | null | undefined) => {
+    if (!date || !dateRange.from) return true; // If no date or no filter, include it
+    
+    const taskDate = new Date(date);
+    
+    if (dateRange.from && !dateRange.to) {
+      // If only "from" date is set, check if task date is after or equal to "from"
+      return taskDate >= startOfDay(dateRange.from);
+    }
+    
+    if (dateRange.from && dateRange.to) {
+      // If both "from" and "to" dates are set, check if task date is within the range
+      return isWithinInterval(taskDate, {
+        start: startOfDay(dateRange.from),
+        end: endOfDay(dateRange.to)
+      });
+    }
+    
+    return true;
   };
   
   // Add suggested task mutation
@@ -289,11 +338,16 @@ export default function TasksPage() {
 
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <div className="flex flex-wrap gap-2">
+          {/* Goal Filter Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="gap-1">
                 <Filter className="h-4 w-4" />
-                Filter by Goal
+                {selectedGoalId === null 
+                  ? "Filter by Goal" 
+                  : selectedGoalId === 0 
+                    ? "Tasks without Goal" 
+                    : `Goal: ${goals.find(g => g.id === selectedGoalId)?.name?.substring(0, 15) || "Selected"}`}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
@@ -314,6 +368,7 @@ export default function TasksPage() {
             </DropdownMenuContent>
           </DropdownMenu>
 
+          {/* Status Filter Tabs */}
           <Tabs defaultValue="all" onValueChange={(value) => setFilter(value as any)}>
             <TabsList className="h-9">
               <TabsTrigger value="all">All</TabsTrigger>
@@ -321,6 +376,100 @@ export default function TasksPage() {
               <TabsTrigger value="completed">Completed</TabsTrigger>
             </TabsList>
           </Tabs>
+          
+          {/* Date Range Filter */}
+          <Popover open={dateRangeOpen} onOpenChange={setDateRangeOpen}>
+            <PopoverTrigger asChild>
+              <Button 
+                variant={dateFilterActive ? "default" : "outline"} 
+                size="sm" 
+                className={`gap-1 ${dateFilterActive ? "bg-[#9AAB63] hover:bg-[#8a9a58]" : ""}`}
+              >
+                <CalendarDays className="h-4 w-4" />
+                {dateFilterActive 
+                  ? `${format(dateRange.from!, 'MMM d')}${dateRange.to ? ` - ${format(dateRange.to, 'MMM d')}` : ''}` 
+                  : "Date Range"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <div className="p-3 border-b">
+                <h3 className="font-medium text-sm">Select Date Range</h3>
+                <p className="text-xs text-muted-foreground mt-1">Filter tasks by due date</p>
+              </div>
+              <CalendarComponent
+                initialFocus
+                mode="range"
+                selected={{
+                  from: dateRange.from,
+                  to: dateRange.to
+                }}
+                onSelect={(range) => {
+                  setDateRange(range || { from: undefined, to: undefined });
+                  setDateFilterActive(!!range?.from);
+                }}
+                numberOfMonths={1}
+                disabled={{ before: subDays(new Date(), 365), after: addDays(new Date(), 365) }}
+              />
+              {dateFilterActive && (
+                <div className="p-3 border-t flex justify-end">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={clearDateFilter}
+                  >
+                    Clear
+                  </Button>
+                </div>
+              )}
+            </PopoverContent>
+          </Popover>
+          
+          {/* Sort Options */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-1">
+                {sortDirection === 'asc' ? <SortAsc className="h-4 w-4" /> : <SortDesc className="h-4 w-4" />}
+                Sort
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuLabel>Sort Tasks</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              
+              <DropdownMenuGroup>
+                <DropdownMenuRadioGroup value={sortBy} onValueChange={(value) => setSortBy(value as any)}>
+                  <DropdownMenuRadioItem value="dueDate">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Due Date
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="priority">
+                    <AlertCircle className="h-4 w-4 mr-2" />
+                    Priority
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="createdAt">
+                    <Clock className="h-4 w-4 mr-2" />
+                    Date Created
+                  </DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+              </DropdownMenuGroup>
+              
+              <DropdownMenuSeparator />
+              
+              <DropdownMenuItem onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}>
+                {sortDirection === 'asc' ? (
+                  <>
+                    <SortAsc className="h-4 w-4 mr-2" />
+                    Ascending
+                  </>
+                ) : (
+                  <>
+                    <SortDesc className="h-4 w-4 mr-2" />
+                    Descending
+                  </>
+                )}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         <Button onClick={() => setIsCreateDialogOpen(true)} size="sm" className="gap-1">
@@ -479,7 +628,14 @@ export default function TasksPage() {
             ? 'Tasks without Goal'
             : `Tasks for: ${goals.find((g) => g.id === selectedGoalId)?.name || 'Selected Goal'}`}
         </h2>
-        <TaskList userId={user.id} selectedGoalId={selectedGoalId} />
+        <TaskList 
+          userId={user.id} 
+          selectedGoalId={selectedGoalId} 
+          statusFilter={filter}
+          sortBy={sortBy}
+          sortDirection={sortDirection}
+          dateRange={dateFilterActive ? dateRange : undefined}
+        />
       </div>
 
       {/* Create Task Dialog */}
