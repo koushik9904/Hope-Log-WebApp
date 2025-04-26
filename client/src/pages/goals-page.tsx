@@ -62,6 +62,7 @@ import {
   X,
   MoreHorizontal
 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
