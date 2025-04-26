@@ -36,7 +36,7 @@ const STANDARD_AVATARS = [
 
 export interface AvatarSelectorProps {
   userId: number;
-  currentAvatar?: string | null;
+  currentAvatar?: string | null | undefined;
   onAvatarChange: (avatarUrl: string) => void;
 }
 
@@ -201,7 +201,7 @@ export function AvatarSelector({ userId, currentAvatar, onAvatarChange }: Avatar
   return (
     <div className="flex items-center gap-4">
       <div className="w-24 h-24 rounded-full bg-[#FFF8E8] flex items-center justify-center text-[#F5B8DB] overflow-hidden">
-        {currentAvatar ? (
+        {currentAvatar && typeof currentAvatar === 'string' && currentAvatar.length > 0 ? (
           <img
             src={currentAvatar}
             alt="Profile"

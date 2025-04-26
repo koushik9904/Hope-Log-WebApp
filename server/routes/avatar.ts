@@ -1,12 +1,11 @@
 import { Express, Request, Response } from "express";
-import { storage } from "../storage";
 import multer from "multer";
-import fs from "fs";
-import path from "path";
-import { v4 as uuidv4 } from "uuid";
-import OpenAI from "openai";
+import * as path from "path";
+import * as fs from "fs";
+import { storage } from "../storage";
+import { OpenAI } from "openai";
 
-// Add multer to Express Request type
+// Define custom Request type for multer
 declare global {
   namespace Express {
     interface Request {
@@ -15,85 +14,69 @@ declare global {
   }
 }
 
-// Create uploads directory if it doesn't exist
-const uploadsDir = path.join(process.cwd(), "public", "uploads");
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
-// Create standard avatars directory if it doesn't exist
-const standardAvatarsDir = path.join(process.cwd(), "public", "avatars");
-if (!fs.existsSync(standardAvatarsDir)) {
-  fs.mkdirSync(standardAvatarsDir, { recursive: true });
-}
+// Initialize OpenAI client using environment variable
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 // Configure multer for file uploads
 const upload = multer({
-  storage: multer.diskStorage({
-    destination: (_req: any, _file: any, cb: any) => {
-      cb(null, uploadsDir);
-    },
-    filename: (_req: any, file: any, cb: any) => {
-      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-      const ext = path.extname(file.originalname);
-      cb(null, `avatar-${uniqueSuffix}${ext}`);
-    },
-  }),
+  storage: multer.memoryStorage(),
   limits: {
-    fileSize: 2 * 1024 * 1024, // 2MB max file size
+    fileSize: 2 * 1024 * 1024, // 2MB file size limit
   },
-  fileFilter: (_req: any, file: any, cb: any) => {
-    // Accept only images
-    if (file.mimetype.startsWith('image/')) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only image files are allowed') as any);
+  fileFilter: (_req, file, cb) => {
+    // Accept only image files
+    const filetypes = /jpeg|jpg|png|gif/;
+    const mimetype = filetypes.test(file.mimetype);
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+    
+    if (mimetype && extname) {
+      return cb(null, true);
     }
-  },
+    cb(new Error("Error: File upload only supports image files"));
+  }
 });
 
-// Initialize OpenAI
-let openai: OpenAI | null = null;
-if (process.env.OPENAI_API_KEY) {
-  openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
+// Ensure avatar directories exist
+const ensureAvatarDirs = () => {
+  const uploadDir = path.join(process.cwd(), 'public', 'avatars');
+  const uploadsDir = path.join(uploadDir, 'uploads');
+  const generatedDir = path.join(uploadDir, 'generated');
+  const standardDir = path.join(uploadDir, 'standard');
+  
+  [uploadDir, uploadsDir, generatedDir, standardDir].forEach(dir => {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+      console.log(`Created directory: ${dir}`);
+    }
   });
-}
+};
 
 export function registerAvatarRoutes(app: Express): void {
-  // Upload avatar
+  // Ensure avatar directories exist
+  ensureAvatarDirs();
+  
+  // Upload custom avatar
   app.post("/api/users/:id/avatar", upload.single("avatar"), async (req: Request, res: Response) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const userId = Number(req.params.id);
+    if (req.user?.id !== userId && !req.user?.isAdmin) return res.sendStatus(403);
+    
     try {
-      const userId = parseInt(req.params.id);
-      
-      // Check if user exists
-      const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(404).json({ error: "User not found" });
-      }
-      
-      // Check if the logged-in user is updating their own profile
-      if (req.user?.id !== userId) {
-        return res.status(403).json({ error: "Unauthorized to update this profile" });
-      }
-      
-      // Check if file was uploaded
       if (!req.file) {
         return res.status(400).json({ error: "No file uploaded" });
       }
       
-      // Create avatar URL
-      const avatarUrl = `/uploads/${req.file.filename}`;
+      // Create unique filename
+      const fileExt = path.extname(req.file.originalname).toLowerCase();
+      const filename = `${userId}_${Date.now()}${fileExt}`;
+      const avatarPath = path.join(process.cwd(), 'public', 'avatars', 'uploads', filename);
       
-      // If user had a previous avatar, delete it (if it was in the uploads folder)
-      if (user.avatar && user.avatar.startsWith('/uploads/')) {
-        const oldAvatarPath = path.join(process.cwd(), "public", user.avatar);
-        if (fs.existsSync(oldAvatarPath)) {
-          fs.unlinkSync(oldAvatarPath);
-        }
-      }
+      // Save file to disk
+      fs.writeFileSync(avatarPath, req.file.buffer);
       
-      // Update user avatar in database
+      // Update user's avatar in database
+      const avatarUrl = `/public/avatars/uploads/${filename}`;
       await storage.updateUser(userId, { avatar: avatarUrl });
       
       res.status(200).json({ avatarUrl });
@@ -105,69 +88,42 @@ export function registerAvatarRoutes(app: Express): void {
   
   // Delete avatar
   app.delete("/api/users/:id/avatar", async (req: Request, res: Response) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const userId = Number(req.params.id);
+    if (req.user?.id !== userId && !req.user?.isAdmin) return res.sendStatus(403);
+    
     try {
-      const userId = parseInt(req.params.id);
-      
-      // Check if user exists
       const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(404).json({ error: "User not found" });
+      if (!user || !user.avatar) {
+        return res.status(404).json({ error: "User or avatar not found" });
       }
       
-      // Check if the logged-in user is updating their own profile
-      if (req.user?.id !== userId) {
-        return res.status(403).json({ error: "Unauthorized to update this profile" });
-      }
-      
-      // If user had a previous avatar, delete it (if it was in the uploads folder)
-      if (user.avatar && user.avatar.startsWith('/uploads/')) {
-        const oldAvatarPath = path.join(process.cwd(), "public", user.avatar);
-        if (fs.existsSync(oldAvatarPath)) {
-          fs.unlinkSync(oldAvatarPath);
-        }
-      }
-      
-      // Update user avatar in database
+      // Update user's avatar in database
       await storage.updateUser(userId, { avatar: null });
       
       res.status(200).json({ message: "Avatar removed successfully" });
     } catch (error) {
-      console.error("Error deleting avatar:", error);
-      res.status(500).json({ error: "Failed to delete avatar" });
+      console.error("Error removing avatar:", error);
+      res.status(500).json({ error: "Failed to remove avatar" });
     }
   });
   
   // Set standard avatar
   app.post("/api/users/:id/avatar/standard", async (req: Request, res: Response) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const userId = Number(req.params.id);
+    if (req.user?.id !== userId && !req.user?.isAdmin) return res.sendStatus(403);
+    
     try {
-      const userId = parseInt(req.params.id);
       const { avatarUrl } = req.body;
       
-      // Check if user exists
-      const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(404).json({ error: "User not found" });
+      if (!avatarUrl) {
+        return res.status(400).json({ error: "Avatar URL is required" });
       }
       
-      // Check if the logged-in user is updating their own profile
-      if (req.user?.id !== userId) {
-        return res.status(403).json({ error: "Unauthorized to update this profile" });
-      }
-      
-      // Validate that it's a standard avatar
-      if (!avatarUrl.startsWith('/avatars/')) {
-        return res.status(400).json({ error: "Invalid standard avatar URL" });
-      }
-      
-      // If user had a previous custom avatar, delete it
-      if (user.avatar && user.avatar.startsWith('/uploads/')) {
-        const oldAvatarPath = path.join(process.cwd(), "public", user.avatar);
-        if (fs.existsSync(oldAvatarPath)) {
-          fs.unlinkSync(oldAvatarPath);
-        }
-      }
-      
-      // Update user avatar in database
+      // Update user's avatar in database (using the DiceBear URL directly)
       await storage.updateUser(userId, { avatar: avatarUrl });
       
       res.status(200).json({ avatarUrl });
@@ -177,8 +133,10 @@ export function registerAvatarRoutes(app: Express): void {
     }
   });
   
-  // Generate AI avatar
+  // Generate AI avatars with OpenAI
   app.post("/api/avatar/generate", async (req: Request, res: Response) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
     try {
       const { prompt } = req.body;
       
@@ -186,100 +144,73 @@ export function registerAvatarRoutes(app: Express): void {
         return res.status(400).json({ error: "Prompt is required" });
       }
       
-      if (!openai) {
-        return res.status(503).json({ error: "OpenAI service not available" });
+      // Check if OpenAI API key is available
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(500).json({ error: "OpenAI API key not configured" });
       }
       
       // Generate avatars using DALL-E
       const response = await openai.images.generate({
         model: "dall-e-3",
-        prompt: `A professional avatar portrait with this description: ${prompt}. Make it a close-up, front-facing portrait suitable for a profile picture. Centered composition with soft lighting.`,
+        prompt: `Create a high-quality profile picture avatar based on this description: ${prompt}. The image should be suitable for a profile picture, with a clean background and clear facial features if it's a person. Make it stylish and professional.`,
         n: 1,
         size: "1024x1024",
-        style: "natural",
+        quality: "standard",
       });
       
-      // Get the URLs
-      const avatarUrls = response.data.map(image => image.url || "");
-      
-      // Save images to local filesystem
-      const savedAvatars = await Promise.all(
-        avatarUrls.map(async (url) => {
-          if (!url) return "";
-          
-          const fileName = `ai-avatar-${uuidv4()}.png`;
-          const filePath = path.join(uploadsDir, fileName);
-          
-          // Download the image
-          const imageResponse = await fetch(url);
-          const buffer = Buffer.from(await imageResponse.arrayBuffer());
-          
-          // Save to disk
-          fs.writeFileSync(filePath, buffer);
-          
-          return `/uploads/${fileName}`;
-        })
-      );
-      
-      res.status(200).json({ avatars: savedAvatars.filter(url => url) });
+      // Return generated avatar URLs
+      res.status(200).json({ 
+        avatars: response.data.map(item => item.url)
+      });
     } catch (error) {
-      console.error("Error generating AI avatar:", error);
-      res.status(500).json({ error: "Failed to generate avatar" });
+      console.error("Error generating AI avatars:", error);
+      res.status(500).json({ error: "Failed to generate avatars" });
     }
   });
   
-  // Set generated avatar
+  // Save AI-generated avatar
   app.post("/api/users/:id/avatar/generated", async (req: Request, res: Response) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const userId = Number(req.params.id);
+    if (req.user?.id !== userId && !req.user?.isAdmin) return res.sendStatus(403);
+    
     try {
-      const userId = parseInt(req.params.id);
       const { avatarUrl } = req.body;
       
-      // Check if user exists
-      const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(404).json({ error: "User not found" });
+      if (!avatarUrl) {
+        return res.status(400).json({ error: "Avatar URL is required" });
       }
       
-      // Check if the logged-in user is updating their own profile
-      if (req.user?.id !== userId) {
-        return res.status(403).json({ error: "Unauthorized to update this profile" });
-      }
-      
-      // Validate that it's a generated avatar
-      if (!avatarUrl.startsWith('/uploads/ai-avatar-')) {
-        return res.status(400).json({ error: "Invalid generated avatar URL" });
-      }
-      
-      // If user had a previous custom avatar (but not this one), delete it
-      if (user.avatar && user.avatar.startsWith('/uploads/') && user.avatar !== avatarUrl) {
-        const oldAvatarPath = path.join(process.cwd(), "public", user.avatar);
-        if (fs.existsSync(oldAvatarPath)) {
-          fs.unlinkSync(oldAvatarPath);
-        }
-      }
-      
-      // Update user avatar in database
+      // Update user's avatar in database with the OpenAI-generated URL
       await storage.updateUser(userId, { avatar: avatarUrl });
       
       res.status(200).json({ avatarUrl });
     } catch (error) {
-      console.error("Error setting generated avatar:", error);
-      res.status(500).json({ error: "Failed to set generated avatar" });
+      console.error("Error saving generated avatar:", error);
+      res.status(500).json({ error: "Failed to save generated avatar" });
     }
   });
   
-  // List standard avatars
+  // Get standard avatars (not used with DiceBear approach, but kept for future use)
   app.get("/api/avatars/standard", (_req: Request, res: Response) => {
     try {
-      // Read the avatars directory
-      const avatars = fs.readdirSync(standardAvatarsDir)
-        .filter(file => file.match(/\.(png|jpg|jpeg|gif)$/i))
-        .map(file => `/avatars/${file}`);
+      const avatarDirectoryPath = path.join(process.cwd(), 'public', 'avatars', 'standard');
       
-      res.status(200).json({ avatars });
+      // If directory doesn't exist, return empty array
+      if (!fs.existsSync(avatarDirectoryPath)) {
+        return res.json({ avatars: [] });
+      }
+      
+      // Read all files from the standard avatars directory
+      const avatarFiles = fs.readdirSync(avatarDirectoryPath)
+        .filter(file => /\.(jpg|jpeg|png|gif)$/i.test(file))
+        .map(file => `/public/avatars/standard/${file}`);
+      
+      res.json({ avatars: avatarFiles });
     } catch (error) {
-      console.error("Error listing standard avatars:", error);
-      res.status(500).json({ error: "Failed to list standard avatars" });
+      console.error("Error fetching standard avatars:", error);
+      res.status(500).json({ error: "Failed to fetch standard avatars" });
     }
   });
 }

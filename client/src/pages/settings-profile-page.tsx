@@ -315,9 +315,9 @@ export default function SettingsProfilePage() {
               <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-6">
                 <div className="flex items-center gap-4">
                   <div className="w-24 h-24 rounded-full bg-[#FFF8E8] flex items-center justify-center text-[#F5B8DB] overflow-hidden">
-                    {avatarPreview || user.avatar ? (
+                    {avatarPreview || (user?.avatar && typeof user.avatar === 'string') ? (
                       <img
-                        src={avatarPreview || user.avatar}
+                        src={avatarPreview || user.avatar || ''}
                         alt="Profile"
                         className="w-full h-full object-cover"
                       />
