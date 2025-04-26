@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { cn, prepareLocalDateForStorage, formatLocalDate, isSameDay } from "@/lib/utils";
 import { HopeLogLogo } from "@/components/ui/hope-log-logo";
+import { HopeLogAvatar } from "@/components/ui/hope-log-avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -554,13 +555,35 @@ export function JournalChat({ userId, selectedDate }: JournalChatProps) {
                     <div 
                       key={entry.id}
                       className={cn(
-                        "max-w-[85%] px-4 py-3 journal-entry",
+                        "flex items-start gap-2",
                         entry.isAiResponse 
-                          ? "journal-entry-ai self-start"
-                          : "journal-entry-user self-end"
+                          ? "self-start"
+                          : "self-end flex-row-reverse"
                       )}
                     >
-                      <p className="whitespace-pre-line text-[15px]">{entry.content}</p>
+                      {entry.isAiResponse && (
+                        <div className="flex-shrink-0">
+                          <HopeLogAvatar size="sm" />
+                        </div>
+                      )}
+                      <div
+                        className={cn(
+                          "max-w-[85%] px-4 py-3 journal-entry",
+                          entry.isAiResponse 
+                            ? "journal-entry-ai"
+                            : "journal-entry-user"
+                        )}
+                      >
+                        <p className="whitespace-pre-line text-[15px]">{entry.content}</p>
+                      </div>
+                      {!entry.isAiResponse && (
+                        <div className="flex-shrink-0 w-6 h-6 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-gray-500">
+                            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                          </svg>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -609,11 +632,16 @@ export function JournalChat({ userId, selectedDate }: JournalChatProps) {
                 
                 {/* Display when AI is thinking */}
                 {addEntryMutation.isPending && (
-                  <div className="max-w-[85%] px-4 py-3 journal-entry journal-entry-ai self-start">
-                    <div className="pi-thinking-dots">
-                      <div className="pi-thinking-dot"></div>
-                      <div className="pi-thinking-dot"></div>
-                      <div className="pi-thinking-dot"></div>
+                  <div className="flex items-start gap-2 self-start">
+                    <div className="flex-shrink-0">
+                      <HopeLogAvatar size="sm" />
+                    </div>
+                    <div className="max-w-[85%] px-4 py-3 journal-entry journal-entry-ai">
+                      <div className="pi-thinking-dots">
+                        <div className="pi-thinking-dot"></div>
+                        <div className="pi-thinking-dot"></div>
+                        <div className="pi-thinking-dot"></div>
+                      </div>
                     </div>
                   </div>
                 )}

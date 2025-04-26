@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { JournalEntry } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import hopeLogLogo from "../assets/HopeLog_logo-Photoroom.png";
+import { HopeLogAvatar } from "@/components/ui/hope-log-avatar";
 
 export default function JournalEntryPage() {
   const { id } = useParams<{ id: string }>();
@@ -194,12 +195,8 @@ export default function JournalEntryPage() {
                                   className={`flex items-start gap-3 rounded-lg p-3 mb-3 ${isAI ? 'bg-blue-50' : 'bg-gray-50'}`}
                                 >
                                   {isAI ? (
-                                    <div className="flex-shrink-0 w-8 h-8 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center">
-                                      <img 
-                                        src={hopeLogLogo} 
-                                        alt="Hope Log" 
-                                        className="w-7 h-7 object-contain"
-                                      />
+                                    <div className="flex-shrink-0">
+                                      <HopeLogAvatar size="md" />
                                     </div>
                                   ) : (
                                     <div className="flex-shrink-0 w-8 h-8 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
