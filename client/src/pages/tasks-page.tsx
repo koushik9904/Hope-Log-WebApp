@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/use-auth';
-import { Plus, Filter, Lightbulb, Check, X, AlertCircle, SortAsc, SortDesc, Calendar, CalendarCheck, CalendarDays } from 'lucide-react';
+import { Plus, Filter, Lightbulb, Check, X, AlertCircle, SortAsc, SortDesc, Calendar, CalendarCheck, CalendarDays, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -404,8 +404,16 @@ export default function TasksPage() {
                   to: dateRange.to
                 }}
                 onSelect={(range) => {
-                  setDateRange(range || { from: undefined, to: undefined });
-                  setDateFilterActive(!!range?.from);
+                  if (range) {
+                    setDateRange({
+                      from: range.from,
+                      to: range.to || range.from
+                    });
+                    setDateFilterActive(!!range.from);
+                  } else {
+                    setDateRange({ from: undefined, to: undefined });
+                    setDateFilterActive(false);
+                  }
                 }}
                 numberOfMonths={1}
                 disabled={{ before: subDays(new Date(), 365), after: addDays(new Date(), 365) }}

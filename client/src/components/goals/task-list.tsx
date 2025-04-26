@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { format } from 'date-fns';
-import { Edit, Trash, Check, X, ArrowRight, Calendar, Clock, Target, Plus } from 'lucide-react';
+import { Edit, Trash, Check, X, ArrowRight, Calendar, Clock, Target, Plus, Filter } from 'lucide-react';
 import { Task, Goal } from '@shared/schema';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
@@ -34,9 +34,23 @@ import TaskForm from './task-form';
 interface TaskListProps {
   userId: number;
   selectedGoalId?: number | null;
+  statusFilter?: 'all' | 'completed' | 'pending';
+  sortBy?: 'dueDate' | 'priority' | 'createdAt';
+  sortDirection?: 'asc' | 'desc';
+  dateRange?: {
+    from: Date | undefined;
+    to: Date | undefined;
+  };
 }
 
-export default function TaskList({ userId, selectedGoalId }: TaskListProps) {
+export default function TaskList({ 
+  userId, 
+  selectedGoalId,
+  statusFilter = 'all',
+  sortBy = 'dueDate',
+  sortDirection = 'asc',
+  dateRange
+}: TaskListProps) {
   const { toast } = useToast();
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -353,17 +367,127 @@ export default function TaskList({ userId, selectedGoalId }: TaskListProps) {
     );
   }
 
-  const tasks = tasksQuery.data || [];
+  // Add date range check for tasks
+  const isInDateRange = (task: Task) => {
+    if (!dateRange?.from) return true;
+    if (!task.dueDate) return false; // No due date doesn't match date filter
+    
+    const taskDate = new Date(task.dueDate);
+    
+    if (dateRange.from && !dateRange.to) {
+      return taskDate >= dateRange.from;
+    }
+    
+    if (dateRange.from && dateRange.to) {
+      const start = new Date(dateRange.from);
+      start.setHours(0, 0, 0, 0);
+      
+      const end = new Date(dateRange.to);
+      end.setHours(23, 59, 59, 999);
+      
+      return taskDate >= start && taskDate <= end;
+    }
+    
+    return true;
+  };
+
+  // Apply filters to tasks
+  let filteredTasks = tasksQuery.data || [];
+  
+  // Apply status filter
+  if (statusFilter === 'pending') {
+    filteredTasks = filteredTasks.filter(task => !task.completed);
+  } else if (statusFilter === 'completed') {
+    filteredTasks = filteredTasks.filter(task => task.completed);
+  }
+  
+  // Apply date range filter if active
+  if (dateRange?.from) {
+    filteredTasks = filteredTasks.filter(isInDateRange);
+  }
+  
+  // Apply sorting
+  filteredTasks = [...filteredTasks].sort((a, b) => {
+    // Handle null values in sorting
+    if (sortBy === 'dueDate') {
+      if (!a.dueDate && !b.dueDate) return 0;
+      if (!a.dueDate) return sortDirection === 'asc' ? 1 : -1;
+      if (!b.dueDate) return sortDirection === 'asc' ? -1 : 1;
+      
+      return sortDirection === 'asc'
+        ? new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
+        : new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime();
+    }
+    
+    if (sortBy === 'priority') {
+      // Convert priority to numeric value for sorting
+      const priorityValue = (priority: string) => {
+        switch(priority?.toLowerCase()) {
+          case 'high': return 3;
+          case 'medium': return 2;
+          case 'low': return 1;
+          default: return 0;
+        }
+      };
+      
+      const aValue = priorityValue(a.priority);
+      const bValue = priorityValue(b.priority);
+      
+      return sortDirection === 'asc'
+        ? aValue - bValue
+        : bValue - aValue;
+    }
+    
+    if (sortBy === 'createdAt') {
+      if (!a.createdAt && !b.createdAt) return 0;
+      if (!a.createdAt) return sortDirection === 'asc' ? 1 : -1;
+      if (!b.createdAt) return sortDirection === 'asc' ? -1 : 1;
+      
+      return sortDirection === 'asc'
+        ? new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        : new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    }
+    
+    return 0;
+  });
+
+  // Calculate filter stats for displaying to user
+  const totalTasks = tasksQuery.data?.length || 0;
+  const filteredCount = filteredTasks.length;
+  const isFiltered = 
+    statusFilter !== 'all' || 
+    dateRange?.from !== undefined || 
+    selectedGoalId !== null;
 
   return (
     <div className="space-y-4">
-      {tasks.length === 0 ? (
+      {/* Filter stats indicator */}
+      {isFiltered && totalTasks > 0 && (
+        <div className="bg-muted/20 px-4 py-2 rounded-md text-sm flex items-center justify-between">
+          <div className="flex items-center">
+            <Filter className="h-4 w-4 mr-2 text-muted-foreground" />
+            <span>
+              Showing {filteredCount} of {totalTasks} tasks
+              {statusFilter !== 'all' && 
+                ` • ${statusFilter === 'completed' ? 'Completed' : 'Pending'} tasks`}
+              {dateRange?.from && 
+                ` • Due date filtered`}
+            </span>
+          </div>
+        </div>
+      )}
+      
+      {filteredTasks.length === 0 ? (
         <div className="text-center p-8 border rounded-lg bg-muted/30">
-          <p className="text-muted-foreground">No tasks found. Create your first task to get started!</p>
+          <p className="text-muted-foreground">
+            {tasksQuery.data && tasksQuery.data.length > 0
+              ? "No tasks match your current filters."
+              : "No tasks found. Create your first task to get started!"}
+          </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {tasks.map((task) => (
+          {filteredTasks.map((task) => (
             <Card key={task.id} className={`${task.completed ? 'bg-muted/50' : ''}`}>
               <CardHeader className="pb-2">
                 <div className="flex justify-between items-start">
