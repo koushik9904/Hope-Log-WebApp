@@ -3,7 +3,8 @@ import { exec } from 'child_process';
 
 console.log('Pushing schema to database...');
 
-exec('npx drizzle-kit push:pg', (error, stdout, stderr) => {
+// Use the correct command format for newer Drizzle versions
+exec('npx drizzle-kit push:pg --schema=./shared/schema.ts', (error, stdout, stderr) => {
   if (error) {
     console.error(`Error: ${error.message}`);
     return;
