@@ -2019,6 +2019,61 @@ export default function GoalsPage() {
             </div>
           </TabsContent>
         </Tabs>
+        
+        {/* Convert Goal to Task Dialog */}
+        <Dialog open={showConvertToTaskDialog} onOpenChange={setShowConvertToTaskDialog}>
+          <DialogContent className="sm:max-w-[500px] bg-white">
+            <DialogHeader>
+              <DialogTitle className="font-['Montserrat_Variable']">Convert Goal to Task</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to convert this goal to a task? This will delete the goal and create a new task with the same details.
+              </DialogDescription>
+            </DialogHeader>
+            
+            {goalToConvert && (
+              <div className="py-4">
+                <div className="mb-4 p-4 bg-[#FFF8E8] rounded-lg">
+                  <h3 className="font-medium mb-2">{goalToConvert.name}</h3>
+                  {goalToConvert.description && (
+                    <p className="text-sm text-gray-600 mb-3">{goalToConvert.description}</p>
+                  )}
+                  <div className="flex items-center text-sm text-gray-600">
+                    {goalToConvert.targetDate ? (
+                      <>
+                        <Calendar className="h-3.5 w-3.5 mr-1.5" />
+                        <span>Due {new Date(goalToConvert.targetDate).toLocaleDateString()}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Clock className="h-3.5 w-3.5 mr-1.5" />
+                        <span>No deadline</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+                
+                <DialogFooter>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setShowConvertToTaskDialog(false)}
+                    className="bg-white"
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="button" 
+                    className="bg-[#9AAB63] hover:bg-[#8a9a58] text-white"
+                    disabled={convertGoalToTaskMutation.isPending}
+                    onClick={() => convertGoalToTaskMutation.mutate(goalToConvert.id)}
+                  >
+                    {convertGoalToTaskMutation.isPending ? "Converting..." : "Convert to Task"}
+                  </Button>
+                </DialogFooter>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
   );
