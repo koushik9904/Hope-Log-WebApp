@@ -435,11 +435,10 @@ export default function GoalsPage() {
       const task = {
         title: goalToConvert.name,
         description: goalToConvert.description || "",
-        dueDate: goalToConvert.targetDate || "",
+        // Only include dueDate if it's not null or empty
+        ...(goalToConvert.targetDate ? { dueDate: goalToConvert.targetDate } : {}),
         priority: "medium",
         userId: user?.id,
-        completed: goalToConvert.progress === 100,
-        completedAt: goalToConvert.progress === 100 ? new Date().toISOString() : null,
       };
       
       // Create the task
