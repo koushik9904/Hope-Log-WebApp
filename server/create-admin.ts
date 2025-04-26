@@ -40,6 +40,7 @@ async function createAdminUser() {
     await db.insert(users).values({
       username: 'admin',
       password: hashedPassword,
+      name: 'Administrator', // Added required name field
       email: 'admin@hopelog.ai',
       isAdmin: true,
       isVerified: true,

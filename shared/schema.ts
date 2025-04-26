@@ -7,14 +7,22 @@ export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
-  firstName: text("first_name"),
-  lastName: text("last_name"),
-  email: text("email").notNull().unique(), // Now required and unique
+  name: text("name").notNull(), // Mandatory name field (replaces firstName)
+  displayName: text("display_name"), // Optional display name
+  firstName: text("first_name"), // Keep for backward compatibility
+  lastName: text("last_name"), // Keep for backward compatibility
+  email: text("email").notNull().unique(), // Required and unique
   avatar: text("avatar"),
+  pronouns: text("pronouns"), // Optional pronouns field
+  dateOfBirth: date("date_of_birth"), // Optional DOB
+  location: text("location"), // Optional location
+  hobbies: text("hobbies").array(), // Array of hobbies
+  interests: text("interests").array(), // Array of interests
+  bio: text("bio"), // Bio field moved from form-only to stored in DB
   provider: text("provider"), // 'local', 'google', 'apple'
   providerId: text("provider_id"),
   isAdmin: boolean("is_admin").default(false),
-  isVerified: boolean("is_verified").default(false), // New field for email verification
+  isVerified: boolean("is_verified").default(false), // For email verification
   verificationToken: text("verification_token"), // For email verification
   resetPasswordToken: text("reset_password_token"), // For password reset
   resetPasswordExpires: timestamp("reset_password_expires", { mode: 'string' }),
@@ -26,10 +34,18 @@ export const users = pgTable("users", {
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
-  firstName: true,
-  lastName: true,
+  name: true, // New required field
+  displayName: true, // New optional field
+  firstName: true, // Keeping for backward compatibility
+  lastName: true, // Keeping for backward compatibility
   email: true,
   avatar: true,
+  pronouns: true, // New optional field
+  dateOfBirth: true, // New optional field
+  location: true, // New optional field
+  hobbies: true, // New optional field
+  interests: true, // New optional field
+  bio: true, // New optional field
   provider: true,
   providerId: true,
   isAdmin: true,
