@@ -164,15 +164,6 @@ export function EmotionsAnalytics({ entries, isLoading, className }: EmotionsAna
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-xl font-bold font-['Montserrat_Variable']">Emotions Analysis</h3>
         
-        <Tabs defaultValue="trends" className="w-auto">
-          <TabsList className="bg-gray-100">
-            <TabsTrigger value="trends" className="text-xs">Trends</TabsTrigger>
-            <TabsTrigger value="cloud" className="text-xs">Word Cloud</TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </div>
-      
-      <div className="flex justify-end mb-4">
         <div className="inline-flex rounded-md shadow-sm">
           <button
             type="button"
@@ -200,6 +191,13 @@ export function EmotionsAnalytics({ entries, isLoading, className }: EmotionsAna
       </div>
       
       <Tabs defaultValue="trends">
+        <div className="mb-4">
+          <TabsList className="bg-gray-100">
+            <TabsTrigger value="trends" className="text-sm">Trends</TabsTrigger>
+            <TabsTrigger value="cloud" className="text-sm">Word Cloud</TabsTrigger>
+          </TabsList>
+        </div>
+        
         <TabsContent value="trends">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card className="bg-white border-0 shadow-sm md:col-span-2">

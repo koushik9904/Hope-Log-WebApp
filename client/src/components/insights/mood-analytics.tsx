@@ -35,6 +35,7 @@ interface MoodAnalyticsProps {
 
 export function MoodAnalytics({ moods, entries, timeframe = "week", isLoading, className }: MoodAnalyticsProps) {
   const [selectedTimeframe, setSelectedTimeframe] = useState<string>(timeframe);
+  const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
 
   // Function to get mood label
   function getMoodLabel(rating: number): string {
@@ -446,26 +447,24 @@ export function MoodAnalytics({ moods, entries, timeframe = "week", isLoading, c
                 <button 
                   className="flex items-center gap-1 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
                   onClick={() => {
-                    const currentDate = new Date();
-                    const lastMonthDate = new Date(currentDate);
-                    lastMonthDate.setMonth(currentDate.getMonth() - 1);
-                    // In a real implementation, this would change the visible month in the calendar
+                    const prevMonth = new Date(currentMonth);
+                    prevMonth.setMonth(currentMonth.getMonth() - 1);
+                    setCurrentMonth(prevMonth);
                   }}
                 >
                   <span className="rotate-180">➔</span> Previous
                 </button>
                 
                 <h4 className="text-base font-medium">
-                  {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                  {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                 </h4>
                 
                 <button 
                   className="flex items-center gap-1 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
                   onClick={() => {
-                    const currentDate = new Date();
-                    const nextMonthDate = new Date(currentDate);
-                    nextMonthDate.setMonth(currentDate.getMonth() + 1);
-                    // In a real implementation, this would change the visible month in the calendar
+                    const nextMonth = new Date(currentMonth);
+                    nextMonth.setMonth(currentMonth.getMonth() + 1);
+                    setCurrentMonth(nextMonth);
                   }}
                 >
                   Next <span>➔</span>
@@ -483,11 +482,11 @@ export function MoodAnalytics({ moods, entries, timeframe = "week", isLoading, c
                   {/* Generate calendar days for current month */}
                   {(() => {
                     const today = new Date();
-                    const currentMonth = today.getMonth();
-                    const currentYear = today.getFullYear();
+                    const displayMonth = currentMonth.getMonth();
+                    const displayYear = currentMonth.getFullYear();
                     
-                    const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
-                    const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
+                    const firstDayOfMonth = new Date(displayYear, displayMonth, 1);
+                    const lastDayOfMonth = new Date(displayYear, displayMonth + 1, 0);
                     
                     const daysInMonth = lastDayOfMonth.getDate();
                     const startingDayOfWeek = firstDayOfMonth.getDay();
@@ -496,7 +495,7 @@ export function MoodAnalytics({ moods, entries, timeframe = "week", isLoading, c
                     const moodByDate: Record<string, number> = {};
                     filteredMoods.forEach(mood => {
                       const moodDate = new Date(mood.date);
-                      if (moodDate.getMonth() === currentMonth && moodDate.getFullYear() === currentYear) {
+                      if (moodDate.getMonth() === displayMonth && moodDate.getFullYear() === displayYear) {
                         moodByDate[moodDate.getDate()] = mood.rating;
                       }
                     });
@@ -532,7 +531,7 @@ export function MoodAnalytics({ moods, entries, timeframe = "week", isLoading, c
                                 </TooltipTrigger>
                                 <TooltipContent>
                                   <p className="font-medium">
-                                    {format(new Date(currentYear, currentMonth, day), 'MMMM d, yyyy')}
+                                    {format(new Date(displayYear, displayMonth, day), 'MMMM d, yyyy')}
                                   </p>
                                   <p className="flex items-center gap-1">
                                     Mood: {getMoodLabel(moodByDate[day])}
