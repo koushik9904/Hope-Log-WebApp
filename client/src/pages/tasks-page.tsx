@@ -103,10 +103,7 @@ export default function TasksPage() {
     queryKey: [`/api/tasks/${user?.id}/suggestions`],
     enabled: !!user?.id,
     staleTime: 300000, // 5 minutes
-    retry: false, // Don't retry since our endpoint might not exist yet
-    onError: () => {
-      console.log("Failed to fetch AI task suggestions - using example data");
-    }
+    retry: false // Don't retry since our endpoint might not exist yet
   });
   
   // Set default tasks when component mounts
