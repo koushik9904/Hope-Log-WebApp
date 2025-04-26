@@ -166,25 +166,7 @@ export default function InsightsPage() {
                           </div>
                         </div>
                         
-                        <div>
-                          <h4 className="font-medium mb-2">Recommendations</h4>
-                          <ul className="space-y-2">
-                            <li className="flex items-start">
-                              <div className="w-5 h-5 rounded-full bg-[#FFF8E8] flex items-center justify-center mr-2 mt-0.5">
-                                <span className="text-xs font-bold text-[#9AAB63]">1</span>
-                              </div>
-                              <p className="text-gray-700">{summary.recommendations[0]}</p>
-                            </li>
-                            {summary.recommendations[1] && (
-                              <li className="flex items-start">
-                                <div className="w-5 h-5 rounded-full bg-[#FFF8E8] flex items-center justify-center mr-2 mt-0.5">
-                                  <span className="text-xs font-bold text-[#9AAB63]">2</span>
-                                </div>
-                                <p className="text-gray-700">{summary.recommendations[1]}</p>
-                              </li>
-                            )}
-                          </ul>
-                        </div>
+                        {/* Note: Recommendations are not in the current Summary schema but may be added later */}
                       </div>
                     </CardContent>
                   </Card>

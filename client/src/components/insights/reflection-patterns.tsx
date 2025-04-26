@@ -182,7 +182,7 @@ export function ReflectionPatterns({ entries, isLoading, className }: Reflection
       .filter(entry => entry.sentiment?.emotions && entry.sentiment.emotions.length > 0)
       .map(entry => ({
         date: new Date(entry.date),
-        emotions: entry.sentiment.emotions
+        emotions: entry.sentiment?.emotions || []
       }));
     
     if (emotionsByEntry.length >= 3) {
