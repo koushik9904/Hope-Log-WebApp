@@ -41,6 +41,7 @@ type RegisterData = z.infer<typeof registerSchema>;
 export default function AuthPage() {
   const { user, loginMutation, registerMutation } = useAuth();
   const [activeTab, setActiveTab] = useState<string>("login");
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [location] = useLocation();
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();

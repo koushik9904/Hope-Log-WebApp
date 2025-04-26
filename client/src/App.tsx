@@ -17,6 +17,10 @@ import AuthPage from "@/pages/auth-page";
 import NotFound from "@/pages/not-found";
 import { useAuth } from "@/hooks/use-auth";
 
+// Import authentication pages
+const ResetPasswordPage = lazy(() => import("@/pages/reset-password-page"));
+const VerifyEmailPage = lazy(() => import("@/pages/verify-email-page"));
+
 // Use lazy loading for other pages to improve performance
 const JournalPage = lazy(() => import("@/pages/journal-page"));
 const JournalEntryPage = lazy(() => import("@/pages/journal-entry-page"));
@@ -157,6 +161,19 @@ function Router() {
         <Route path="/terms-of-service">
           <Suspense fallback={<LoadingFallback />}>
             <TermsOfServicePage />
+          </Suspense>
+        </Route>
+
+        {/* Authentication Routes */}
+        <Route path="/reset-password/:token">
+          <Suspense fallback={<LoadingFallback />}>
+            <ResetPasswordPage />
+          </Suspense>
+        </Route>
+        
+        <Route path="/verify-email/:token">
+          <Suspense fallback={<LoadingFallback />}>
+            <VerifyEmailPage />
           </Suspense>
         </Route>
         
