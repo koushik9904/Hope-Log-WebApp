@@ -17,6 +17,7 @@ import { Image, MessageCircle, Heart, BarChart, Lightbulb, Sparkles, BookOpen, A
 import { HopeLogLogo } from "@/components/ui/hope-log-logo";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
+import { ForgotPasswordForm } from "@/components/auth/forgot-password-form";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -254,43 +255,60 @@ export default function AuthPage() {
               </TabsList>
               
               <TabsContent value="login">
-                <Form {...loginForm}>
-                  <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-3 mb-1">
-                    <FormField
-                      control={loginForm.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm">Email</FormLabel>
-                          <FormControl>
-                            <Input className="pi-input h-9" type="email" placeholder="Enter your email address" {...field} />
-                          </FormControl>
-                          <FormMessage className="text-xs" />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={loginForm.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm">Password</FormLabel>
-                          <FormControl>
-                            <Input className="pi-input h-9" type="password" placeholder="Enter your password" {...field} />
-                          </FormControl>
-                          <FormMessage className="text-xs" />
-                        </FormItem>
-                      )}
-                    />
-                    <Button
-                      type="submit"
-                      className="w-full bg-black hover:bg-black/80 text-white h-9 mt-1"
-                      disabled={loginMutation.isPending}
-                    >
-                      {loginMutation.isPending ? "Logging in..." : "Login"}
-                    </Button>
-                  </form>
-                </Form>
+                {showForgotPassword ? (
+                  <div className="py-2">
+                    <ForgotPasswordForm onBack={() => setShowForgotPassword(false)} />
+                  </div>
+                ) : (
+                  <>
+                    <Form {...loginForm}>
+                      <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-3 mb-1">
+                        <FormField
+                          control={loginForm.control}
+                          name="email"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-sm">Email</FormLabel>
+                              <FormControl>
+                                <Input className="pi-input h-9" type="email" placeholder="Enter your email address" {...field} />
+                              </FormControl>
+                              <FormMessage className="text-xs" />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={loginForm.control}
+                          name="password"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-sm">Password</FormLabel>
+                              <FormControl>
+                                <Input className="pi-input h-9" type="password" placeholder="Enter your password" {...field} />
+                              </FormControl>
+                              <FormMessage className="text-xs" />
+                            </FormItem>
+                          )}
+                        />
+                        <Button
+                          type="submit"
+                          className="w-full bg-black hover:bg-black/80 text-white h-9 mt-1"
+                          disabled={loginMutation.isPending}
+                        >
+                          {loginMutation.isPending ? "Logging in..." : "Login"}
+                        </Button>
+                      </form>
+                    </Form>
+                    <div className="text-center mt-4">
+                      <Button 
+                        variant="link" 
+                        className="text-xs text-muted-foreground hover:text-black p-0"
+                        onClick={() => setShowForgotPassword(true)}
+                      >
+                        Forgot your password?
+                      </Button>
+                    </div>
+                  </>
+                )}
               </TabsContent>
               
               <TabsContent value="register">
