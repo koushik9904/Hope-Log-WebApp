@@ -212,8 +212,8 @@ export default function TaskForm({ onSuccess, initialData, userId }: TaskFormPro
             <FormItem>
               <FormLabel>Related Goal</FormLabel>
               <Select
-                onValueChange={(value) => field.onChange(value ? parseInt(value) : undefined)}
-                defaultValue={field.value?.toString()}
+                onValueChange={(value) => field.onChange(value && value !== 'none' ? parseInt(value) : undefined)}
+                defaultValue={field.value?.toString() || 'none'}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -221,7 +221,7 @@ export default function TaskForm({ onSuccess, initialData, userId }: TaskFormPro
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="">No goal</SelectItem>
+                  <SelectItem value="none">No goal</SelectItem>
                   {goals.map((goal) => (
                     <SelectItem key={goal.id} value={goal.id.toString()}>
                       {goal.name}
