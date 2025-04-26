@@ -31,6 +31,21 @@ export function setupTaskRoutes(app: Express) {
       res.status(500).json({ error: 'Failed to fetch tasks for this goal' });
     }
   });
+  
+  // Get tasks without a goal for a user
+  router.get('/no-goal/:userId', async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      // Get all user tasks
+      const allTasks = await storage.getTasksByUserId(userId);
+      // Filter to only tasks without a goalId
+      const tasksWithoutGoal = allTasks.filter(task => !task.goalId);
+      res.json(tasksWithoutGoal);
+    } catch (error) {
+      console.error('Error fetching tasks without goal:', error);
+      res.status(500).json({ error: 'Failed to fetch tasks without goal' });
+    }
+  });
 
   // Get a specific task by ID
   router.get('/single/:id', async (req, res) => {

@@ -62,7 +62,7 @@ export default function TasksPage() {
               <DropdownMenuItem onClick={() => setSelectedGoalId(null)}>
                 All Tasks
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setSelectedGoalId(undefined)}>
+              <DropdownMenuItem onClick={() => setSelectedGoalId(0)}>
                 Tasks without goal
               </DropdownMenuItem>
               <DropdownMenuSeparator />
@@ -93,7 +93,7 @@ export default function TasksPage() {
         <h2 className="text-xl font-semibold mb-4">
           {selectedGoalId === null
             ? 'All Tasks'
-            : selectedGoalId === undefined
+            : selectedGoalId === 0
             ? 'Tasks without Goal'
             : `Tasks for: ${goals.find((g) => g.id === selectedGoalId)?.name || 'Selected Goal'}`}
         </h2>

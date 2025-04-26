@@ -46,9 +46,17 @@ export default function TaskList({ userId, selectedGoalId }: TaskListProps) {
   const tasksQuery = useQuery<Task[]>({
     queryKey: ['/api/tasks', userId, selectedGoalId],
     queryFn: async () => {
-      const url = selectedGoalId
-        ? `/api/tasks/goal/${selectedGoalId}`
-        : `/api/tasks/${userId}`;
+      let url;
+      if (selectedGoalId === null) {
+        // All tasks
+        url = `/api/tasks/${userId}`;
+      } else if (selectedGoalId === 0) {
+        // Tasks without a goal
+        url = `/api/tasks/no-goal/${userId}`;
+      } else {
+        // Tasks for a specific goal
+        url = `/api/tasks/goal/${selectedGoalId}`;
+      }
       const res = await fetch(url);
       if (!res.ok) throw new Error('Failed to fetch tasks');
       return res.json();
