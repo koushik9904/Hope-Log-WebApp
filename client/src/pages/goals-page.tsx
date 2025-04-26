@@ -990,7 +990,7 @@ export default function GoalsPage() {
               )}
             </Button>
             
-            {activeTab === "goals" ? (
+            {activeTab === "goals" && (
               <Dialog 
                 open={showNewGoalDialog} 
                 onOpenChange={(open) => {
@@ -1121,120 +1121,6 @@ export default function GoalsPage() {
                           disabled={addGoalMutation.isPending}
                         >
                           {addGoalMutation.isPending ? "Adding..." : "Add Goal"}
-                        </Button>
-                      </DialogFooter>
-                    </form>
-                  </Form>
-                </DialogContent>
-              </Dialog>
-            ) : (
-              <Dialog
-                open={showNewHabitDialog} 
-                onOpenChange={(open) => {
-                  // Reset form when opening the dialog
-                  if (open) {
-                    habitForm.reset({
-                      title: "",
-                      description: "",
-                      frequency: "daily",
-                      userId: user?.id
-                    });
-                  }
-                  setShowNewHabitDialog(open);
-                }}
-              >
-                <DialogTrigger asChild>
-                  <Button className="bg-[#F5B8DB] hover:bg-[#f096c9] text-white flex items-center gap-2">
-                    <Plus className="h-4 w-4" /> New Habit
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[500px] bg-white">
-                  <DialogHeader>
-                    <DialogTitle className="font-['Montserrat_Variable']">Create New Habit</DialogTitle>
-                    <DialogDescription>
-                      Build positive habits by tracking them consistently.
-                    </DialogDescription>
-                  </DialogHeader>
-                  
-                  <Form {...habitForm}>
-                    <form onSubmit={habitForm.handleSubmit(onHabitSubmit)} className="space-y-6 py-4">
-                      <FormField
-                        control={habitForm.control}
-                        name="title"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Habit Name</FormLabel>
-                            <FormControl>
-                              <Input placeholder="E.g., Drink water, Read daily" {...field} className="bg-white" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={habitForm.control}
-                        name="description"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Description (optional)</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Details about this habit" {...field} className="bg-white" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={habitForm.control}
-                        name="frequency"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Frequency</FormLabel>
-                            <Select 
-                              onValueChange={field.onChange} 
-                              defaultValue={field.value}
-                            >
-                              <FormControl>
-                                <SelectTrigger className="bg-white">
-                                  <SelectValue placeholder="How often?" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="daily">Daily</SelectItem>
-                                <SelectItem value="weekly">Weekly</SelectItem>
-                                <SelectItem value="monthly">Monthly</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={habitForm.control}
-                        name="userId"
-                        render={({ field }) => (
-                          <input type="hidden" value={user?.id} />
-                        )}
-                      />
-                      
-                      <DialogFooter>
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          onClick={() => setShowNewHabitDialog(false)}
-                          className="bg-white"
-                        >
-                          Cancel
-                        </Button>
-                        <Button 
-                          type="submit" 
-                          className="bg-[#F5B8DB] hover:bg-[#f096c9] text-white"
-                          disabled={addHabitMutation.isPending}
-                        >
-                          {addHabitMutation.isPending ? "Creating..." : "Create Habit"}
                         </Button>
                       </DialogFooter>
                     </form>
