@@ -41,7 +41,10 @@ type AuthContextType = {
   verifyEmailMutation: UseMutationResult<SelectUser, Error, VerifyEmailData>;
 };
 
-type LoginData = Pick<InsertUser, "username" | "password">;
+type LoginData = {
+  email: string;
+  password: string;
+};
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -80,7 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         queryClient.setQueryData(["/api/user"], response);
         toast({
           title: "Login successful",
-          description: `Welcome back, ${response.firstName || response.username}!`,
+          description: `Welcome back, ${response.firstName || response.email.split('@')[0]}!`,
         });
       }
     },
@@ -110,7 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         queryClient.setQueryData(["/api/user"], response);
         toast({
           title: "Registration successful",
-          description: `Welcome to HopeLog AI, ${response.firstName || response.username}!`,
+          description: `Welcome to HopeLog AI, ${response.firstName || response.email.split('@')[0]}!`,
         });
       }
     },

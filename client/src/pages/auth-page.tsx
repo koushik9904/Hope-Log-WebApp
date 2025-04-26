@@ -208,7 +208,7 @@ export default function AuthPage() {
             <Alert className="mb-4 bg-blue-50 border-blue-200 text-xs">
               <AlertCircle className="h-4 w-4 text-blue-500" />
               <AlertDescription className="text-blue-700">
-                <strong>Social login coming soon:</strong> Google and Apple Sign-In options will be available in a future update. Please use username/password login for now.
+                <strong>Social login coming soon:</strong> Google and Apple Sign-In options will be available in a future update. Please use email/password login for now.
               </AlertDescription>
             </Alert>
 

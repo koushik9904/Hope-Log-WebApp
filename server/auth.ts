@@ -321,12 +321,7 @@ export async function setupAuth(app: Express) {
   });
 
   app.post("/api/login", (req, res, next) => {
-    console.log("Login attempt for username:", req.body.username);
-    
-    // Try to use email as username if provided
-    if (req.body.email && !req.body.username) {
-      req.body.username = req.body.email;
-    }
+    console.log("Login attempt with email:", req.body.email);
     
     passport.authenticate("local", (err: Error | null, user: SelectUser | false, info: any) => {
       if (err) {
