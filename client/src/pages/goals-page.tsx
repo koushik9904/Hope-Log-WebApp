@@ -10,6 +10,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format, addDays, subDays } from "date-fns";
+// This will be used to store initial data for task form
 
 // Extended Goal type with the new fields
 interface Goal extends GoalBase {
@@ -275,6 +276,12 @@ export default function GoalsPage() {
   const [showNewGoalDialog, setShowNewGoalDialog] = useState(false);
   const [showNewHabitDialog, setShowNewHabitDialog] = useState(false);
   const [showNewTaskDialog, setShowNewTaskDialog] = useState(false);
+  const [newTaskInitialData, setNewTaskInitialData] = useState<{
+    title?: string;
+    description?: string;
+    priority?: string;
+    goalId?: number;
+  }>({});
   const [activeTab, setActiveTab] = useState<string>("goals");
   
   // The AI suggestion data is defined at the top of the file
@@ -1209,8 +1216,13 @@ export default function GoalsPage() {
                             onClick={() => {
                               // Add suggested task
                               if (!user) return;
+                              // Set initial data for the task form
+                              setNewTaskInitialData({
+                                title: task.title,
+                                description: task.description,
+                                priority: task.priority || "medium"
+                              });
                               setShowNewTaskDialog(true);
-                              // Implementation would depend on your task creation flow
                             }}
                             className="bg-[#B6CAEB] hover:bg-[#9db8e7] text-white text-xs px-3"
                             size="sm"
