@@ -786,122 +786,53 @@ export default function GoalsPage() {
               </Button>
             </div>
             
-            {/* AI Suggestions Card */}
-            <Card className="bg-white border-0 shadow-sm mb-8">
-              <CardHeader className="border-b border-gray-100">
-                <CardTitle className="font-['Montserrat_Variable'] flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-[#F5B8DB]" />
-                  AI Suggestions
-                </CardTitle>
-                <CardDescription>
-                  Personalized goal and habit suggestions based on your journal entries
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <Tabs defaultValue="goal-suggestions">
-                  <TabsList className="mb-4">
-                    <TabsTrigger value="goal-suggestions">Goal Ideas</TabsTrigger>
-                    <TabsTrigger value="habit-suggestions">Habit Ideas</TabsTrigger>
-                    <TabsTrigger value="task-suggestions">Task Ideas</TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="goal-suggestions">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {AI_SUGGESTED_GOALS.map(goal => (
-                        <div key={goal.id} className="bg-[#fff8f9] p-5 rounded-xl border border-[#F5B8DB] border-opacity-30">
-                          <h4 className="font-medium text-gray-800 text-lg mb-2">{goal.name}</h4>
-                          <p className="text-sm text-gray-600 mb-4">{goal.description}</p>
-                          <div className="text-xs text-gray-500 mb-4">{goal.source}</div>
-                          <div className="flex justify-end gap-2">
-                            <Button 
-                              onClick={() => {
-                                // Add suggested goal
-                                if (!user) return;
-                                
-                                addGoalMutation.mutate({
-                                  name: goal.name,
-                                  description: goal.description,
-                                  category: goal.category || "Personal",
-                                  targetDate: goal.targetDate,
-                                  userId: user.id,
-                                  target: 100,
-                                  progress: 0,
-                                  unit: "%",
-                                  colorScheme: 1
-                                });
-                              }}
-                              className="bg-[#F5B8DB] hover:bg-[#f096c9] text-white text-xs px-3"
-                              size="sm"
-                            >
-                              <Plus className="h-3.5 w-3.5 mr-1.5" /> Add Goal
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </TabsContent>
-                  
-                  <TabsContent value="habit-suggestions">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {AI_SUGGESTED_HABITS.map(habit => (
-                        <div key={habit.id} className="bg-[#f8fff6] p-5 rounded-xl border border-[#9AAB63] border-opacity-30">
-                          <h4 className="font-medium text-gray-800 text-lg mb-2">{habit.title}</h4>
-                          <p className="text-sm text-gray-600 mb-4">{habit.description}</p>
-                          <div className="text-xs text-gray-500 mb-4">{habit.source}</div>
-                          <div className="flex justify-end gap-2">
-                            <Button 
-                              onClick={() => {
-                                // Add suggested habit
-                                if (!user) return;
-                                setNewHabit({
-                                  title: habit.title,
-                                  description: habit.description,
-                                  frequency: habit.frequency || "daily",
-                                  userId: user.id
-                                });
-                                setShowNewHabitDialog(true);
-                              }}
-                              className="bg-[#9AAB63] hover:bg-[#8a9a58] text-white text-xs px-3"
-                              size="sm"
-                            >
-                              <Plus className="h-3.5 w-3.5 mr-1.5" /> Add Habit
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </TabsContent>
-                  
-                  <TabsContent value="task-suggestions">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {AI_SUGGESTED_TASKS.map(task => (
-                        <div key={task.id} className="bg-[#f9f8ff] p-5 rounded-xl border border-[#B6CAEB] border-opacity-30">
-                          <h4 className="font-medium text-gray-800 text-lg mb-2">{task.title}</h4>
-                          <p className="text-sm text-gray-600 mb-4">{task.description}</p>
-                          <div className="text-xs text-gray-500 mb-4">{task.source}</div>
-                          <div className="flex justify-end gap-2">
-                            <Button 
-                              onClick={() => {
-                                // Add suggested task
-                                if (!user) return;
-                                setShowNewTaskDialog(true);
-                                // Implementation would depend on your task creation flow
-                              }}
-                              className="bg-[#B6CAEB] hover:bg-[#9db8e7] text-white text-xs px-3"
-                              size="sm"
-                            >
-                              <Plus className="h-3.5 w-3.5 mr-1.5" /> Add Task
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              </CardContent>
-            </Card>
-            
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+              {/* AI Suggestions Section */}
+              <Card className="md:col-span-1 bg-white border-0 shadow-sm">
+                <CardHeader className="border-b border-gray-100">
+                  <CardTitle className="font-['Montserrat_Variable'] flex items-center gap-2 text-base">
+                    <Sparkles className="h-4 w-4 text-[#F5B8DB]" />
+                    Goal Ideas
+                  </CardTitle>
+                  <CardDescription className="text-xs">
+                    AI-suggested goals based on your journal entries
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <div className="space-y-4">
+                    {AI_SUGGESTED_GOALS.slice(0, 3).map(goal => (
+                      <div key={goal.id} className="bg-[#fff8f9] p-4 rounded-xl border border-[#F5B8DB] border-opacity-30">
+                        <h4 className="font-medium text-gray-800 text-sm mb-1">{goal.name}</h4>
+                        <p className="text-xs text-gray-600 mb-3 line-clamp-2">{goal.description}</p>
+                        <div className="flex justify-end">
+                          <Button 
+                            onClick={() => {
+                              // Add suggested goal
+                              if (!user) return;
+                              
+                              addGoalMutation.mutate({
+                                name: goal.name,
+                                description: goal.description,
+                                category: goal.category || "Personal",
+                                targetDate: goal.targetDate,
+                                userId: user.id,
+                                target: 100,
+                                progress: 0,
+                                unit: "%",
+                                colorScheme: 1
+                              });
+                            }}
+                            className="bg-[#F5B8DB] hover:bg-[#f096c9] text-white text-xs px-3"
+                            size="sm"
+                          >
+                            <Plus className="h-3.5 w-3.5 mr-1.5" /> Add Goal
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
               <Card className="md:col-span-3 bg-white border-0 shadow-sm">
                 <CardHeader className="border-b border-gray-100">
                   <CardTitle className="font-['Montserrat_Variable']">Your Goals</CardTitle>
