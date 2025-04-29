@@ -690,6 +690,71 @@ Your role is to:
       res.status(500).json({ error: "Failed to generate goal suggestions" });
     }
   });
+  
+  app.get("/api/tasks/:userId/suggestions", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const userId = Number(req.params.userId);
+    if (req.user?.id !== userId) return res.sendStatus(403);
+    
+    try {
+      // Get recent journal entries for analysis
+      const journalEntries = await storage.getRecentJournalEntriesByUserId(userId, 10);
+      
+      // Filter to only include actual journal entries, not chat messages
+      const filteredEntries = journalEntries.filter(entry => entry.isJournal);
+      
+      if (filteredEntries.length === 0) {
+        return res.json({ tasks: [], goalSuggestions: [] });
+      }
+      
+      // Get existing tasks to avoid duplicates
+      const existingTasks = await storage.getTasksByUserId(userId);
+      
+      // Get existing goals for context
+      const existingGoals = await storage.getGoalsByUserId(userId);
+      
+      // Generate suggestions based on journal content
+      const suggestions = await generateTaskSuggestions(filteredEntries, existingTasks, existingGoals);
+      
+      res.json(suggestions);
+    } catch (error) {
+      console.error("Error generating task suggestions:", error);
+      res.status(500).json({ error: "Failed to generate task suggestions" });
+    }
+  });
+  
+  app.get("/api/habits/:userId/suggestions", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const userId = Number(req.params.userId);
+    if (req.user?.id !== userId) return res.sendStatus(403);
+    
+    try {
+      // Get recent journal entries for analysis
+      const journalEntries = await storage.getRecentJournalEntriesByUserId(userId, 10);
+      
+      // Filter to only include actual journal entries, not chat messages
+      const filteredEntries = journalEntries.filter(entry => entry.isJournal);
+      
+      if (filteredEntries.length === 0) {
+        return res.json({ habits: [] });
+      }
+      
+      // Get existing habits to avoid duplicates
+      const existingHabits = await storage.getHabitsByUserId(userId);
+      
+      // Generate suggestions based on journal content - use the goal suggestions 
+      // function and filter to only return habits
+      const suggestions = await generateGoalSuggestions(filteredEntries, []);
+      const habitSuggestions = suggestions.goals.filter(item => item.type === 'habit');
+      
+      res.json({ habits: habitSuggestions });
+    } catch (error) {
+      console.error("Error generating habit suggestions:", error);
+      res.status(500).json({ error: "Failed to generate habit suggestions" });
+    }
+  });
 
   app.post("/api/goals", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);

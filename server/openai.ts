@@ -491,7 +491,7 @@ export async function generateCustomPrompts(
 
 // Generate goal and habit suggestions based on journal entries
 export async function generateGoalSuggestions(
-  recentEntries: { content: string; date: string }[],
+  recentEntries: { content: string; date: string; id?: number }[],
   existingGoals: { name: string; targetDate?: string | null; progress: number }[] = []
 ): Promise<{ goals: { name: string; type: 'goal' | 'habit'; description: string }[] }> {
   try {
@@ -499,6 +499,31 @@ export async function generateGoalSuggestions(
     const entriesText = recentEntries
       .map(entry => `Entry from ${new Date(entry.date).toDateString()}: ${entry.content}`)
       .join("\n\n");
+    
+    // Get relevant past entries using RAG if possible
+    let similarEntries = [];
+    if (recentEntries.length > 0 && recentEntries[0].id) {
+      try {
+        // Get the user ID from the first entry (all entries should be from the same user)
+        const firstEntry = await getJournalEntryById(recentEntries[0].id);
+        if (firstEntry && firstEntry.userId) {
+          // Use the first entry text as a query for similarity search
+          similarEntries = await retrieveSimilarEntries(recentEntries[0].content, firstEntry.userId, 5);
+        }
+      } catch (error) {
+        console.log("Error retrieving similar entries, continuing without RAG context:", error);
+      }
+    }
+    
+    // Format the similar entries if any were found
+    const similarEntriesText = similarEntries.length > 0
+      ? `\n\nHere are additional relevant journal entries for context:\n${
+          similarEntries
+            .filter(entry => !recentEntries.some(recent => recent.id === entry.id)) // Avoid duplicates
+            .map(entry => `Entry from ${new Date(entry.date).toDateString()}: "${entry.content}"`)
+            .join("\n\n")
+        }`
+      : "";
     
     const existingGoalsText = existingGoals.length > 0
       ? `Current goals:\n${existingGoals.map(goal => 
@@ -523,6 +548,7 @@ export async function generateGoalSuggestions(
           - Add a brief description of why this would be beneficial
           - Avoid suggesting goals/habits the user already has
           - Base suggestions on the user's actual journal content, not generic advice
+          - Use the most relevant information from all provided entries
           
           Return a JSON object with a 'goals' array containing objects with:
           - 'name': short title (5-7 words max)
@@ -531,7 +557,7 @@ export async function generateGoalSuggestions(
         },
         {
           role: "user",
-          content: `Here are my recent journal entries:\n\n${entriesText}\n\n${existingGoalsText}`
+          content: `Here are my recent journal entries:\n\n${entriesText}${similarEntriesText}\n\n${existingGoalsText}`
         }
       ],
       response_format: { type: "json_object" },
