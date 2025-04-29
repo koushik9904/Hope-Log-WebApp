@@ -343,6 +343,18 @@ export default function GoalsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}`] });
+      // Reset the form to clear previous inputs
+      goalForm.reset({
+        name: "",
+        description: "",
+        targetDate: "",
+        category: "Personal",
+        target: 100,
+        progress: 0,
+        unit: "%",
+        colorScheme: 1,
+        userId: user?.id
+      });
       setShowNewGoalDialog(false);
       toast({
         title: "Goal created",
