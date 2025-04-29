@@ -68,6 +68,7 @@ import {
   TrendingUp,
   CheckCircle,
   X,
+  ListChecks,
   MoreHorizontal
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
