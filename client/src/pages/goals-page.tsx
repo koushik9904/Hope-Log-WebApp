@@ -18,6 +18,98 @@ interface Goal extends GoalBase {
   targetDate: string | null;
 }
 
+// AI suggestion interfaces
+interface AISuggestedGoal {
+  id: number;
+  name: string;  // Using 'name' to match existing goal structure
+  title?: string; // Optional for compatibility
+  description: string;
+  category?: string;
+  targetDate?: string | null;
+}
+
+interface AISuggestedTask {
+  id: number;
+  title: string;
+  description: string;
+  priority?: string;
+  goalId?: number;
+}
+
+interface AISuggestedHabit {
+  id: number;
+  title: string;
+  description: string;
+  frequency?: string;
+}
+
+// Sample AI suggested data (in a real application, this would come from the backend)
+const AI_SUGGESTED_GOALS: AISuggestedGoal[] = [
+  {
+    id: 101,
+    name: "Improve sleep quality",
+    description: "Based on your journal entries, focusing on better sleep habits could help your overall wellbeing.",
+    category: "health",
+    targetDate: null
+  },
+  {
+    id: 102,
+    name: "Practice daily mindfulness",
+    description: "You've mentioned feeling overwhelmed - regular mindfulness could help manage stress levels.",
+    category: "wellness",
+    targetDate: null
+  },
+  {
+    id: 103,
+    name: "Read more regularly",
+    description: "You've expressed interest in reading more. Setting a structured goal could help make this happen.",
+    category: "personal",
+    targetDate: null
+  }
+];
+
+const AI_SUGGESTED_TASKS: AISuggestedTask[] = [
+  {
+    id: 201,
+    title: "Research sleep improvement techniques",
+    description: "Find 3 evidence-based techniques for improving sleep quality and try them this week.",
+    priority: "medium"
+  },
+  {
+    id: 202,
+    title: "Download a meditation app",
+    description: "Find and install a meditation app with beginner-friendly guided sessions.",
+    priority: "low"
+  },
+  {
+    id: 203,
+    title: "Create a reading list",
+    description: "Make a list of 5 books you'd like to read in the next few months.",
+    priority: "medium"
+  }
+];
+
+const AI_SUGGESTED_HABITS: AISuggestedHabit[] = [
+  {
+    id: 301,
+    title: "10-minute morning meditation",
+    description: "Start each day with a brief mindfulness practice to improve focus and reduce stress.",
+    frequency: "daily"
+  },
+  {
+    id: 302,
+    title: "30 minutes of reading",
+    description: "Set aside dedicated time for reading, especially before bed instead of screen time.",
+    frequency: "daily"
+  },
+  {
+    id: 303,
+    title: "Weekly nature walk",
+    description: "Take a walk in nature to refresh your mind and get some exercise.",
+    frequency: "weekly"
+  }
+];
+
 // Extended types for items in the recycle bin
 interface DeletedGoal extends Goal {
   deletedAt: string;
@@ -26,7 +118,7 @@ interface DeletedGoal extends Goal {
 interface DeletedHabit {
   id: number;
   title: string;
-  description: string;
+  description: string | null;
   frequency: string;
   streak: number;
   userId: number;
@@ -185,86 +277,7 @@ export default function GoalsPage() {
   const [showNewTaskDialog, setShowNewTaskDialog] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("goals");
   
-  // Sample AI suggested goals for demonstration
-  const AI_SUGGESTED_GOALS = [
-    {
-      id: "ai-goal-1",
-      name: "Practice mindfulness meditation",
-      description: "Spend 10 minutes each day focusing on mindful breathing to reduce anxiety and improve focus",
-      category: "Mental Health",
-      targetDate: null,
-      source: "Based on your journal entries about feeling overwhelmed"
-    },
-    {
-      id: "ai-goal-2",
-      name: "Weekly nature walks",
-      description: "Take a 30-minute walk in nature each weekend to boost mood and energy levels",
-      category: "Physical Health",
-      targetDate: null,
-      source: "Based on your journal entries mentioning enjoying outdoor activities"
-    },
-    {
-      id: "ai-goal-3",
-      name: "Read for personal development",
-      description: "Read 15 minutes daily from books on personal growth or professional skills",
-      category: "Learning",
-      targetDate: null,
-      source: "Based on your interest in continuous self-improvement"
-    }
-  ];
-  
-  // Sample AI suggested tasks for demonstration
-  const AI_SUGGESTED_TASKS = [
-    {
-      id: "ai-task-1",
-      title: "Research mindfulness apps",
-      description: "Find and download a good mindfulness or meditation app",
-      priority: "medium",
-      dueDate: format(addDays(new Date(), 2), "yyyy-MM-dd"),
-      source: "Related to your goal of starting meditation"
-    },
-    {
-      id: "ai-task-2",
-      title: "Schedule blocked time for reading",
-      description: "Add 15-minute reading blocks to your calendar",
-      priority: "low",
-      dueDate: format(addDays(new Date(), 1), "yyyy-MM-dd"),
-      source: "To support your reading habit goal"
-    },
-    {
-      id: "ai-task-3",
-      title: "Map out local parks for nature walks",
-      description: "Find 3 nearby parks or nature trails for weekend walks",
-      priority: "medium",
-      dueDate: format(addDays(new Date(), 3), "yyyy-MM-dd"),
-      source: "To help implement your nature walk goal"
-    }
-  ];
-  
-  // Sample AI suggested habits for demonstration
-  const AI_SUGGESTED_HABITS = [
-    {
-      id: "ai-habit-1",
-      title: "Daily gratitude practice",
-      description: "Write down three things you're grateful for each morning",
-      frequency: "daily",
-      source: "Based on your interest in positive psychology techniques"
-    },
-    {
-      id: "ai-habit-2",
-      title: "Phone-free hour before bed",
-      description: "Avoid screens for 1 hour before bedtime to improve sleep quality",
-      frequency: "daily",
-      source: "Based on your journal entries about sleep difficulties"
-    },
-    {
-      id: "ai-habit-3",
-      title: "Sunday meal planning",
-      description: "Plan and prep your meals for the week every Sunday",
-      frequency: "weekly",
-      source: "Based on your nutrition and organization goals"
-    }
-  ];
+  // The AI suggestion data is defined at the top of the file
   
   // State for goals tab filtering
   const [goalFilter, setGoalFilter] = useState<string>("all");
