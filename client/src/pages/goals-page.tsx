@@ -1173,11 +1173,50 @@ export default function GoalsPage() {
               </Dialog>
             </div>
             
-            <Card className="bg-white border-0 shadow-sm mb-6">
-              <CardHeader className="border-b border-gray-100">
-                <CardTitle className="font-['Montserrat_Variable']">Your Tasks</CardTitle>
-                <CardDescription>
-                  Manage and track your day-to-day tasks
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+              {/* AI Task Suggestions */}
+              <Card className="md:col-span-1 bg-white border-0 shadow-sm">
+                <CardHeader className="border-b border-gray-100">
+                  <CardTitle className="font-['Montserrat_Variable'] flex items-center gap-2 text-base">
+                    <Sparkles className="h-4 w-4 text-[#B6CAEB]" />
+                    Task Ideas
+                  </CardTitle>
+                  <CardDescription className="text-xs">
+                    AI-suggested tasks based on your journal entries
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <div className="space-y-4">
+                    {AI_SUGGESTED_TASKS.slice(0, 3).map(task => (
+                      <div key={task.id} className="bg-[#f9f8ff] p-4 rounded-xl border border-[#B6CAEB] border-opacity-30">
+                        <h4 className="font-medium text-gray-800 text-sm mb-1">{task.title}</h4>
+                        <p className="text-xs text-gray-600 mb-3 line-clamp-2">{task.description}</p>
+                        <div className="flex justify-end">
+                          <Button 
+                            onClick={() => {
+                              // Add suggested task
+                              if (!user) return;
+                              setShowNewTaskDialog(true);
+                              // Implementation would depend on your task creation flow
+                            }}
+                            className="bg-[#B6CAEB] hover:bg-[#9db8e7] text-white text-xs px-3"
+                            size="sm"
+                          >
+                            <Plus className="h-3.5 w-3.5 mr-1.5" /> Add Task
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Main Tasks Card */}
+              <Card className="md:col-span-3 bg-white border-0 shadow-sm">
+                <CardHeader className="border-b border-gray-100">
+                  <CardTitle className="font-['Montserrat_Variable']">Your Tasks</CardTitle>
+                  <CardDescription>
+                    Manage and track your day-to-day tasks
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-6">
@@ -1422,6 +1461,49 @@ export default function GoalsPage() {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              {/* AI Habit Suggestions */}
+              <Card className="md:col-span-1 bg-white border-0 shadow-sm">
+                <CardHeader className="border-b border-gray-100">
+                  <CardTitle className="font-['Montserrat_Variable'] flex items-center gap-2 text-base">
+                    <Sparkles className="h-4 w-4 text-[#B6CAEB]" />
+                    Habit Ideas
+                  </CardTitle>
+                  <CardDescription className="text-xs">
+                    AI-suggested habits based on your journal entries
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <div className="space-y-4">
+                    {AI_SUGGESTED_HABITS.slice(0, 3).map(habit => (
+                      <div key={habit.id} className="bg-[#f8fff6] p-4 rounded-xl border border-[#9AAB63] border-opacity-30">
+                        <h4 className="font-medium text-gray-800 text-sm mb-1">{habit.title}</h4>
+                        <p className="text-xs text-gray-600 mb-3 line-clamp-2">{habit.description}</p>
+                        <div className="flex justify-end">
+                          <Button 
+                            onClick={() => {
+                              // Add suggested habit
+                              if (!user) return;
+                              setNewHabit({
+                                title: habit.title,
+                                description: habit.description,
+                                frequency: habit.frequency || "daily",
+                                userId: user.id
+                              });
+                              setShowNewHabitDialog(true);
+                            }}
+                            className="bg-[#9AAB63] hover:bg-[#8a9a58] text-white text-xs px-3"
+                            size="sm"
+                          >
+                            <Plus className="h-3.5 w-3.5 mr-1.5" /> Add Habit
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {/* Main Habits Card */}
               <Card className="md:col-span-3 bg-white border-0 shadow-sm">
                 <CardHeader className="border-b border-gray-100">
                   <CardTitle className="font-['Montserrat_Variable']">Your Habits</CardTitle>
