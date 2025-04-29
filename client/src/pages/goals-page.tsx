@@ -798,14 +798,14 @@ export default function GoalsPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-6">
-                <Tabs defaultValue="goals">
+                <Tabs defaultValue="goal-suggestions">
                   <TabsList className="mb-4">
-                    <TabsTrigger value="goals">Goals</TabsTrigger>
-                    <TabsTrigger value="habits">Habits</TabsTrigger>
-                    <TabsTrigger value="tasks">Tasks</TabsTrigger>
+                    <TabsTrigger value="goal-suggestions">Goal Ideas</TabsTrigger>
+                    <TabsTrigger value="habit-suggestions">Habit Ideas</TabsTrigger>
+                    <TabsTrigger value="task-suggestions">Task Ideas</TabsTrigger>
                   </TabsList>
                   
-                  <TabsContent value="goals">
+                  <TabsContent value="goal-suggestions">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {AI_SUGGESTED_GOALS.map(goal => (
                         <div key={goal.id} className="bg-[#fff8f9] p-5 rounded-xl border border-[#F5B8DB] border-opacity-30">
@@ -841,7 +841,7 @@ export default function GoalsPage() {
                     </div>
                   </TabsContent>
                   
-                  <TabsContent value="habits">
+                  <TabsContent value="habit-suggestions">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {AI_SUGGESTED_HABITS.map(habit => (
                         <div key={habit.id} className="bg-[#f8fff6] p-5 rounded-xl border border-[#9AAB63] border-opacity-30">
@@ -872,7 +872,7 @@ export default function GoalsPage() {
                     </div>
                   </TabsContent>
                   
-                  <TabsContent value="tasks">
+                  <TabsContent value="task-suggestions">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {AI_SUGGESTED_TASKS.map(task => (
                         <div key={task.id} className="bg-[#f9f8ff] p-5 rounded-xl border border-[#B6CAEB] border-opacity-30">
