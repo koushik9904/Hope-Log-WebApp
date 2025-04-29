@@ -2,6 +2,7 @@ import OpenAI from "openai";
 import { db } from "./db";
 import { journalEntries, journalEmbeddings } from "@shared/schema";
 import { eq, desc, and } from "drizzle-orm";
+import { storage } from "./storage";
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -501,11 +502,11 @@ export async function generateGoalSuggestions(
       .join("\n\n");
     
     // Get relevant past entries using RAG if possible
-    let similarEntries = [];
+    let similarEntries: Array<{id: number; content: string; date: string; transcript?: string | null; similarity: number}> = [];
     if (recentEntries.length > 0 && recentEntries[0].id) {
       try {
         // Get the user ID from the first entry (all entries should be from the same user)
-        const firstEntry = await getJournalEntryById(recentEntries[0].id);
+        const firstEntry = await storage.getJournalEntryById(recentEntries[0].id);
         if (firstEntry && firstEntry.userId) {
           // Use the first entry text as a query for similarity search
           similarEntries = await retrieveSimilarEntries(recentEntries[0].content, firstEntry.userId, 5);

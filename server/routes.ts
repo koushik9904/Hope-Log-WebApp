@@ -10,7 +10,8 @@ import {
   generateWeeklySummary, 
   generateCustomPrompts, 
   storeEmbedding,
-  generateGoalSuggestions
+  generateGoalSuggestions,
+  generateTaskSuggestions
 } from "./openai";
 import oauthSettingsRoutes from "./routes/oauth-settings";
 import openaiSettingsRoutes from "./routes/openai-settings";
