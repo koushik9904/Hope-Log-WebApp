@@ -492,9 +492,17 @@ export default function TaskList({
             <Card key={task.id} className={`${task.completed ? 'bg-muted/50' : ''}`}>
               <CardHeader className="pb-2">
                 <div className="flex justify-between items-start">
-                  <CardTitle className={`text-lg ${task.completed ? 'line-through text-muted-foreground' : ''}`}>
-                    {task.title}
-                  </CardTitle>
+                  <div className="flex items-center gap-2">
+                    <Checkbox 
+                      id={`task-${task.id}`} 
+                      checked={task.completed} 
+                      onCheckedChange={() => handleToggleCompletion(task)}
+                      className="h-5 w-5 border-2 border-[#9AAB63]"
+                    />
+                    <CardTitle className={`text-lg ${task.completed ? 'line-through text-muted-foreground' : ''}`}>
+                      {task.title}
+                    </CardTitle>
+                  </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon" className="h-8 w-8">
