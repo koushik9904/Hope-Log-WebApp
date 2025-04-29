@@ -180,7 +180,101 @@ export default function GoalsPage() {
   const { toast } = useToast();
   const [showNewGoalDialog, setShowNewGoalDialog] = useState(false);
   const [showNewHabitDialog, setShowNewHabitDialog] = useState(false);
+  const [showNewTaskDialog, setShowNewTaskDialog] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("goals");
+  
+  // Sample AI suggested goals for demonstration
+  const AI_SUGGESTED_GOALS = [
+    {
+      id: "ai-goal-1",
+      name: "Practice mindfulness meditation",
+      description: "Spend 10 minutes each day focusing on mindful breathing to reduce anxiety and improve focus",
+      category: "Mental Health",
+      targetDate: null,
+      source: "Based on your journal entries about feeling overwhelmed"
+    },
+    {
+      id: "ai-goal-2",
+      name: "Weekly nature walks",
+      description: "Take a 30-minute walk in nature each weekend to boost mood and energy levels",
+      category: "Physical Health",
+      targetDate: null,
+      source: "Based on your journal entries mentioning enjoying outdoor activities"
+    },
+    {
+      id: "ai-goal-3",
+      name: "Read for personal development",
+      description: "Read 15 minutes daily from books on personal growth or professional skills",
+      category: "Learning",
+      targetDate: null,
+      source: "Based on your interest in continuous self-improvement"
+    }
+  ];
+  
+  // Sample AI suggested tasks for demonstration
+  const AI_SUGGESTED_TASKS = [
+    {
+      id: "ai-task-1",
+      title: "Research mindfulness apps",
+      description: "Find and download a good mindfulness or meditation app",
+      priority: "medium",
+      dueDate: format(addDays(new Date(), 2), "yyyy-MM-dd"),
+      source: "Related to your goal of starting meditation"
+    },
+    {
+      id: "ai-task-2",
+      title: "Schedule blocked time for reading",
+      description: "Add 15-minute reading blocks to your calendar",
+      priority: "low",
+      dueDate: format(addDays(new Date(), 1), "yyyy-MM-dd"),
+      source: "To support your reading habit goal"
+    },
+    {
+      id: "ai-task-3",
+      title: "Map out local parks for nature walks",
+      description: "Find 3 nearby parks or nature trails for weekend walks",
+      priority: "medium",
+      dueDate: format(addDays(new Date(), 3), "yyyy-MM-dd"),
+      source: "To help implement your nature walk goal"
+    }
+  ];
+  
+  // Sample AI suggested habits for demonstration
+  const AI_SUGGESTED_HABITS = [
+    {
+      id: "ai-habit-1",
+      title: "Daily gratitude practice",
+      description: "Write down three things you're grateful for each morning",
+      frequency: "daily",
+      source: "Based on your interest in positive psychology techniques"
+    },
+    {
+      id: "ai-habit-2",
+      title: "Phone-free hour before bed",
+      description: "Avoid screens for 1 hour before bedtime to improve sleep quality",
+      frequency: "daily",
+      source: "Based on your journal entries about sleep difficulties"
+    },
+    {
+      id: "ai-habit-3",
+      title: "Sunday meal planning",
+      description: "Plan and prep your meals for the week every Sunday",
+      frequency: "weekly",
+      source: "Based on your nutrition and organization goals"
+    }
+  ];
+  
+  // State for goals tab filtering
+  const [goalFilter, setGoalFilter] = useState<string>("all");
+  const [goalCategoryFilter, setGoalCategoryFilter] = useState<string | null>(null);
+  const [goalDateRange, setGoalDateRange] = useState<{ from: Date | undefined; to: Date | undefined; }>({
+    from: undefined,
+    to: undefined,
+  });
+  const [goalDateRangeOpen, setGoalDateRangeOpen] = useState(false);
+  const [goalDateFilterActive, setGoalDateFilterActive] = useState(false);
+  const [goalSortBy, setGoalSortBy] = useState<'targetDate' | 'progress' | 'createdAt'>('targetDate');
+  const [goalSortDirection, setGoalSortDirection] = useState<'asc' | 'desc'>('asc');
   
   // Task filtering states
   const [taskFilter, setTaskFilter] = useState<string>('all');
@@ -678,6 +772,121 @@ export default function GoalsPage() {
               </Button>
             </div>
             
+            {/* AI Suggestions Card */}
+            <Card className="bg-white border-0 shadow-sm mb-8">
+              <CardHeader className="border-b border-gray-100">
+                <CardTitle className="font-['Montserrat_Variable'] flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-[#F5B8DB]" />
+                  AI Suggestions
+                </CardTitle>
+                <CardDescription>
+                  Personalized goal and habit suggestions based on your journal entries
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <Tabs defaultValue="goals">
+                  <TabsList className="mb-4">
+                    <TabsTrigger value="goals">Goals</TabsTrigger>
+                    <TabsTrigger value="habits">Habits</TabsTrigger>
+                    <TabsTrigger value="tasks">Tasks</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="goals">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {AI_SUGGESTED_GOALS.map(goal => (
+                        <div key={goal.id} className="bg-[#fff8f9] p-5 rounded-xl border border-[#F5B8DB] border-opacity-30">
+                          <h4 className="font-medium text-gray-800 text-lg mb-2">{goal.name}</h4>
+                          <p className="text-sm text-gray-600 mb-4">{goal.description}</p>
+                          <div className="text-xs text-gray-500 mb-4">{goal.source}</div>
+                          <div className="flex justify-end gap-2">
+                            <Button 
+                              onClick={() => {
+                                // Add suggested goal
+                                if (!user) return;
+                                
+                                addGoalMutation.mutate({
+                                  name: goal.name,
+                                  description: goal.description,
+                                  category: goal.category || "Personal",
+                                  targetDate: goal.targetDate,
+                                  userId: user.id,
+                                  target: 100,
+                                  progress: 0,
+                                  unit: "%",
+                                  colorScheme: 1
+                                });
+                              }}
+                              className="bg-[#F5B8DB] hover:bg-[#f096c9] text-white text-xs px-3"
+                              size="sm"
+                            >
+                              <Plus className="h-3.5 w-3.5 mr-1.5" /> Add Goal
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="habits">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {AI_SUGGESTED_HABITS.map(habit => (
+                        <div key={habit.id} className="bg-[#f8fff6] p-5 rounded-xl border border-[#9AAB63] border-opacity-30">
+                          <h4 className="font-medium text-gray-800 text-lg mb-2">{habit.title}</h4>
+                          <p className="text-sm text-gray-600 mb-4">{habit.description}</p>
+                          <div className="text-xs text-gray-500 mb-4">{habit.source}</div>
+                          <div className="flex justify-end gap-2">
+                            <Button 
+                              onClick={() => {
+                                // Add suggested habit
+                                if (!user) return;
+                                setNewHabit({
+                                  title: habit.title,
+                                  description: habit.description,
+                                  frequency: habit.frequency || "daily",
+                                  userId: user.id
+                                });
+                                setShowNewHabitDialog(true);
+                              }}
+                              className="bg-[#9AAB63] hover:bg-[#8a9a58] text-white text-xs px-3"
+                              size="sm"
+                            >
+                              <Plus className="h-3.5 w-3.5 mr-1.5" /> Add Habit
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="tasks">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {AI_SUGGESTED_TASKS.map(task => (
+                        <div key={task.id} className="bg-[#f9f8ff] p-5 rounded-xl border border-[#B6CAEB] border-opacity-30">
+                          <h4 className="font-medium text-gray-800 text-lg mb-2">{task.title}</h4>
+                          <p className="text-sm text-gray-600 mb-4">{task.description}</p>
+                          <div className="text-xs text-gray-500 mb-4">{task.source}</div>
+                          <div className="flex justify-end gap-2">
+                            <Button 
+                              onClick={() => {
+                                // Add suggested task
+                                if (!user) return;
+                                setShowNewTaskDialog(true);
+                                // Implementation would depend on your task creation flow
+                              }}
+                              className="bg-[#B6CAEB] hover:bg-[#9db8e7] text-white text-xs px-3"
+                              size="sm"
+                            >
+                              <Plus className="h-3.5 w-3.5 mr-1.5" /> Add Task
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
+            
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
               <Card className="md:col-span-3 bg-white border-0 shadow-sm">
                 <CardHeader className="border-b border-gray-100">
@@ -687,6 +896,123 @@ export default function GoalsPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="pt-6">
+                
+                  {/* Advanced Filtering UI for Goals */}
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                    <div className="flex flex-wrap gap-2">
+                      {/* Category Filter Dropdown */}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="sm" className="gap-1">
+                            <Filter className="h-4 w-4" />
+                            {goalCategoryFilter === null 
+                              ? "Filter by Category" 
+                              : `Category: ${goalCategoryFilter}`}
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuLabel>Select a Category</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => setGoalCategoryFilter(null)}>
+                            All Categories
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          {Array.from(new Set(goals.map(goal => goal.category))).map((category) => (
+                            <DropdownMenuItem key={category} onClick={() => setGoalCategoryFilter(category)}>
+                              {category}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+
+                      {/* Status Filter Tabs */}
+                      <Tabs defaultValue={goalFilter} onValueChange={(value) => setGoalFilter(value)}>
+                        <TabsList className="h-9">
+                          <TabsTrigger value="all">All</TabsTrigger>
+                          <TabsTrigger value="in-progress">In Progress</TabsTrigger>
+                          <TabsTrigger value="completed">Completed</TabsTrigger>
+                        </TabsList>
+                      </Tabs>
+                      
+                      {/* Date Range Filter */}
+                      <Popover open={goalDateRangeOpen} onOpenChange={setGoalDateRangeOpen}>
+                        <PopoverTrigger asChild>
+                          <Button 
+                            variant={goalDateFilterActive ? "default" : "outline"} 
+                            size="sm" 
+                            className={`gap-1 ${goalDateFilterActive ? "bg-[#9AAB63] hover:bg-[#8a9a58]" : ""}`}
+                          >
+                            <CalendarDays className="h-4 w-4" />
+                            {goalDateFilterActive 
+                              ? `${format(goalDateRange.from!, 'MMM d')}${goalDateRange.to ? ` - ${format(goalDateRange.to, 'MMM d')}` : ''}` 
+                              : "Target Date"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <div className="p-3 border-b">
+                            <h3 className="font-medium text-sm">Select Date Range</h3>
+                            <p className="text-xs text-muted-foreground mt-1">Filter goals by target date</p>
+                          </div>
+                          <CalendarComponent
+                            initialFocus
+                            mode="range"
+                            selected={{
+                              from: goalDateRange.from,
+                              to: goalDateRange.to,
+                            }}
+                            onSelect={(range) => {
+                              setGoalDateRange(range || { from: undefined, to: undefined });
+                              setGoalDateFilterActive(!!range?.from);
+                            }}
+                            numberOfMonths={2}
+                          />
+                          <div className="p-3 border-t">
+                            <Button
+                              variant="outline"
+                              className="w-full"
+                              onClick={() => {
+                                setGoalDateRange({ from: undefined, to: undefined });
+                                setGoalDateFilterActive(false);
+                                setGoalDateRangeOpen(false);
+                              }}
+                            >
+                              Clear Filter
+                            </Button>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    
+                    {/* Sort Order Controls */}
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="goal-sort" className="text-sm whitespace-nowrap">Sort by:</Label>
+                      <Select
+                        value={goalSortBy}
+                        onValueChange={(value) => setGoalSortBy(value as any)}
+                      >
+                        <SelectTrigger id="goal-sort" className="w-[140px] h-9">
+                          <SelectValue placeholder="Sort by" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="targetDate">Target Date</SelectItem>
+                          <SelectItem value="progress">Progress</SelectItem>
+                          <SelectItem value="createdAt">Created Date</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-9 w-9"
+                        onClick={() => setGoalSortDirection(goalSortDirection === 'asc' ? 'desc' : 'asc')}
+                      >
+                        {goalSortDirection === 'asc' ? (
+                          <SortAsc className="h-4 w-4" />
+                        ) : (
+                          <SortDesc className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
                   {isLoading ? (
                     <div className="flex justify-center py-12">
                       <div className="animate-spin h-8 w-8 border-4 border-[#F5B8DB] border-t-transparent rounded-full"></div>
