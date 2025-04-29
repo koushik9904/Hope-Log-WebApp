@@ -514,20 +514,23 @@ export default function GoalsPage() {
     if (similarHabit) {
       if (window.confirm(`A similar habit "${similarHabit.title}" already exists. Do you still want to create this habit?`)) {
         addHabitMutation.mutate(values as HabitFormValues);
+        // Note: The dialog is closed in addHabitMutation.onSuccess
       } else {
+        // User canceled, so we just close the dialog
         setShowNewHabitDialog(false);
+        // Reset form for next time
+        setNewHabit({
+          title: "",
+          description: "",
+          frequency: "daily",
+          userId: user?.id
+        });
       }
     } else {
+      // No similar habit, proceed with creation
       addHabitMutation.mutate(values as HabitFormValues);
+      // Note: The dialog is closed in addHabitMutation.onSuccess
     }
-    
-    // Reset form
-    setNewHabit({
-      title: "",
-      description: "",
-      frequency: "daily",
-      userId: user?.id
-    });
   };
   
   // Toggle habit completion
@@ -1436,9 +1439,20 @@ export default function GoalsPage() {
           <TabsContent value="habits">
             {/* Add Habit Button */}
             <div className="flex justify-end mb-6">
-              <Dialog>
+              <Dialog open={showNewHabitDialog} onOpenChange={setShowNewHabitDialog}>
                 <DialogTrigger asChild>
-                  <Button className="bg-[#B6CAEB] hover:bg-[#95b9e5] text-white">
+                  <Button 
+                    className="bg-[#B6CAEB] hover:bg-[#95b9e5] text-white"
+                    onClick={() => {
+                      // Clear any previous habit data when clicking Add Habit button directly
+                      setNewHabit({
+                        title: "",
+                        description: "",
+                        frequency: "daily",
+                        userId: user?.id
+                      });
+                    }}
+                  >
                     <Plus className="h-4 w-4 mr-2" /> Add Habit
                   </Button>
                 </DialogTrigger>
@@ -1456,6 +1470,7 @@ export default function GoalsPage() {
                         <Input 
                           id="habit-title" 
                           placeholder="e.g. Morning meditation" 
+                          value={newHabit.title}
                           onChange={(e) => setNewHabit({...newHabit, title: e.target.value})}
                           required
                         />
@@ -1465,6 +1480,7 @@ export default function GoalsPage() {
                         <Input 
                           id="habit-description" 
                           placeholder="Brief description of your habit" 
+                          value={newHabit.description || ''}
                           onChange={(e) => setNewHabit({...newHabit, description: e.target.value})}
                         />
                       </div>
@@ -1472,7 +1488,7 @@ export default function GoalsPage() {
                         <Label htmlFor="habit-frequency">Frequency</Label>
                         <Select 
                           onValueChange={(value) => setNewHabit({...newHabit, frequency: value as any})}
-                          defaultValue="daily"
+                          value={newHabit.frequency || "daily"}
                         >
                           <SelectTrigger className="bg-white">
                             <SelectValue placeholder="Select frequency" />
@@ -1497,6 +1513,8 @@ export default function GoalsPage() {
                             frequency: "daily",
                             userId: user?.id
                           });
+                          // Close the dialog
+                          setShowNewHabitDialog(false);
                         }}
                         className="bg-white"
                       >
@@ -1645,7 +1663,16 @@ export default function GoalsPage() {
                         Create your first habit to start building consistency
                       </p>
                       <Button 
-                        onClick={() => setShowNewHabitDialog(true)}
+                        onClick={() => {
+                          // Initialize with empty values
+                          setNewHabit({
+                            title: "",
+                            description: "",
+                            frequency: "daily",
+                            userId: user?.id
+                          });
+                          setShowNewHabitDialog(true);
+                        }}
                         className="bg-[#B6CAEB] hover:bg-[#95b9e5] text-white"
                       >
                         <Plus className="h-4 w-4 mr-2" /> Create Your First Habit
