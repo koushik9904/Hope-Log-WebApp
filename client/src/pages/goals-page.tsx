@@ -1172,9 +1172,14 @@ export default function GoalsPage() {
           <TabsContent value="tasks">
             {/* Add Task button */}
             <div className="flex justify-end mb-6">
-              <Dialog>
+              <Dialog open={showNewTaskDialog} onOpenChange={setShowNewTaskDialog}>
                 <DialogTrigger asChild>
-                  <Button className="bg-[#9AAB63] hover:bg-[#8a9a58] text-white">
+                  <Button className="bg-[#9AAB63] hover:bg-[#8a9a58] text-white"
+                    onClick={() => {
+                      // Clear any existing task data when manually clicking the button
+                      setNewTaskInitialData({});
+                    }}
+                  >
                     <Plus className="h-4 w-4 mr-2" /> Add Task
                   </Button>
                 </DialogTrigger>
@@ -1185,10 +1190,34 @@ export default function GoalsPage() {
                       Add a task to track your day-to-day activities
                     </DialogDescription>
                   </DialogHeader>
-                  <TaskForm userId={user?.id || 0} onSuccess={() => {
-                    queryClient.invalidateQueries({ queryKey: [`/api/tasks/${user?.id}`] });
-                    queryClient.invalidateQueries({ queryKey: ['/api/tasks', user?.id] });
-                  }} />
+                  <TaskForm 
+                    userId={user?.id || 0} 
+                    initialData={{
+                      id: 0,
+                      userId: user?.id || 0,
+                      title: newTaskInitialData.title || "",
+                      description: newTaskInitialData.description || null,
+                      dueDate: null,
+                      priority: newTaskInitialData.priority || "medium",
+                      completedAt: null,
+                      goalId: newTaskInitialData.goalId || null,
+                      // Other required fields that will be set by the server
+                      createdAt: null,
+                      updatedAt: null,
+                      deletedAt: null,
+                      colorScheme: 1,
+                      completed: false
+                    }}
+                    onSuccess={() => {
+                      // Clear the initial data after successful submission
+                      setNewTaskInitialData({});
+                      // Close the dialog
+                      setShowNewTaskDialog(false);
+                      // Refresh the task list
+                      queryClient.invalidateQueries({ queryKey: [`/api/tasks/${user?.id}`] });
+                      queryClient.invalidateQueries({ queryKey: ['/api/tasks', user?.id] });
+                    }} 
+                  />
                 </DialogContent>
               </Dialog>
             </div>
