@@ -69,6 +69,7 @@ import {
   CheckCircle,
   X,
   ListChecks,
+  ClipboardList,
   MoreHorizontal
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -779,9 +780,9 @@ export default function GoalsPage() {
             <div className="flex justify-end mb-6">
               <Button 
                 onClick={() => setShowNewGoalDialog(true)}
-                className="bg-[#F5B8DB] hover:bg-[#f096c9] text-white flex items-center gap-2"
+                className="bg-[#F5B8DB] hover:bg-[#f096c9] text-white"
               >
-                <Plus className="h-4 w-4" /> Add Goal
+                <Plus className="h-4 w-4 mr-2" /> Add Goal
               </Button>
             </div>
             
@@ -1102,7 +1103,7 @@ export default function GoalsPage() {
                                             createTask();
                                           }}
                                         >
-                                          <ListChecks className="h-4 w-4 mr-2" />
+                                          <ClipboardList className="h-4 w-4 mr-2" />
                                           <span>Convert to Task</span>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem
@@ -1222,13 +1223,16 @@ export default function GoalsPage() {
             <div className="flex justify-end mb-6">
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button className="bg-[#9AAB63] hover:bg-[#8a9a58] text-white flex items-center gap-2">
-                    <Plus className="h-4 w-4" /> Add Task
+                  <Button className="bg-[#9AAB63] hover:bg-[#8a9a58] text-white">
+                    <Plus className="h-4 w-4 mr-2" /> Add Task
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[600px] bg-white">
                   <DialogHeader>
-                    <DialogTitle>Create New Task</DialogTitle>
+                    <DialogTitle className="font-['Montserrat_Variable']">Create New Task</DialogTitle>
+                    <DialogDescription>
+                      Add a task to track your day-to-day activities
+                    </DialogDescription>
                   </DialogHeader>
                   <TaskForm userId={user?.id || 0} onSuccess={() => {
                     queryClient.invalidateQueries({ queryKey: [`/api/tasks/${user?.id}`] });
@@ -1409,8 +1413,8 @@ export default function GoalsPage() {
             <div className="flex justify-end mb-6">
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button className="bg-[#B6CAEB] hover:bg-[#95b9e5] text-white flex items-center gap-2">
-                    <Plus className="h-4 w-4" /> Add Habit
+                  <Button className="bg-[#B6CAEB] hover:bg-[#95b9e5] text-white">
+                    <Plus className="h-4 w-4 mr-2" /> Add Habit
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[500px] bg-white">
