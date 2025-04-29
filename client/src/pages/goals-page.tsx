@@ -1062,6 +1062,50 @@ export default function GoalsPage() {
                                         </DropdownMenuItem>
                                         <DropdownMenuItem
                                           onClick={() => {
+                                            // Convert this goal to a task
+                                            const taskData = {
+                                              title: goal.name,
+                                              description: goal.description,
+                                              priority: "medium",
+                                              status: "pending",
+                                              userId: user?.id,
+                                              dueDate: goal.targetDate,
+                                              goalId: null // This task isn't tied to any goal since it IS the goal
+                                            };
+                                            
+                                            // Create a new task based on this goal
+                                            const createTask = async () => {
+                                              try {
+                                                const res = await apiRequest("POST", "/api/tasks", taskData);
+                                                const newTask = await res.json();
+                                                
+                                                queryClient.invalidateQueries({ queryKey: [`/api/tasks/${user?.id}`] });
+                                                
+                                                toast({
+                                                  title: "Task created",
+                                                  description: "Goal has been converted to a task successfully"
+                                                });
+                                                
+                                                // Switch to tasks tab to show the new task
+                                                setActiveTab("tasks");
+                                              } catch (error) {
+                                                console.error("Error converting goal to task:", error);
+                                                toast({
+                                                  title: "Conversion failed",
+                                                  description: "There was an error converting your goal to a task",
+                                                  variant: "destructive"
+                                                });
+                                              }
+                                            };
+                                            
+                                            createTask();
+                                          }}
+                                        >
+                                          <ListChecks className="h-4 w-4 mr-2" />
+                                          <span>Convert to Task</span>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem
+                                          onClick={() => {
                                             // deleteGoalMutation.mutate(goal.id);
                                           }}
                                         >
