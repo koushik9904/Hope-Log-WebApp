@@ -1217,9 +1217,9 @@ export default function GoalsPage() {
                   <CardTitle className="font-['Montserrat_Variable']">Your Tasks</CardTitle>
                   <CardDescription>
                     Manage and track your day-to-day tasks
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-6">
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-6">
                 {/* Advanced Filtering UI for Tasks */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                   <div className="flex flex-wrap gap-2">
@@ -1374,8 +1374,9 @@ export default function GoalsPage() {
                   sortDirection={taskSortDirection}
                   dateRange={taskDateFilterActive ? taskDateRange : undefined}
                 />}
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
           
           <TabsContent value="habits">
