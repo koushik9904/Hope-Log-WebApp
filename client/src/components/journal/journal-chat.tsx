@@ -802,7 +802,10 @@ export function JournalChat({ userId, selectedDate }: JournalChatProps) {
                           })}
                         </div>
                       </div>
-                      <p className="text-sm text-gray-700 line-clamp-2">{entry.content}</p>
+                      <p className="text-sm font-medium text-gray-800 mb-0.5">
+                        {(entry as any).title || 'Journal Entry'}
+                      </p>
+                      <p className="text-xs text-gray-700 line-clamp-2">{entry.content}</p>
                     </div>
                   ))
               )}

@@ -11,7 +11,8 @@ import {
   generateCustomPrompts, 
   storeEmbedding,
   generateGoalSuggestions,
-  generateTaskSuggestions
+  generateTaskSuggestions,
+  generateJournalTitle
 } from "./openai";
 import oauthSettingsRoutes from "./routes/oauth-settings";
 import openaiSettingsRoutes from "./routes/openai-settings";
