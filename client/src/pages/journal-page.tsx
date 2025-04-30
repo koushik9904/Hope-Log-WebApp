@@ -72,14 +72,26 @@ export default function JournalPage() {
   
   // Calculate dates in selected month
   const getDatesInMonth = (monthStr: string): Date[] => {
+    // Parse the year and month from the YYYY-MM format
     const [year, month] = monthStr.split('-').map(Number);
-    const startDate = new Date(year, month - 1, 1);
-    const endDate = new Date(year, month, 0); // Last day of month
+    
+    // JavaScript months are 0-based (0=January, 11=December)
+    // Use month-1 for correct JavaScript date
+    const monthIndex = month - 1;
+    
+    // Get first day of the month
+    const startDate = new Date(year, monthIndex, 1);
+    
+    // Get last day of the month by getting day 0 of next month
+    const endDate = new Date(year, monthIndex + 1, 0);
     
     const dates: Date[] = [];
+    // Create a date object for each day in the month
     for (let day = 1; day <= endDate.getDate(); day++) {
-      dates.push(new Date(year, month - 1, day));
+      dates.push(new Date(year, monthIndex, day));
     }
+    
+    console.log(`Generated ${dates.length} dates for ${monthStr}, first: ${dates[0].toLocaleDateString()}, last: ${dates[dates.length-1].toLocaleDateString()}`);
     return dates;
   };
   
@@ -121,11 +133,18 @@ export default function JournalPage() {
     const today = new Date();
     const [year, month] = monthStr.split('-').map(Number);
     
+    // Create a new Date object for the selected month
+    // month - 1 because JavaScript's getMonth() is 0-based (0 = January, 1 = February, etc.)
+    const selectedMonthDate = new Date(year, month - 1, 1);
+    
     if (today.getFullYear() === year && today.getMonth() === month - 1) {
       setSelectedDate(today);
     } else {
-      setSelectedDate(new Date(year, month - 1, 1));
+      setSelectedDate(selectedMonthDate);
     }
+    
+    // Debug to verify months are displaying correctly
+    console.log(`Selected month: ${monthStr} (${selectedMonthDate.toLocaleString('en-US', {month: 'long', year: 'numeric'})})`);
   };
   
   // Navigate dates
@@ -368,10 +387,19 @@ export default function JournalPage() {
                     </SelectTrigger>
                     <SelectContent>
                       {[...Array(12)].map((_, monthIndex) => {
+                        // Create date for each month option
                         const date = new Date();
                         date.setMonth(date.getMonth() - monthIndex);
+                        
+                        // Format for value - YYYY-MM
                         const monthStr = date.toISOString().substring(0, 7);
-                        const displayText = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                        
+                        // Format for display - Month Year
+                        const displayText = date.toLocaleDateString('en-US', { 
+                          month: 'long', 
+                          year: 'numeric' 
+                        });
+                        
                         return (
                           <SelectItem key={monthStr} value={monthStr}>
                             {displayText}
