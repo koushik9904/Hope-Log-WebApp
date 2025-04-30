@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { format } from 'date-fns';
-import { Edit, Trash, Check, X, ArrowRight, Calendar, Clock, Target, Plus, Filter } from 'lucide-react';
+import { Edit, Trash, Check, X, ArrowRight, Calendar, Clock, Target, Plus, Filter, AlertCircle, BarChart3, ListTodo } from 'lucide-react';
 import { Task, Goal } from '@shared/schema';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
@@ -451,6 +451,18 @@ export default function TaskList({
     
     return 0;
   });
+  
+  // Group tasks by priority (equivalent to grouping goals by category)
+  const tasksByPriority = filteredTasks.reduce((acc, task) => {
+    const priority = task.priority.charAt(0).toUpperCase() + task.priority.slice(1) || "Other";
+    
+    if (!acc[priority]) {
+      acc[priority] = [];
+    }
+    
+    acc[priority].push(task);
+    return acc;
+  }, {} as Record<string, Task[]>);
 
   // Calculate filter stats for displaying to user
   const totalTasks = tasksQuery.data?.length || 0;
@@ -487,9 +499,20 @@ export default function TaskList({
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredTasks.map((task) => (
-            <Card key={task.id} className={`bg-white border-0 shadow-sm ${task.completed ? 'opacity-80' : ''}`}>
+        <div className="space-y-8">
+          {Object.entries(tasksByPriority).map(([priority, priorityTasks]) => (
+            <div key={priority} className="space-y-4">
+              <h3 className="text-lg font-medium flex items-center gap-2 font-['Montserrat_Variable']">
+                {priority === 'High' && <AlertCircle className="h-4 w-4 text-red-500" />}
+                {priority === 'Medium' && <BarChart3 className="h-4 w-4 text-orange-500" />}
+                {priority === 'Low' && <ListTodo className="h-4 w-4 text-green-500" />}
+                {priority !== 'High' && priority !== 'Medium' && priority !== 'Low' && <div className="w-4 h-4" />}
+                {priority} Priority Tasks
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {priorityTasks.map((task) => (
+                  <Card key={task.id} className={`bg-white border-0 shadow-sm ${task.completed ? 'opacity-80' : ''}`}>
               <CardHeader className="pb-2">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-2">
