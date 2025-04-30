@@ -20,8 +20,8 @@ async function generateTitlesForExistingEntries() {
           eq(journalEntries.isAiResponse, false)
         )
       )
-      .orderBy(journalEntries.id, { direction: "desc" }) // Process newest entries first
-      .limit(10); // Process in smaller batches
+      .orderBy(journalEntries.id) // Process in ascending order
+      .limit(20); // Process more entries in this batch
     
     console.log(`Found ${entriesWithoutTitles.length} entries that might need titles.`);
     
