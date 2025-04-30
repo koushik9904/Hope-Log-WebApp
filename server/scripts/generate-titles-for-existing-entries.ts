@@ -1,6 +1,6 @@
 import { db } from "../db";
 import { journalEntries } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { eq, and, isNull } from "drizzle-orm";
 import { generateJournalTitle } from "../openai";
 
 /**
@@ -9,12 +9,16 @@ import { generateJournalTitle } from "../openai";
  */
 async function generateTitlesForExistingEntries() {
   try {
-    // Get all journal entries that are marked as journal (not chat messages)
+    // Get all entries that don't have titles
+    // Look for user messages (not AI responses) that don't have a title yet
     const entriesWithoutTitles = await db
       .select()
       .from(journalEntries)
       .where(
-        eq(journalEntries.isJournal, true)
+        and(
+          isNull(journalEntries.title),
+          eq(journalEntries.isAiResponse, false)
+        )
       );
     
     console.log(`Found ${entriesWithoutTitles.length} entries that might need titles.`);
