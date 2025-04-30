@@ -556,11 +556,22 @@ Your role is to:
         entryDate = new Date().toISOString();
       }
       
+      // Generate a meaningful title for the journal entry
+      let title;
+      try {
+        title = await generateJournalTitle(content);
+        console.log(`Generated title for journal entry: ${title}`);
+      } catch (titleError) {
+        console.error("Failed to generate title, using default:", titleError);
+        title = "Journal Entry";
+      }
+
       // Save as permanent journal entry
       const journalEntry = await storage.createJournalEntry({
         userId,
         content,
         date: entryDate, // Already an ISO string from client
+        title, // Add the AI-generated title
         isAiResponse: false,
         isJournal: true, // This is a permanent journal entry
         transcript: transcript || content // Use provided transcript if available, otherwise use content

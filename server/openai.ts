@@ -5,6 +5,35 @@ import { eq, desc, and } from "drizzle-orm";
 import { storage } from "./storage";
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+
+/**
+ * Generate a concise, meaningful title for a journal entry based on its content
+ */
+export async function generateJournalTitle(content: string): Promise<string> {
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: "You are a journal title generator. Your task is to create a short, descriptive, and meaningful title for a journal entry. The title should capture the essence of the entry in 3-7 words. Don't use quotes around the title. Focus on the main themes or emotions in the journal."
+        },
+        {
+          role: "user",
+          content: `Generate a concise, meaningful title for this journal entry: \n\n${content}`
+        }
+      ],
+      max_tokens: 30,
+      temperature: 0.7,
+    });
+    
+    const title = response.choices[0].message.content?.trim() || "Journal Entry";
+    return title;
+  } catch (error) {
+    console.error("Error generating journal title:", error);
+    return "Journal Entry"; // Fallback title
+  }
+}
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 // Generate embeddings for text

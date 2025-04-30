@@ -67,6 +67,7 @@ export const journalEntries = pgTable("journal_entries", {
   userId: integer("user_id").notNull(),
   content: text("content").notNull(),
   date: timestamp("date", { mode: 'string' }).notNull(),
+  title: text("title"),  // Added title field for AI-generated titles
   isAiResponse: boolean("is_ai_response").notNull().default(false),
   isJournal: boolean("is_journal").notNull().default(false),
   transcript: text("transcript"),  // For storing complete chat transcripts when saving
