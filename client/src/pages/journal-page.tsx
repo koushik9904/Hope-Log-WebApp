@@ -91,11 +91,27 @@ export default function JournalPage() {
       dates.push(new Date(year, monthIndex, day));
     }
     
-    console.log(`Generated ${dates.length} dates for ${monthStr}, first: ${dates[0].toLocaleDateString()}, last: ${dates[dates.length-1].toLocaleDateString()}`);
+    console.log(`Selected month string: ${monthStr}`);
+    console.log(`Year: ${year}, Month: ${month} (JavaScript month index: ${monthIndex})`);
+    console.log(`First day of month: ${startDate.toLocaleDateString()}`);
+    console.log(`Last day of month: ${endDate.toLocaleDateString()}`);
+    console.log(`Generated ${dates.length} dates for ${monthStr}`);
+    
     return dates;
   };
   
-  const datesInMonth = getDatesInMonth(selectedMonth);
+  // Calculate dates for the selected month and update whenever selectedMonth changes
+  // This ensures we always show the proper dates for the selected month
+  const [datesInMonth, setDatesInMonth] = useState<Date[]>([]);
+  
+  // Update dates when selected month changes
+  useEffect(() => {
+    console.log(`Selected month changed to: ${selectedMonth}, recalculating dates`);
+    const newDates = getDatesInMonth(selectedMonth);
+    setDatesInMonth(newDates);
+  }, [selectedMonth]);
+  
+  // Get visible date range based on current position
   const visibleDates = datesInMonth.slice(visibleDatesStart, visibleDatesStart + 5);
   
   // Calculate if we can navigate dates
@@ -127,24 +143,36 @@ export default function JournalPage() {
   
   // Change month handler
   const handleMonthChange = (monthStr: string) => {
-    setSelectedMonth(monthStr);
-    setVisibleDatesStart(0);
-    // If current date is in this month, select it, otherwise select 1st
-    const today = new Date();
-    const [year, month] = monthStr.split('-').map(Number);
+    console.log(`Month changed to: ${monthStr}`);
     
-    // Create a new Date object for the selected month
+    // Set the selected month
+    setSelectedMonth(monthStr);
+    
+    // Reset the visible dates window
+    setVisibleDatesStart(0);
+    
+    // Parse the year and month
+    const [year, month] = monthStr.split('-').map(Number);
+    console.log(`Parsed year: ${year}, month: ${month}`);
+    
+    // Create a new Date object for the 1st day of the selected month
     // month - 1 because JavaScript's getMonth() is 0-based (0 = January, 1 = February, etc.)
     const selectedMonthDate = new Date(year, month - 1, 1);
+    console.log(`Created date object: ${selectedMonthDate.toDateString()}`);
     
+    // Check if today is in the selected month
+    const today = new Date();
     if (today.getFullYear() === year && today.getMonth() === month - 1) {
+      console.log(`Today is in the selected month, using today's date: ${today.toDateString()}`);
       setSelectedDate(today);
     } else {
+      console.log(`Today is not in the selected month, using 1st day: ${selectedMonthDate.toDateString()}`);
       setSelectedDate(selectedMonthDate);
     }
     
-    // Debug to verify months are displaying correctly
-    console.log(`Selected month: ${monthStr} (${selectedMonthDate.toLocaleString('en-US', {month: 'long', year: 'numeric'})})`);
+    // Force a re-render of the date components by directly calling the function
+    const newDatesInMonth = getDatesInMonth(monthStr);
+    console.log(`Generated ${newDatesInMonth.length} dates for ${monthStr}`);
   };
   
   // Navigate dates
@@ -386,19 +414,24 @@ export default function JournalPage() {
                       </div>
                     </SelectTrigger>
                     <SelectContent>
+                      {/* Generate options for past 12 months */}
                       {[...Array(12)].map((_, monthIndex) => {
-                        // Create date for each month option
-                        const date = new Date();
-                        date.setMonth(date.getMonth() - monthIndex);
+                        // Create date for each month option starting from current month
+                        const now = new Date();
+                        const date = new Date(now.getFullYear(), now.getMonth() - monthIndex, 1);
                         
-                        // Format for value - YYYY-MM
-                        const monthStr = date.toISOString().substring(0, 7);
+                        // Format for value - YYYY-MM (Make sure to pad single digit months with leading zero)
+                        const year = date.getFullYear();
+                        const month = date.getMonth() + 1; // +1 because getMonth() is 0-indexed
+                        const monthStr = `${year}-${month < 10 ? '0' + month : month}`;
                         
                         // Format for display - Month Year
                         const displayText = date.toLocaleDateString('en-US', { 
                           month: 'long', 
                           year: 'numeric' 
                         });
+                        
+                        console.log(`Dropdown option: ${monthStr} -> ${displayText}`);
                         
                         return (
                           <SelectItem key={monthStr} value={monthStr}>
