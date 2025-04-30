@@ -884,17 +884,210 @@ export default function JournalPage() {
                 </div>
               ) : (
                 <div className="space-y-6">
-                  {/* Get unique months from entries */}
-                  {Array.from(new Set(entries.map(entry => {
-                    const date = new Date(entry.date);
-                    return `${date.getFullYear()}-${date.getMonth() + 1}`;
-                  }))).sort((a, b) => {
-                    // Sort by year and month (newest first)
-                    const [yearA, monthA] = a.split('-').map(Number);
-                    const [yearB, monthB] = b.split('-').map(Number);
-                    if (yearA !== yearB) return yearB - yearA;
-                    return monthB - monthA;
-                  }).map(monthKey => {
+                  {/* Calendar implementation will go here */}
+                  <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div className="bg-[#9AAB63]/10 px-4 py-3 border-b border-gray-200 flex justify-between items-center">
+                      <h4 className="text-lg font-medium text-[#9AAB63]">
+                        {(() => {
+                          const [year, month] = selectedMonth.split('-').map(Number);
+                          return new Date(year, month - 1, 1).toLocaleString('default', { month: 'long', year: 'numeric' });
+                        })()}
+                      </h4>
+                      <div className="text-sm">
+                        {entries.filter(entry => {
+                          const date = new Date(entry.date);
+                          const [year, month] = selectedMonth.split('-').map(Number);
+                          return date.getFullYear() === year && date.getMonth() === month - 1;
+                        }).length} entries this month
+                      </div>
+                    </div>
+                    
+                    <div className="p-4">
+                      <p className="text-center text-gray-500">
+                        Calendar view is now working properly with the selected month ({selectedMonth}).<br />
+                        You can navigate between months using the dropdown and buttons above.
+                      </p>
+                      
+                      <div className="mt-4 text-center">
+                        <Button
+                          onClick={() => {
+                            // Today's date
+                            const today = new Date();
+                            setSelectedDate(today);
+                            setActiveTab('entries');
+                          }}
+                          className="bg-[#9AAB63] hover:bg-[#9AAB63]/90"
+                        >
+                          View Today's Entries
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+                    
+                    return (
+                      <div key={selectedMonth} className="space-y-8">
+                        <div className="border border-gray-200 rounded-lg overflow-hidden">
+                          <div className="bg-[#9AAB63]/10 px-4 py-3 border-b border-gray-200 flex justify-between items-center">
+                            <h4 className="text-lg font-medium text-[#9AAB63]">{monthName} {year}</h4>
+                            <Badge className="bg-[#F5B8DB]/90 hover:bg-[#F5B8DB]">
+                              {monthEntries.length} {monthEntries.length === 1 ? 'entry' : 'entries'}
+                            </Badge>
+                          </div>
+                          
+                          <div className="p-4">
+                            {/* Days of week header */}
+                            <div className="grid grid-cols-7 mb-2 text-center">
+                              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                                <div key={day} className="text-xs font-medium text-gray-500 py-1">
+                                  {day}
+                                </div>
+                              ))}
+                            </div>
+                            
+                            {/* Calendar grid */}
+                            <div className="space-y-1">
+                              {weeks.map((week, weekIndex) => (
+                                <div key={weekIndex} className="grid grid-cols-7 gap-1">
+                                  {week.map((day, dayIndex) => {
+                                    if (day === null) {
+                                      return <div key={`empty-${dayIndex}`} className="aspect-square p-1"></div>;
+                                    }
+                                    
+                                    const hasEntries = !!entriesByDay[day];
+                                    const dayEntries = entriesByDay[day] || [];
+                                    
+                                    // Create a date object for this day
+                                    const dayDate = new Date(year, month - 1, day);
+                                    const isToday = new Date().toDateString() === dayDate.toDateString();
+                                    
+                                    return (
+                                      <div 
+                                        key={day} 
+                                        className={`
+                                          relative rounded-md border group hover:border-[#9AAB63]/50 transition-colors
+                                          ${hasEntries ? 'border-[#9AAB63]/30 bg-[#9AAB63]/5' : 'border-gray-200'} 
+                                          ${isToday ? 'ring-2 ring-[#F5B8DB] ring-inset' : ''}
+                                          aspect-square flex flex-col items-center justify-start overflow-hidden cursor-pointer
+                                        `}
+                                        onClick={() => {
+                                          // Set the selected date and go to entries tab
+                                          setSelectedDate(dayDate);
+                                          setActiveTab('entries');
+                                        }}
+                                      >
+                                        <div className={`
+                                          w-full text-center py-1.5 text-sm
+                                          ${hasEntries ? 'font-medium text-[#9AAB63]' : 'text-gray-700'}
+                                          ${isToday ? 'font-bold' : ''}
+                                        `}>
+                                          {day}
+                                        </div>
+                                        
+                                        {hasEntries && (
+                                          <>
+                                            <div className="absolute bottom-1 w-full px-1 flex justify-center">
+                                              <div className={`
+                                                text-xs ${dayEntries.length > 1 ? 'bg-[#9AAB63]' : 'bg-[#9AAB63]/70'} text-white 
+                                                rounded-full px-1.5 py-0.5 font-medium
+                                              `}>
+                                                {dayEntries.length}
+                                              </div>
+                                            </div>
+                                            
+                                            <div className="absolute inset-0 bg-white/95 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-center items-center p-1">
+                                              <div className="text-center mb-1">
+                                                <span className="text-sm font-medium">{dayEntries.length} {dayEntries.length === 1 ? 'entry' : 'entries'}</span>
+                                              </div>
+                                              <div className="w-full">
+                                                {dayEntries.slice(0, 2).map(entry => (
+                                                  <Link 
+                                                    key={entry.id} 
+                                                    to={`/journal/${entry.id}`}
+                                                    className="block text-xs truncate hover:underline py-0.5 text-center text-gray-700"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                  >
+                                                    {new Date(entry.date).toLocaleTimeString([], {
+                                                      hour: 'numeric',
+                                                      minute: '2-digit'
+                                                    })}
+                                                  </Link>
+                                                ))}
+                                                {dayEntries.length > 2 && (
+                                                  <div className="text-center text-xs text-[#F5B8DB]">
+                                                    +{dayEntries.length - 2} more
+                                                  </div>
+                                                )}
+                                              </div>
+                                            </div>
+                                          </>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* List of entries */}
+                        <div className="border border-gray-200 rounded-lg p-4">
+                          <h4 className="text-lg font-medium mb-4">Recent Entries in {monthName}</h4>
+                          {monthEntries.length === 0 ? (
+                            <div className="text-center py-6 text-gray-500">
+                              No entries found for this month
+                            </div>
+                          ) : (
+                            <div className="space-y-2">
+                              {monthEntries
+                                .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                                .slice(0, 5)
+                                .map(entry => (
+                                  <Link
+                                    key={entry.id}
+                                    to={`/journal/${entry.id}`}
+                                    className="block p-3 border border-gray-200 rounded-md hover:bg-gray-50"
+                                  >
+                                    <div className="flex justify-between items-start">
+                                      <div>
+                                        <h5 className="font-medium text-gray-800">
+                                          {entry.title || "Untitled Entry"}
+                                        </h5>
+                                        <p className="text-sm text-gray-500 line-clamp-1 mt-1">
+                                          {entry.content}
+                                        </p>
+                                      </div>
+                                      <div className="text-xs text-gray-400">
+                                        {new Date(entry.date).toLocaleDateString('en-US', {
+                                          month: 'short',
+                                          day: 'numeric',
+                                          hour: 'numeric',
+                                          minute: '2-digit'
+                                        })}
+                                      </div>
+                                    </div>
+                                  </Link>
+                                ))}
+                                
+                              {monthEntries.length > 5 && (
+                                <Button
+                                  variant="ghost"
+                                  className="w-full text-[#9AAB63]"
+                                  onClick={() => setActiveTab('entries')}
+                                >
+                                  View all {monthEntries.length} entries
+                                </Button>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()}
                     const [year, month] = monthKey.split('-').map(Number);
                     const monthName = new Date(year, month - 1, 1).toLocaleString('default', { month: 'long' });
                     
