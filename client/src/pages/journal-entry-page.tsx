@@ -78,8 +78,8 @@ export default function JournalEntryPage() {
             
             <CardTitle className="text-2xl font-serif text-gray-800">
               {isLoading ? <Skeleton className="h-8 w-3/4" /> : (
-                entry?.content ? (() => {
-                  // Generate title from content
+                entry?.title || (entry?.content ? (() => {
+                  // Fallback to generating title from content if no title is available
                   const content = entry.content;
                   if (!content || content.trim() === "") return "Untitled Entry";
                   
@@ -102,7 +102,7 @@ export default function JournalEntryPage() {
                   }
                   
                   return title;
-                })() : "Journal Entry"
+                })() : "Journal Entry")
               )}
             </CardTitle>
             
