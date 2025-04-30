@@ -1207,42 +1207,6 @@ Your role is to:
     }
   });
   
-  // Endpoint for regular journal entries (non-deleted)
-  app.get("/api/journal", async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-    
-    try {
-      const userId = req.user?.id;
-      if (!userId) return res.sendStatus(401);
-      
-      const entries = await storage.getJournalEntriesByUserId(userId);
-      
-      // Filter out deleted entries
-      const activeEntries = entries.filter(entry => !entry.isDeleted);
-      
-      res.json(activeEntries);
-    } catch (error) {
-      console.error("Error fetching journal entries:", error);
-      res.status(500).json({ error: "Failed to fetch journal entries" });
-    }
-  });
-
-  // Endpoint for deleted journal entries
-  app.get("/api/journal/deleted", async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-    
-    try {
-      const userId = req.user?.id;
-      if (!userId) return res.sendStatus(401);
-      
-      const deletedEntries = await storage.getDeletedJournalEntriesByUserId(userId);
-      res.json(deletedEntries);
-    } catch (error) {
-      console.error("Error fetching deleted journal entries:", error);
-      res.status(500).json({ error: "Failed to fetch deleted journal entries" });
-    }
-  });
-  
   const httpServer = createServer(app);
   return httpServer;
 }
