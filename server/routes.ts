@@ -4,6 +4,7 @@ import { z } from "zod";
 import * as crypto from "crypto";
 import { setupAuth, hashPassword } from "./auth";
 import { storage } from "./storage";
+import { db } from "./db";
 import { 
   generateAIResponse, 
   analyzeSentiment, 
@@ -14,6 +15,8 @@ import {
   generateTaskSuggestions,
   generateJournalTitle
 } from "./openai";
+import { journalEntries } from "@shared/schema";
+import { eq } from "drizzle-orm";
 import oauthSettingsRoutes from "./routes/oauth-settings";
 import openaiSettingsRoutes from "./routes/openai-settings";
 import adminStatsRoutes from "./routes/admin-stats";
@@ -1133,6 +1136,76 @@ Your role is to:
 
   // Register avatar routes
   registerAvatarRoutes(app);
+  
+  // Generate titles for existing journal entries
+  app.post("/api/admin/generate-journal-titles", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    if (!req.user?.isAdmin) return res.sendStatus(403);
+    
+    try {
+      // Get all journal entries without titles (where title is null or empty string)
+      const entriesWithoutTitles = await db
+        .select()
+        .from(journalEntries)
+        .where(
+          eq(journalEntries.isJournal, true)
+        );
+      
+      console.log(`Found ${entriesWithoutTitles.length} entries that might need titles.`);
+      
+      let successCount = 0;
+      let errorCount = 0;
+      let skippedCount = 0;
+      
+      // Process each entry
+      for (const entry of entriesWithoutTitles) {
+        try {
+          // Skip entries that already have a title
+          if (entry.title) {
+            console.log(`Entry ${entry.id} already has title: "${entry.title}". Skipping.`);
+            skippedCount++;
+            continue;
+          }
+          
+          console.log(`Generating title for entry ${entry.id}...`);
+          
+          // Use content or transcript (if available) for title generation
+          const contentForTitle = entry.transcript || entry.content;
+          
+          // Generate title
+          const title = await generateJournalTitle(contentForTitle);
+          
+          // Update the entry with the new title
+          await db
+            .update(journalEntries)
+            .set({ title })
+            .where(eq(journalEntries.id, entry.id));
+          
+          console.log(`Updated entry ${entry.id} with title: "${title}"`);
+          successCount++;
+          
+          // Add a small delay to avoid rate limiting
+          await new Promise(resolve => setTimeout(resolve, 500));
+        } catch (error) {
+          console.error(`Error processing entry ${entry.id}:`, error);
+          errorCount++;
+        }
+      }
+      
+      res.json({
+        message: "Title generation complete",
+        stats: {
+          total: entriesWithoutTitles.length,
+          generated: successCount,
+          skipped: skippedCount,
+          failed: errorCount
+        }
+      });
+    } catch (error) {
+      console.error("Error generating titles for journal entries:", error);
+      res.status(500).json({ error: "Failed to generate titles for journal entries" });
+    }
+  });
   
   const httpServer = createServer(app);
   return httpServer;
