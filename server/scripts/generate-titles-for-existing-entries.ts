@@ -1,17 +1,15 @@
 import { db } from "../db";
 import { journalEntries } from "@shared/schema";
-import { eq, isNull } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { generateJournalTitle } from "../openai";
 
 /**
- * This script finds all journal entries without titles and generates titles for them
- * using the OpenAI API through the generateJournalTitle function.
+ * Script to generate titles for all existing journal entries that don't have titles
+ * This is a one-time process to be run after adding the title field to the journal_entries table
  */
 async function generateTitlesForExistingEntries() {
   try {
-    console.log("Starting title generation for existing journal entries...");
-    
-    // Get all journal entries without titles (where title is null or empty)
+    // Get all journal entries that are marked as journal (not chat messages)
     const entriesWithoutTitles = await db
       .select()
       .from(journalEntries)
@@ -19,15 +17,11 @@ async function generateTitlesForExistingEntries() {
         eq(journalEntries.isJournal, true)
       );
     
-    console.log(`Found ${entriesWithoutTitles.length} entries without titles.`);
-    
-    if (entriesWithoutTitles.length === 0) {
-      console.log("No entries require title generation. Exiting.");
-      return;
-    }
+    console.log(`Found ${entriesWithoutTitles.length} entries that might need titles.`);
     
     let successCount = 0;
     let errorCount = 0;
+    let skippedCount = 0;
     
     // Process each entry
     for (const entry of entriesWithoutTitles) {
@@ -35,6 +29,7 @@ async function generateTitlesForExistingEntries() {
         // Skip entries that already have a title
         if (entry.title) {
           console.log(`Entry ${entry.id} already has title: "${entry.title}". Skipping.`);
+          skippedCount++;
           continue;
         }
         
@@ -63,17 +58,25 @@ async function generateTitlesForExistingEntries() {
       }
     }
     
-    console.log("\nTitle generation complete!");
-    console.log(`Successfully updated: ${successCount} entries`);
-    console.log(`Failed: ${errorCount} entries`);
+    console.log("Title generation complete!");
+    console.log("Stats:");
+    console.log(`  Total journal entries: ${entriesWithoutTitles.length}`);
+    console.log(`  Titles generated: ${successCount}`);
+    console.log(`  Entries skipped (already had titles): ${skippedCount}`);
+    console.log(`  Failed entries: ${errorCount}`);
     
   } catch (error) {
-    console.error("Error in generateTitlesForExistingEntries:", error);
-  } finally {
-    // Close the database connection
-    process.exit(0);
+    console.error("Error generating titles for journal entries:", error);
   }
 }
 
 // Run the script
-generateTitlesForExistingEntries();
+generateTitlesForExistingEntries()
+  .then(() => {
+    console.log("Script execution completed.");
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error("Script execution failed:", error);
+    process.exit(1);
+  });
