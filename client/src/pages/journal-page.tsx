@@ -885,7 +885,7 @@ export default function JournalPage() {
                                         })}
                                       </span>
                                       <span className="truncate">
-                                        {entry.content.length > 40 ? entry.content.substring(0, 40) + '...' : entry.content}
+                                        {entry.title ? entry.title : (entry.content.length > 40 ? entry.content.substring(0, 40) + '...' : entry.content)}
                                       </span>
                                     </Link>
                                   ))}
@@ -943,8 +943,8 @@ export default function JournalPage() {
                       <div className="flex justify-between">
                         <div className="w-full">
                           <h4 className="font-medium text-lg mb-1 text-gray-700">
-                            {(() => {
-                              // Generate title from content
+                            {entry.title || (() => {
+                              // Fallback: Generate title from content if no AI title
                               const content = entry.content;
                               if (!content || content.trim() === "") return "Untitled Entry";
                               
