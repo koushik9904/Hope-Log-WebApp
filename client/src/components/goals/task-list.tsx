@@ -489,7 +489,7 @@ export default function TaskList({
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredTasks.map((task) => (
-            <Card key={task.id} className={`${task.completed ? 'bg-muted/50' : ''}`}>
+            <Card key={task.id} className={`bg-white border-0 shadow-sm ${task.completed ? 'opacity-80' : ''}`}>
               <CardHeader className="pb-2">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-2">
@@ -567,22 +567,24 @@ export default function TaskList({
                 </div>
               </CardHeader>
               <CardContent className="pt-0">
-                {task.description && <p className="text-sm text-muted-foreground mb-2">{task.description}</p>}
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="outline" className={getPriorityColor(task.priority)}>
-                    {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)} Priority
-                  </Badge>
-                  {task.dueDate && (
-                    <Badge variant="outline" className="flex items-center gap-1">
-                      <Calendar className="h-3 w-3" />
-                      {format(new Date(task.dueDate), 'MMM d, yyyy')}
+                <div className="bg-[#FFF8E8] p-4 rounded-xl mb-3">
+                  {task.description && <p className="text-sm text-muted-foreground mb-2">{task.description}</p>}
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="outline" className={getPriorityColor(task.priority)}>
+                      {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)} Priority
                     </Badge>
-                  )}
-                  {task.goalId && goalsQuery.data && (
-                    <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">
-                      {goalsQuery.data.find((g) => g.id === task.goalId)?.name || 'Goal'}
-                    </Badge>
-                  )}
+                    {task.dueDate && (
+                      <Badge variant="outline" className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {format(new Date(task.dueDate), 'MMM d, yyyy')}
+                      </Badge>
+                    )}
+                    {task.goalId && goalsQuery.data && (
+                      <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">
+                        {goalsQuery.data.find((g) => g.id === task.goalId)?.name || 'Goal'}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               </CardContent>
               <CardFooter className="pt-0">
@@ -600,7 +602,7 @@ export default function TaskList({
 
       {/* Edit Task Dialog */}
       <Dialog open={!!editingTask} onOpenChange={(open) => !open && setEditingTask(null)}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[600px] bg-white">
           <DialogHeader>
             <DialogTitle>Edit Task</DialogTitle>
           </DialogHeader>
@@ -634,7 +636,7 @@ export default function TaskList({
 
       {/* Move Task Dialog */}
       <Dialog open={moveTaskDialogOpen} onOpenChange={setMoveTaskDialogOpen}>
-        <DialogContent className="sm:max-w-[500px] max-h-[90vh]">
+        <DialogContent className="sm:max-w-[500px] max-h-[90vh] bg-white">
           <DialogHeader>
             <DialogTitle>Move Task to Another Goal</DialogTitle>
           </DialogHeader>
@@ -731,7 +733,7 @@ export default function TaskList({
 
       {/* Convert Task to Goal Dialog */}
       <Dialog open={convertToGoalDialogOpen} onOpenChange={setConvertToGoalDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[500px] bg-white">
           <DialogHeader>
             <DialogTitle>Convert Task to Goal</DialogTitle>
           </DialogHeader>
