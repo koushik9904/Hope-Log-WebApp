@@ -791,8 +791,81 @@ export default function JournalPage() {
             <div className="bg-white border border-gray-200 rounded-lg p-6">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-lg font-medium">Calendar View</h3>
-                <div className="text-sm text-muted-foreground">
-                  {entries.length} total entries
+                <div className="flex items-center space-x-3">
+                  {/* Add month navigation controls */}
+                  <div className="flex items-center space-x-2 mr-4">
+                    <Select
+                      value={selectedMonth}
+                      onValueChange={(value) => {
+                        console.log(`Calendar View: changing month to ${value}`);
+                        handleMonthChange(value);
+                      }}
+                    >
+                      <SelectTrigger className="h-9 w-[180px]">
+                        <div className="flex items-center">
+                          <Calendar className="mr-2 h-4 w-4" />
+                          <SelectValue placeholder="Select month" />
+                        </div>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {/* Generate options for past 12 months */}
+                        {[...Array(12)].map((_, monthIndex) => {
+                          const date = new Date();
+                          date.setMonth(date.getMonth() - monthIndex);
+                          const monthValue = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+                          const monthName = date.toLocaleString('default', { month: 'long', year: 'numeric' });
+                          console.log(`Dropdown option: ${monthValue} -> ${monthName}`);
+                          return (
+                            <SelectItem key={monthIndex} value={monthValue}>
+                              {monthName}
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                    
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        // Navigate to previous month
+                        const [year, month] = selectedMonth.split('-').map(Number);
+                        let newMonth = month - 1;
+                        let newYear = year;
+                        if (newMonth < 1) {
+                          newMonth = 12;
+                          newYear -= 1;
+                        }
+                        const formattedMonth = `${newYear}-${newMonth.toString().padStart(2, '0')}`;
+                        handleMonthChange(formattedMonth);
+                      }}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        // Navigate to next month
+                        const [year, month] = selectedMonth.split('-').map(Number);
+                        let newMonth = month + 1;
+                        let newYear = year;
+                        if (newMonth > 12) {
+                          newMonth = 1;
+                          newYear += 1;
+                        }
+                        const formattedMonth = `${newYear}-${newMonth.toString().padStart(2, '0')}`;
+                        handleMonthChange(formattedMonth);
+                      }}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  
+                  <div className="text-sm text-muted-foreground">
+                    {entries.length} total entries
+                  </div>
                 </div>
               </div>
               
