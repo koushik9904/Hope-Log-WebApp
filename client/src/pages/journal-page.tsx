@@ -5,6 +5,7 @@ import { Link } from "wouter";
 import { JournalEntry } from "@shared/schema";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { EntryTypeSelector } from "@/components/journal/entry-type-selector";
+import { GenerateTitlesButton } from "@/components/journal/generate-titles-button";
 import {
   Calendar,
   MessageSquare,
@@ -282,6 +283,8 @@ export default function JournalPage() {
             <p className="text-gray-500">
               Review and search your past journal entries
             </p>
+            {/* Show generate titles button for admins */}
+            <GenerateTitlesButton />
           </div>
           
           <div className="flex items-center gap-3">
