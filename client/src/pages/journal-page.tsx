@@ -649,8 +649,9 @@ export default function JournalPage() {
                             </div>
                             
                             <h4 className="font-medium text-xl mt-3 mb-2 text-gray-800">
-                              {(() => {
-                                // Generate title from content
+                              {/* Use AI-generated title if available, otherwise fall back to generating one from content */}
+                              {(entry as any).title || (() => {
+                                // Generate title from content (fallback)
                                 const content = entry.content;
                                 if (!content || content.trim() === "") return "Untitled Entry";
                                 
@@ -946,7 +947,8 @@ export default function JournalPage() {
                       <div className="flex justify-between">
                         <div className="w-full">
                           <h4 className="font-medium text-lg mb-1 text-gray-700">
-                            {entry.title || (() => {
+                            {/* Use AI-generated title if available, otherwise fall back to generating one from content */}
+                            {(entry as any).title || (() => {
                               // Fallback: Generate title from content if no AI title
                               const content = entry.content;
                               if (!content || content.trim() === "") return "Untitled Entry";
