@@ -1,6 +1,6 @@
 import { db } from "../db";
 import { journalEntries } from "@shared/schema";
-import { eq, and, isNull } from "drizzle-orm";
+import { eq, and, isNull, gte, lte } from "drizzle-orm";
 import { generateJournalTitle } from "../openai";
 
 /**
@@ -9,7 +9,7 @@ import { generateJournalTitle } from "../openai";
  */
 async function generateTitlesForExistingEntries() {
   try {
-    // Get all entries that don't have titles
+    // Focus on recent entries without titles
     // Look for user messages (not AI responses) that don't have a title yet
     const entriesWithoutTitles = await db
       .select()
@@ -19,7 +19,9 @@ async function generateTitlesForExistingEntries() {
           isNull(journalEntries.title),
           eq(journalEntries.isAiResponse, false)
         )
-      );
+      )
+      .orderBy(journalEntries.id, { direction: "desc" }) // Process newest entries first
+      .limit(10); // Process in smaller batches
     
     console.log(`Found ${entriesWithoutTitles.length} entries that might need titles.`);
     
