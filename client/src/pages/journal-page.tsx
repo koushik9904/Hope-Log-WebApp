@@ -109,6 +109,27 @@ export default function JournalPage() {
     console.log(`Selected month changed to: ${selectedMonth}, recalculating dates`);
     const newDates = getDatesInMonth(selectedMonth);
     setDatesInMonth(newDates);
+    
+    // When month changes, try to position today's date in view if it's in this month
+    const today = new Date();
+    const [year, month] = selectedMonth.split('-').map(Number);
+    
+    // If today is in the selected month, position the visible dates to show today
+    if (today.getFullYear() === year && today.getMonth() === month - 1) {
+      const todayIndex = newDates.findIndex(date => 
+        date.getDate() === today.getDate()
+      );
+      
+      if (todayIndex >= 0) {
+        // Try to position today in the middle of the visible window
+        const newStart = Math.max(0, Math.min(todayIndex - 2, newDates.length - 5));
+        console.log(`Found today at index ${todayIndex}, setting visible window start to ${newStart}`);
+        setVisibleDatesStart(newStart);
+      }
+    } else {
+      // Not the current month, start from the beginning
+      setVisibleDatesStart(0);
+    }
   }, [selectedMonth]);
   
   // Get visible date range based on current position
@@ -120,25 +141,25 @@ export default function JournalPage() {
   
   // Initialize with today's date and display selected date info
   useEffect(() => {
+    // Get today's date
     const today = new Date();
+    console.log(`Today's date: ${today.toDateString()}`);
+    
+    // Set the selected date to today
     setSelectedDate(today);
     
-    // Make sure we're showing the current month that contains today
-    const currentMonthStr = today.toISOString().substring(0, 7);
-    setSelectedMonth(currentMonthStr);
+    // Format today's month as YYYY-MM for the selected month
+    const year = today.getFullYear();
+    const month = today.getMonth() + 1; // +1 because getMonth() is 0-indexed (0 = January)
+    const formattedMonth = `${year}-${month < 10 ? '0' + month : month}`;
     
-    // Calculate the position to show today in the visible dates
-    const daysInCurrentMonth = getDatesInMonth(currentMonthStr);
-    const todayIndex = daysInCurrentMonth.findIndex(date => 
-      date.getDate() === today.getDate()
-    );
+    console.log(`Setting initial month to: ${formattedMonth} (${today.toLocaleString('en-US', {month: 'long', year: 'numeric'})})`);
     
-    // Position the visible dates window to show today
-    if (todayIndex >= 0) {
-      // Try to position today in the middle of the visible window
-      const newStart = Math.max(0, Math.min(todayIndex - 2, daysInCurrentMonth.length - 5));
-      setVisibleDatesStart(newStart);
-    }
+    // Set the selected month
+    setSelectedMonth(formattedMonth);
+    
+    // Calculate the position to show today in the visible dates window
+    // This will happen automatically through the useEffect hook that watches selectedMonth
   }, []);
   
   // Change month handler
