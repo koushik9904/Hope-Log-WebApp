@@ -46,6 +46,12 @@ const SettingsPrivacyPage = lazy(() => import("@/pages/settings-privacy-page"));
 const SettingsAppearancePage = lazy(() => import("@/pages/settings-appearance-page"));
 const SettingsDataPage = lazy(() => import("@/pages/settings-data-page"));
 
+// Admin pages
+const AdminDashboardPage = lazy(() => import("@/pages/admin-dashboard-page"));
+const AdminOAuthPage = lazy(() => import("@/pages/admin-oauth-page"));
+const AdminOpenAIPage = lazy(() => import("@/pages/admin-openai-page"));
+const AdminPayPalPage = lazy(() => import("@/pages/admin-paypal-page"));
+
 // Loading fallback component
 const LoadingFallback = () => (
   <div className="flex items-center justify-center h-screen">
@@ -241,6 +247,40 @@ function Router() {
           component={() => (
             <Suspense fallback={<LoadingFallback />}>
               <SettingsDataPage />
+            </Suspense>
+          )} 
+        />
+
+        {/* Admin Routes - Only accessible to admins (access control in AdminLayout) */}
+        <ProtectedRoute 
+          path="/admin" 
+          component={() => (
+            <Suspense fallback={<LoadingFallback />}>
+              <AdminDashboardPage />
+            </Suspense>
+          )} 
+        />
+        <ProtectedRoute 
+          path="/admin/oauth" 
+          component={() => (
+            <Suspense fallback={<LoadingFallback />}>
+              <AdminOAuthPage />
+            </Suspense>
+          )} 
+        />
+        <ProtectedRoute 
+          path="/admin/openai" 
+          component={() => (
+            <Suspense fallback={<LoadingFallback />}>
+              <AdminOpenAIPage />
+            </Suspense>
+          )} 
+        />
+        <ProtectedRoute 
+          path="/admin/paypal" 
+          component={() => (
+            <Suspense fallback={<LoadingFallback />}>
+              <AdminPayPalPage />
             </Suspense>
           )} 
         />
