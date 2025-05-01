@@ -792,37 +792,18 @@ export default function JournalPage() {
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-lg font-medium">Calendar View</h3>
                 <div className="flex items-center space-x-3">
-                  {/* Add month navigation controls */}
                   <div className="flex items-center space-x-2 mr-4">
-                    <Select
-                      value={selectedMonth}
-                      onValueChange={(value) => {
-                        console.log(`Calendar View: changing month to ${value}`);
-                        handleMonthChange(value);
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={(date) => date && setSelectedDate(date)}
+                      className="rounded-md border shadow"
+                      month={new Date(selectedMonth + "-01")}
+                      onMonthChange={(month) => {
+                        const monthStr = `${month.getFullYear()}-${(month.getMonth() + 1).toString().padStart(2, '0')}`;
+                        handleMonthChange(monthStr);
                       }}
-                    >
-                      <SelectTrigger className="h-9 w-[180px]">
-                        <div className="flex items-center">
-                          <Calendar className="mr-2 h-4 w-4" />
-                          <SelectValue placeholder="Select month" />
-                        </div>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {/* Generate options for past 12 months */}
-                        {[...Array(12)].map((_, monthIndex) => {
-                          const date = new Date();
-                          date.setMonth(date.getMonth() - monthIndex);
-                          const monthValue = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
-                          const monthName = date.toLocaleString('default', { month: 'long', year: 'numeric' });
-                          console.log(`Dropdown option: ${monthValue} -> ${monthName}`);
-                          return (
-                            <SelectItem key={monthIndex} value={monthValue}>
-                              {monthName}
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
+                    />
                     
                     <Button
                       variant="outline"
