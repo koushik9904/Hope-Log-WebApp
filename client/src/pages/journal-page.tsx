@@ -937,8 +937,10 @@ export default function JournalPage() {
 
                     return (
                       <div key={monthKey} className="border border-gray-200 rounded-md overflow-hidden">
-                        <div className="bg-[#9AAB63]/10 px-4 py-3 font-medium border-b border-gray-200 flex justify-between items-center">
-                          <h4 className="text-lg text-[#9AAB63]">{monthName} {year}</h4>
+                        <div className="bg-gradient-to-r from-[#9AAB63]/10 to-white px-4 py-3 font-medium border-b border-gray-200 flex justify-between items-center">
+                          <h4 className="text-lg text-[#9AAB63]">
+                            {new Date(selectedMonth + "-01").toLocaleString('default', { month: 'long', year: 'numeric' })}
+                          </h4>
                           <Badge className="bg-[#F5B8DB]/90 hover:bg-[#F5B8DB]">
                             {monthEntries.length} entries
                           </Badge>
