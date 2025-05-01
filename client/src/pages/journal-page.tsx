@@ -903,10 +903,11 @@ export default function JournalPage() {
                     const [year, month] = monthKey.split('-').map(Number);
                     const monthName = new Date(year, month - 1, 1).toLocaleString('default', { month: 'long' });
 
-                    // Get entries for this month
+                    // Get entries for the selected month
                     const monthEntries = entries.filter(entry => {
                       const date = new Date(entry.date);
-                      return date.getFullYear() === year && date.getMonth() === month - 1;
+                      const [selectedYear, selectedMonth] = selectedMonth.split('-').map(Number);
+                      return date.getFullYear() === selectedYear && date.getMonth() === selectedMonth - 1;
                     });
 
                     // Group by day
@@ -942,7 +943,11 @@ export default function JournalPage() {
                             {new Date(selectedMonth + "-01").toLocaleString('default', { month: 'long', year: 'numeric' })}
                           </h4>
                           <Badge className="bg-[#F5B8DB]/90 hover:bg-[#F5B8DB]">
-                            {monthEntries.length} entries
+                            {entries.filter(entry => {
+                              const entryDate = new Date(entry.date);
+                              const [selectedYear, selectedMonthNum] = selectedMonth.split('-').map(Number);
+                              return entryDate.getFullYear() === selectedYear && entryDate.getMonth() === selectedMonthNum - 1;
+                            }).length} entries
                           </Badge>
                         </div>
 
