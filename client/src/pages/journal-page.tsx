@@ -153,6 +153,9 @@ export default function JournalPage() {
     const month = today.getMonth() + 1; // +1 because getMonth() is 0-indexed (0 = January)
     const formattedMonth = `${year}-${month < 10 ? '0' + month : month}`;
     
+    // Force immediate update of selected month
+    setSelectedMonth(formattedMonth);
+    
     console.log(`Setting initial month to: ${formattedMonth} (${today.toLocaleString('en-US', {month: 'long', year: 'numeric'})})`);
     
     // Set the selected month
@@ -796,7 +799,13 @@ export default function JournalPage() {
                     <div className="flex items-center space-x-2">
                       <Select
                         value={selectedMonth}
-                        onValueChange={handleMonthChange}
+                        onValueChange={(value) => {
+                          handleMonthChange(value);
+                          // Force calendar to update with new month
+                          const [year, month] = value.split('-').map(Number);
+                          const newDate = new Date(year, month - 1, 1);
+                          setSelectedDate(newDate);
+                        }}
                       >
                         <SelectTrigger className="w-[200px]">
                           <div className="flex items-center">
