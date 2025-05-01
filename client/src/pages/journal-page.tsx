@@ -900,14 +900,13 @@ export default function JournalPage() {
                     if (yearA !== yearB) return yearB - yearA;
                     return monthB - monthA;
                   }).map(monthKey => {
-                    const [year, month] = monthKey.split('-').map(Number);
-                    const monthName = new Date(year, month - 1, 1).toLocaleString('default', { month: 'long' });
+                    const [currentYear, currentMonth] = selectedMonth.split('-').map(Number);
+                    const monthName = new Date(currentYear, currentMonth - 1, 1).toLocaleString('default', { month: 'long' });
 
                     // Get entries for the selected month
                     const monthEntries = entries.filter(entry => {
                       const date = new Date(entry.date);
-                      const [selectedYear, selectedMonth] = selectedMonth.split('-').map(Number);
-                      return date.getFullYear() === selectedYear && date.getMonth() === selectedMonth - 1;
+                      return date.getFullYear() === currentYear && date.getMonth() === currentMonth - 1;
                     });
 
                     // Group by day
