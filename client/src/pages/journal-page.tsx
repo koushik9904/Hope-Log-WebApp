@@ -62,64 +62,64 @@ export default function JournalPage() {
   const [filterType, setFilterType] = useState<"all" | "user" | "ai">("all");
   const [activeTab, setActiveTab] = useState<string>("entries");
   const [showDeleted, setShowDeleted] = useState(false); // Toggle to show/hide deleted entries
-  
+
   // Date navigation state
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedMonth, setSelectedMonth] = useState<string>(
     new Date().toISOString().substring(0, 7) // Format: YYYY-MM
   );
   const [visibleDatesStart, setVisibleDatesStart] = useState<number>(0);
-  
+
   // Calculate dates in selected month
   const getDatesInMonth = (monthStr: string): Date[] => {
     // Parse the year and month from the YYYY-MM format
     const [year, month] = monthStr.split('-').map(Number);
-    
+
     // JavaScript months are 0-based (0=January, 11=December)
     // Use month-1 for correct JavaScript date
     const monthIndex = month - 1;
-    
+
     // Get first day of the month
     const startDate = new Date(year, monthIndex, 1);
-    
+
     // Get last day of the month by getting day 0 of next month
     const endDate = new Date(year, monthIndex + 1, 0);
-    
+
     const dates: Date[] = [];
     // Create a date object for each day in the month
     for (let day = 1; day <= endDate.getDate(); day++) {
       dates.push(new Date(year, monthIndex, day));
     }
-    
+
     console.log(`Selected month string: ${monthStr}`);
     console.log(`Year: ${year}, Month: ${month} (JavaScript month index: ${monthIndex})`);
     console.log(`First day of month: ${startDate.toLocaleDateString()}`);
     console.log(`Last day of month: ${endDate.toLocaleDateString()}`);
     console.log(`Generated ${dates.length} dates for ${monthStr}`);
-    
+
     return dates;
   };
-  
+
   // Calculate dates for the selected month and update whenever selectedMonth changes
   // This ensures we always show the proper dates for the selected month
   const [datesInMonth, setDatesInMonth] = useState<Date[]>([]);
-  
+
   // Update dates when selected month changes
   useEffect(() => {
     console.log(`Selected month changed to: ${selectedMonth}, recalculating dates`);
     const newDates = getDatesInMonth(selectedMonth);
     setDatesInMonth(newDates);
-    
+
     // When month changes, try to position today's date in view if it's in this month
     const today = new Date();
     const [year, month] = selectedMonth.split('-').map(Number);
-    
+
     // If today is in the selected month, position the visible dates to show today
     if (today.getFullYear() === year && today.getMonth() === month - 1) {
       const todayIndex = newDates.findIndex(date => 
         date.getDate() === today.getDate()
       );
-      
+
       if (todayIndex >= 0) {
         // Try to position today in the middle of the visible window
         const newStart = Math.max(0, Math.min(todayIndex - 2, newDates.length - 5));
@@ -131,59 +131,59 @@ export default function JournalPage() {
       setVisibleDatesStart(0);
     }
   }, [selectedMonth]);
-  
+
   // Get visible date range based on current position
   const visibleDates = datesInMonth.slice(visibleDatesStart, visibleDatesStart + 5);
-  
+
   // Calculate if we can navigate dates
   const canNavigatePrevious = visibleDatesStart > 0;
   const canNavigateNext = visibleDatesStart + 5 < datesInMonth.length;
-  
+
   // Initialize with today's date and display selected date info
   useEffect(() => {
     // Get today's date
     const today = new Date();
     console.log(`Today's date: ${today.toDateString()}`);
-    
+
     // Set the selected date to today
     setSelectedDate(today);
-    
+
     // Format today's month as YYYY-MM for the selected month
     const year = today.getFullYear();
     const month = today.getMonth() + 1; // +1 because getMonth() is 0-indexed (0 = January)
     const formattedMonth = `${year}-${month < 10 ? '0' + month : month}`;
-    
+
     // Force immediate update of selected month
     setSelectedMonth(formattedMonth);
-    
+
     console.log(`Setting initial month to: ${formattedMonth} (${today.toLocaleString('en-US', {month: 'long', year: 'numeric'})})`);
-    
+
     // Set the selected month
     setSelectedMonth(formattedMonth);
-    
+
     // Calculate the position to show today in the visible dates window
     // This will happen automatically through the useEffect hook that watches selectedMonth
   }, []);
-  
+
   // Change month handler
   const handleMonthChange = (monthStr: string) => {
     console.log(`Month changed to: ${monthStr}`);
-    
+
     // Set the selected month
     setSelectedMonth(monthStr);
-    
+
     // Reset the visible dates window
     setVisibleDatesStart(0);
-    
+
     // Parse the year and month
     const [year, month] = monthStr.split('-').map(Number);
     console.log(`Parsed year: ${year}, month: ${month}`);
-    
+
     // Create a new Date object for the 1st day of the selected month
     // month - 1 because JavaScript's getMonth() is 0-based (0 = January, 1 = February, etc.)
     const selectedMonthDate = new Date(year, month - 1, 1);
     console.log(`Created date object: ${selectedMonthDate.toDateString()}`);
-    
+
     // Check if today is in the selected month
     const today = new Date();
     if (today.getFullYear() === year && today.getMonth() === month - 1) {
@@ -193,12 +193,12 @@ export default function JournalPage() {
       console.log(`Today is not in the selected month, using 1st day: ${selectedMonthDate.toDateString()}`);
       setSelectedDate(selectedMonthDate);
     }
-    
+
     // Force a re-render of the date components by directly calling the function
     const newDatesInMonth = getDatesInMonth(monthStr);
     console.log(`Generated ${newDatesInMonth.length} dates for ${monthStr}`);
   };
-  
+
   // Navigate dates
   const navigateDates = (direction: 'prev' | 'next') => {
     if (direction === 'prev' && canNavigatePrevious) {
@@ -207,23 +207,23 @@ export default function JournalPage() {
       setVisibleDatesStart(prev => Math.min(datesInMonth.length - 5, prev + 5));
     }
   };
-  
+
   if (!user) return null;
-  
+
   // Fetch all journal entries
   const { data: entries = [], isLoading } = useQuery<JournalEntry[]>({
     queryKey: [`/api/journal-entries/${user?.id}`],
     enabled: !!user?.id,
     staleTime: 60000, // 1 minute
   });
-  
+
   // Fetch deleted journal entries for recycle bin
   const { data: deletedEntries = [], isLoading: isLoadingDeleted } = useQuery<JournalEntry[]>({
     queryKey: [`/api/journal-entries/${user?.id}/deleted`],
     enabled: !!user?.id && showDeleted,
     staleTime: 60000, // 1 minute
   });
-  
+
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async (entryId: number) => {
@@ -246,7 +246,7 @@ export default function JournalPage() {
       });
     },
   });
-  
+
   // Restore mutation
   const restoreMutation = useMutation({
     mutationFn: async (entryId: number) => {
@@ -270,7 +270,7 @@ export default function JournalPage() {
       });
     },
   });
-  
+
   // Permanently delete mutation
   const permanentDeleteMutation = useMutation({
     mutationFn: async (entryId: number) => {
@@ -293,50 +293,50 @@ export default function JournalPage() {
       });
     },
   });
-  
+
   // Filter entries based on search term and filter type
   const filteredEntries = entries.filter(entry => {
     const matchesSearch = entry.content.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     if (filterType === "all") return matchesSearch;
     if (filterType === "user") return matchesSearch && !entry.isAiResponse;
     if (filterType === "ai") return matchesSearch && entry.isAiResponse;
-    
+
     return matchesSearch;
   });
-  
+
   // Sort entries based on date
   const sortedEntries = [...filteredEntries].sort((a, b) => {
     const dateA = new Date(a.date).getTime();
     const dateB = new Date(b.date).getTime();
-    
+
     return sortOrder === "desc" ? dateB - dateA : dateA - dateB;
   });
-  
+
   // Get a summary of the total words written
   const totalWords = entries
     .filter(entry => !entry.isAiResponse)
     .reduce((acc, entry) => acc + entry.content.split(/\s+/).length, 0);
-  
+
   // Group entries by date for the chronological view
   const entriesByDate = sortedEntries.reduce<Record<string, JournalEntry[]>>((acc, entry) => {
     // Convert to user's local timezone properly
     const entryDate = new Date(entry.date);
-    
+
     // Get the local date parts using the browser's timezone
     const year = entryDate.getFullYear();
     const month = entryDate.getMonth();
     const day = entryDate.getDate();
-    
+
     // Create a new Date object with only the date portion (no time) in local timezone
     const localDateOnly = new Date(year, month, day);
     const dateStr = localDateOnly.toISOString().split('T')[0];
-    
+
     if (!acc[dateStr]) acc[dateStr] = [];
     acc[dateStr].push(entry);
     return acc;
   }, {});
-  
+
   // Extract unique emotions from sentiment analysis
   const emotions = new Set<string>();
   entries.forEach(entry => {
@@ -344,7 +344,7 @@ export default function JournalPage() {
       entry.sentiment.emotions.forEach(emotion => emotions.add(emotion));
     }
   });
-  
+
   return (
     <DashboardLayout>
       <div className="container mx-auto max-w-6xl">
@@ -357,7 +357,7 @@ export default function JournalPage() {
             {/* Show generate titles button for admins */}
             <GenerateTitlesButton />
           </div>
-          
+
           <div className="flex items-center gap-3">
             <HoverCard>
               <HoverCardTrigger asChild>
@@ -372,7 +372,7 @@ export default function JournalPage() {
                 />
               </HoverCardContent>
             </HoverCard>
-            
+
             <HoverCard>
               <HoverCardTrigger asChild>
                 <Button variant="outline" size="sm" className="h-9">
@@ -406,7 +406,7 @@ export default function JournalPage() {
             </HoverCard>
           </div>
         </div>
-        
+
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="mb-6">
             <TabsTrigger value="entries">All Entries</TabsTrigger>
@@ -418,7 +418,7 @@ export default function JournalPage() {
               </div>
             </TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="entries">
             <div className="mb-8">
               {/* Month selector and date navigation */}
@@ -443,20 +443,20 @@ export default function JournalPage() {
                         // Create date for each month option starting from current month
                         const now = new Date();
                         const date = new Date(now.getFullYear(), now.getMonth() - monthIndex, 1);
-                        
+
                         // Format for value - YYYY-MM (Make sure to pad single digit months with leading zero)
                         const year = date.getFullYear();
                         const month = date.getMonth() + 1; // +1 because getMonth() is 0-indexed
                         const monthStr = `${year}-${month < 10 ? '0' + month : month}`;
-                        
+
                         // Format for display - Month Year
                         const displayText = date.toLocaleDateString('en-US', { 
                           month: 'long', 
                           year: 'numeric' 
                         });
-                        
+
                         console.log(`Dropdown option: ${monthStr} -> ${displayText}`);
-                        
+
                         return (
                           <SelectItem key={monthStr} value={monthStr}>
                             {displayText}
@@ -466,7 +466,7 @@ export default function JournalPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div className="flex items-center space-x-2 self-end md:self-center">
                   <Select 
                     value={filterType} 
@@ -484,7 +484,7 @@ export default function JournalPage() {
                       <SelectItem value="ai">AI Responses</SelectItem>
                     </SelectContent>
                   </Select>
-                  
+
                   <Button
                     variant="outline"
                     size="sm"
@@ -500,7 +500,7 @@ export default function JournalPage() {
                   </Button>
                 </div>
               </div>
-              
+
               {/* Date navigation */}
               <div className="relative flex items-center mb-6">
                 <Button 
@@ -512,14 +512,14 @@ export default function JournalPage() {
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
-                
+
                 <div className="w-full overflow-hidden px-10">
                   <div className="flex justify-between gap-2">
                     {visibleDates.map((date) => {
                       const dateStr = date.toISOString().split('T')[0];
                       const isSelected = date.toDateString() === selectedDate.toDateString();
                       const isToday = date.toDateString() === new Date().toDateString();
-                      
+
                       return (
                         <button
                           key={dateStr}
@@ -546,7 +546,7 @@ export default function JournalPage() {
                     })}
                   </div>
                 </div>
-                
+
                 <Button 
                   variant="outline" 
                   size="icon" 
@@ -557,7 +557,7 @@ export default function JournalPage() {
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
-              
+
               {/* Search bar */}
               <div className="relative w-full">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -569,7 +569,7 @@ export default function JournalPage() {
                 />
               </div>
             </div>
-            
+
             {isLoading ? (
               <div className="flex justify-center items-center h-64">
                 <div className="pi-thinking-dots">
@@ -587,7 +587,7 @@ export default function JournalPage() {
                     ? "Try a different search term or clear your filters"
                     : "Start journaling to see your entries here"}
                 </p>
-                
+
                 {/* Allow adding journal entries for the past */}
                 {!searchTerm && (
                   <div className="mt-4">
@@ -618,7 +618,7 @@ export default function JournalPage() {
                         const day = selectedDate.getDate();
                         const selectedDateOnly = new Date(year, month, day);
                         const selectedDateStr = selectedDateOnly.toISOString().split('T')[0];
-                        
+
                         return dateStr === selectedDateStr;
                       }) ? 
                         `No entries for ${selectedDate.toLocaleDateString('en-US', {
@@ -641,19 +641,19 @@ export default function JournalPage() {
                     className="max-w-4xl mx-auto"
                   />
                 </div>
-              
+
                 {Object.entries(entriesByDate)
                   .filter(([dateString]) => {
                     // Show entries for selected date
                     if (!selectedDate) return true;
-                    
+
                     // Create a date object from selectedDate with only date part (no time)
                     const year = selectedDate.getFullYear();
                     const month = selectedDate.getMonth();
                     const day = selectedDate.getDate();
                     const selectedDateOnly = new Date(year, month, day);
                     const selectedDateStr = selectedDateOnly.toISOString().split('T')[0];
-                    
+
                     return dateString === selectedDateStr;
                   })
                   .map(([date, dateEntries]) => (
@@ -681,7 +681,7 @@ export default function JournalPage() {
                         </Badge>
                       </div>
                     </div>
-                    
+
                     <div className="divide-y divide-gray-100">
                       {dateEntries.map((entry) => (
                         <div key={entry.id} className="p-6 hover:bg-gray-50 transition-colors relative group">
@@ -732,40 +732,40 @@ export default function JournalPage() {
                                 })}
                               </div>
                             </div>
-                            
+
                             <h4 className="font-medium text-xl mt-3 mb-2 text-gray-800">
                               {/* Use AI-generated title if available, otherwise fall back to generating one from content */}
                               {(entry as any).title || (() => {
                                 // Generate title from content (fallback)
                                 const content = entry.content;
                                 if (!content || content.trim() === "") return "Untitled Entry";
-                                
+
                                 // Get first sentence or part of it
                                 const firstSentence = content.split(/[.!?]/)[0]?.trim();
                                 if (!firstSentence) return "Untitled Entry";
-                                
+
                                 // If sentence is short enough, use it directly
                                 if (firstSentence.length <= 50) {
                                   return firstSentence;
                                 }
-                                
+
                                 // Otherwise, get first 5-7 words
                                 const words = firstSentence.split(/\s+/).slice(0, 7);
                                 let title = words.join(" ");
-                                
+
                                 // Add ellipsis if we truncated
                                 if (words.length < firstSentence.split(/\s+/).length) {
                                   title += "...";
                                 }
-                                
+
                                 return title;
                               })()}
                             </h4>
-                            
+
                             <div className="mb-3 mt-2 pl-2 border-l-2 border-gray-200">
                               <p className="text-gray-600 line-clamp-3 pl-2 italic font-light">{entry.content}</p>
                             </div>
-                            
+
                             {entry.sentiment && entry.sentiment.emotions && entry.sentiment.emotions.length > 0 && (
                               <div className="flex flex-wrap gap-1">
                                 {entry.sentiment.emotions.slice(0, 3).map((emotion, i) => (
@@ -789,14 +789,14 @@ export default function JournalPage() {
               </div>
             )}
           </TabsContent>
-          
+
           <TabsContent value="calendar">
             <div className="bg-white border border-gray-200 rounded-lg p-6">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-lg font-medium">Calendar View</h3>
                 <div className="flex items-center space-x-3">
                   <div className="flex items-center space-x-2 mr-4">
-                    <div className="flex items-center space-x-2">
+                    <<div className="flex items-center space-x-2">
                       <Select
                         value={selectedMonth}
                         onValueChange={(value) => {
@@ -847,7 +847,7 @@ export default function JournalPage() {
                         >
                           <ChevronLeft className="h-4 w-4" />
                         </Button>
-                        
+
                         <Button
                           variant="outline"
                           size="icon"
@@ -867,13 +867,13 @@ export default function JournalPage() {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="text-sm text-muted-foreground">
                     {entries.length} total entries
                   </div>
                 </div>
               </div>
-              
+
               {isLoading ? (
                 <div className="flex justify-center items-center h-64">
                   <div className="pi-thinking-dots">
@@ -902,13 +902,13 @@ export default function JournalPage() {
                   }).map(monthKey => {
                     const [year, month] = monthKey.split('-').map(Number);
                     const monthName = new Date(year, month - 1, 1).toLocaleString('default', { month: 'long' });
-                    
+
                     // Get entries for this month
                     const monthEntries = entries.filter(entry => {
                       const date = new Date(entry.date);
                       return date.getFullYear() === year && date.getMonth() === month - 1;
                     });
-                    
+
                     // Group by day
                     const entriesByDay = monthEntries.reduce((acc, entry) => {
                       const day = new Date(entry.date).getDate();
@@ -916,25 +916,25 @@ export default function JournalPage() {
                       acc[day].push(entry);
                       return acc;
                     }, {} as Record<number, JournalEntry[]>);
-                    
+
                     // Get days in month
                     const daysInMonth = new Date(year, month, 0).getDate();
-                    
+
                     // Create array for calendar grid
                     const firstDayOfMonth = new Date(year, month - 1, 1).getDay();
                     const calendarDays = [];
-                    
+
                     // Add days from previous month to fill first week
                     const prevMonthDays = firstDayOfMonth === 0 ? 0 : firstDayOfMonth;
                     for (let i = 0; i < prevMonthDays; i++) {
                       calendarDays.push(null);
                     }
-                    
+
                     // Add days of current month
                     for (let i = 1; i <= daysInMonth; i++) {
                       calendarDays.push(i);
                     }
-                    
+
                     return (
                       <div key={monthKey} className="border border-gray-200 rounded-md overflow-hidden">
                         <div className="bg-[#9AAB63]/10 px-4 py-3 font-medium border-b border-gray-200 flex justify-between items-center">
@@ -943,7 +943,7 @@ export default function JournalPage() {
                             {monthEntries.length} entries
                           </Badge>
                         </div>
-                        
+
                         {/* Calendar grid view */}
                         <div className="p-4">
                           <div className="grid grid-cols-7 mb-2 text-center">
@@ -953,16 +953,16 @@ export default function JournalPage() {
                               </div>
                             ))}
                           </div>
-                          
+
                           <div className="grid grid-cols-7 gap-1">
                             {calendarDays.map((day, index) => {
                               if (day === null) {
                                 return <div key={`empty-${index}`} className="aspect-square p-1"></div>;
                               }
-                              
+
                               const hasEntries = !!entriesByDay[day];
                               const dayEntries = entriesByDay[day] || [];
-                              
+
                               return (
                                 <div 
                                   key={day} 
@@ -978,7 +978,7 @@ export default function JournalPage() {
                                   `}>
                                     {day}
                                   </div>
-                                  
+
                                   {hasEntries && (
                                     <>
                                       <div className="absolute bottom-1 w-full px-1 flex justify-center">
@@ -989,7 +989,7 @@ export default function JournalPage() {
                                           {dayEntries.length}
                                         </div>
                                       </div>
-                                      
+
                                       <div className="absolute inset-0 bg-white/95 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-center items-center p-1">
                                         <div className="text-center mb-1">
                                           <span className="text-sm font-medium">{dayEntries.length} {dayEntries.length === 1 ? 'entry' : 'entries'}</span>
@@ -1021,7 +1021,7 @@ export default function JournalPage() {
                             })}
                           </div>
                         </div>
-                        
+
                         {/* List view of day entries when there are entries */}
                         {Object.keys(entriesByDay).length > 0 && (
                           <div className="border-t border-gray-200 p-4">
@@ -1065,8 +1065,8 @@ export default function JournalPage() {
               )}
             </div>
           </TabsContent>
-          
-          
+
+
           <TabsContent value="recycle-bin">
             <div className="bg-white border border-gray-200 rounded-lg p-8">
               <div className="flex justify-between items-center mb-6">
@@ -1080,7 +1080,7 @@ export default function JournalPage() {
                   {deletedEntries.length} deleted {deletedEntries.length === 1 ? 'entry' : 'entries'}
                 </div>
               </div>
-              
+
               {isLoadingDeleted ? (
                 <div className="flex justify-center items-center h-64">
                   <div className="pi-thinking-dots">
@@ -1112,25 +1112,25 @@ export default function JournalPage() {
                               // Fallback: Generate title from content if no AI title
                               const content = entry.content;
                               if (!content || content.trim() === "") return "Untitled Entry";
-                              
+
                               // Get first sentence or part of it
                               const firstSentence = content.split(/[.!?]/)[0]?.trim();
                               if (!firstSentence) return "Untitled Entry";
-                              
+
                               // If sentence is short enough, use it directly
                               if (firstSentence.length <= 50) {
                                 return firstSentence;
                               }
-                              
+
                               // Otherwise, get first 5-7 words
                               const words = firstSentence.split(/\s+/).slice(0, 7);
                               let title = words.join(" ");
-                              
+
                               // Add ellipsis if we truncated
                               if (words.length < firstSentence.split(/\s+/).length) {
                                 title += "...";
                               }
-                              
+
                               return title;
                             })()}
                           </h4>
@@ -1155,7 +1155,7 @@ export default function JournalPage() {
                           <p className="text-gray-600 line-clamp-2 mb-4">{entry.content}</p>
                         </div>
                       </div>
-                      
+
                       <div className="flex mt-4 justify-end gap-2">
                         <Button
                           variant="outline"
@@ -1166,7 +1166,7 @@ export default function JournalPage() {
                           <RotateCcw className="h-3.5 w-3.5 mr-2" />
                           Restore
                         </Button>
-                        
+
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button 
