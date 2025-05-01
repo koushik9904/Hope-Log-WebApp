@@ -793,55 +793,70 @@ export default function JournalPage() {
                 <h3 className="text-lg font-medium">Calendar View</h3>
                 <div className="flex items-center space-x-3">
                   <div className="flex items-center space-x-2 mr-4">
-                    <Calendar
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={(date) => date && setSelectedDate(date)}
-                      className="rounded-md border shadow"
-                      month={new Date(selectedMonth + "-01")}
-                      onMonthChange={(month) => {
-                        const monthStr = `${month.getFullYear()}-${(month.getMonth() + 1).toString().padStart(2, '0')}`;
-                        handleMonthChange(monthStr);
-                      }}
-                    />
-                    
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => {
-                        // Navigate to previous month
-                        const [year, month] = selectedMonth.split('-').map(Number);
-                        let newMonth = month - 1;
-                        let newYear = year;
-                        if (newMonth < 1) {
-                          newMonth = 12;
-                          newYear -= 1;
-                        }
-                        const formattedMonth = `${newYear}-${newMonth.toString().padStart(2, '0')}`;
-                        handleMonthChange(formattedMonth);
-                      }}
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => {
-                        // Navigate to next month
-                        const [year, month] = selectedMonth.split('-').map(Number);
-                        let newMonth = month + 1;
-                        let newYear = year;
-                        if (newMonth > 12) {
-                          newMonth = 1;
-                          newYear += 1;
-                        }
-                        const formattedMonth = `${newYear}-${newMonth.toString().padStart(2, '0')}`;
-                        handleMonthChange(formattedMonth);
-                      }}
-                    >
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
+                    <div className="flex items-center space-x-2">
+                      <Select
+                        value={selectedMonth}
+                        onValueChange={handleMonthChange}
+                      >
+                        <SelectTrigger className="w-[200px]">
+                          <div className="flex items-center">
+                            <Calendar className="mr-2 h-4 w-4" />
+                            <SelectValue placeholder="Select month">
+                              {new Date(selectedMonth + "-01").toLocaleString('default', { month: 'long', year: 'numeric' })}
+                            </SelectValue>
+                          </div>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {[...Array(12)].map((_, monthIndex) => {
+                            const date = new Date();
+                            date.setMonth(date.getMonth() - monthIndex);
+                            const monthValue = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+                            const monthName = date.toLocaleString('default', { month: 'long', year: 'numeric' });
+                            return (
+                              <SelectItem key={monthIndex} value={monthValue}>
+                                {monthName}
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
+
+                      <div className="flex items-center space-x-1">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => {
+                            const [year, month] = selectedMonth.split('-').map(Number);
+                            let newMonth = month - 1;
+                            let newYear = year;
+                            if (newMonth < 1) {
+                              newMonth = 12;
+                              newYear -= 1;
+                            }
+                            handleMonthChange(`${newYear}-${newMonth.toString().padStart(2, '0')}`);
+                          }}
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => {
+                            const [year, month] = selectedMonth.split('-').map(Number);
+                            let newMonth = month + 1;
+                            let newYear = year;
+                            if (newMonth > 12) {
+                              newMonth = 1;
+                              newYear += 1;
+                            }
+                            handleMonthChange(`${newYear}-${newMonth.toString().padStart(2, '0')}`);
+                          }}
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                   
                   <div className="text-sm text-muted-foreground">
