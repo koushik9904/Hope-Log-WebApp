@@ -800,11 +800,11 @@ export default function JournalPage() {
                       <Select
                         value={selectedMonth}
                         onValueChange={(value) => {
-                          handleMonthChange(value);
-                          // Force calendar to update with new month
                           const [year, month] = value.split('-').map(Number);
                           const newDate = new Date(year, month - 1, 1);
                           setSelectedDate(newDate);
+                          setSelectedMonth(value);
+                          handleMonthChange(value);
                         }}
                       >
                         <SelectTrigger className="w-[200px]">
