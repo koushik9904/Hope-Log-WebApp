@@ -603,10 +603,23 @@ Your role is to:
         } catch (error) {
           console.error("Error storing AI goal suggestions:", error);
         }
-      }rogress
+      // Process goal progress updates if needed
+      if (sentiment.goals && sentiment.goals.length > 0) {
+        for (const goal of sentiment.goals) {
+          if (goal.completion !== undefined) {
+            // Find the existing goal to update
+            const existingGoals = await storage.getGoalsByUserId(userId);
+            const matchingGoal = existingGoals.find(g => 
+              g.name.toLowerCase() === goal.name.toLowerCase()
+            );
+            
+            if (matchingGoal) {
+              // Update the goal progress
               await storage.updateGoalProgress(matchingGoal.id, goal.completion);
             }
           }
+        }
+      }
         }
       }
       
