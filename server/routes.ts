@@ -603,6 +603,8 @@ Your role is to:
         } catch (error) {
           console.error("Error storing AI goal suggestions:", error);
         }
+      }
+      
       // Process goal progress updates if needed
       if (sentiment.goals && sentiment.goals.length > 0) {
         for (const goal of sentiment.goals) {
@@ -618,8 +620,6 @@ Your role is to:
               await storage.updateGoalProgress(matchingGoal.id, goal.completion);
             }
           }
-        }
-      }
         }
       }
       
