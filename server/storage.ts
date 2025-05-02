@@ -804,8 +804,18 @@ export class DatabaseStorage implements IStorage {
   }
   
   async storeAiSuggestions(data: { userId: number; type: string; suggestions: any[] }): Promise<void> {
-    const key = `ai_suggestions_${data.type}_${data.userId}`;
-    await this.setSystemSetting(key, JSON.stringify(data.suggestions));
+    const table = data.type === 'tasks' ? 'ai_task_suggestions' : 'ai_goal_suggestions';
+    
+    // First clear existing suggestions for this user
+    await db.execute(`DELETE FROM ${table} WHERE user_id = $1`, [data.userId]);
+    
+    // Insert new suggestions
+    for (const suggestion of data.suggestions) {
+      await db.execute(
+        `INSERT INTO ${table} (user_id, name, description) VALUES ($1, $2, $3)`,
+        [data.userId, suggestion.name, suggestion.description]
+      );
+    }
   }
 
   private async createDefaultPrompts() {
