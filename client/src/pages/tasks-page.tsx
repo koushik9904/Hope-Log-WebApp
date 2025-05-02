@@ -103,7 +103,7 @@ export default function TasksPage() {
     description: string;
     relatedTasks: string[];
   }[]>([]);
-  
+
   // Fetch goals for filter dropdown
   const { data: goals = [] } = useQuery<Goal[]>({
     queryKey: ['/api/goals', user?.id],
@@ -114,25 +114,27 @@ export default function TasksPage() {
       return res.json();
     },
   });
-  
+
   // Define interface for task and goal suggestions
   interface TaskSuggestion {
     name: string;
     description: string;
+    isTask: boolean; // Added to differentiate tasks from goals
   }
-  
+
   interface GoalSuggestion {
     name: string;
     description: string;
     relatedTasks: string[];
+    isTask: boolean; // Added to differentiate tasks from goals
   }
-  
+
   interface TasksSuggestionResponse {
     tasks: TaskSuggestion[];
     goalSuggestions: GoalSuggestion[];
   }
 
-  // Fetch AI-suggested tasks
+  // Fetch AI-suggested tasks and goals from the API.  This assumes the API returns the data in the TasksSuggestionResponse format.
   const { 
     data: aiSuggestions, 
     isLoading: isSuggestionsLoading 
@@ -142,40 +144,37 @@ export default function TasksPage() {
     staleTime: 300000, // 5 minutes
     retry: false // Don't retry since our endpoint might not exist yet
   });
-  
-  // Set default tasks when component mounts (only if no AI suggestions are available)
-  useEffect(() => {
-    if (!aiSuggestions?.tasks || aiSuggestions.tasks.length === 0) {
-      setAiSuggestedTasks(AI_SUGGESTED_TASKS);
-    }
-  }, [aiSuggestions]);
-  
+
+
   // Update AI suggested tasks and goals when data is loaded
   useEffect(() => {
-    if (aiSuggestions?.tasks && aiSuggestions.tasks.length > 0) {
-      const taskItems = aiSuggestions.tasks.map((item: TaskSuggestion, index: number) => ({
-        id: `ai-task-${index}`,
-        title: item.name,
-        description: item.description,
-        priority: determinePriority(item.name),
-        source: "Based on your journal entries"
+    if (aiSuggestions) {
+      const combinedSuggestions = [...(aiSuggestions.tasks || []), ...(aiSuggestions.goalSuggestions || [])];
+      const tasks = combinedSuggestions.filter(item => item.isTask);
+      const goals = combinedSuggestions.filter(item => !item.isTask);
+
+      const taskItems = tasks.map((item: TaskSuggestion, index: number) => ({
+          id: `ai-task-${index}`,
+          title: item.name,
+          description: item.description,
+          priority: determinePriority(item.name),
+          source: "Based on your journal entries"
       }));
-      
-      setAiSuggestedTasks(taskItems);
-    }
-    
-    if (aiSuggestions?.goalSuggestions && aiSuggestions.goalSuggestions.length > 0) {
-      const goalItems = aiSuggestions.goalSuggestions.map((item: GoalSuggestion, index: number) => ({
+
+      const goalItems = goals.map((item: GoalSuggestion, index: number) => ({
         id: `ai-goal-${index}`,
         name: item.name,
         description: item.description,
         relatedTasks: item.relatedTasks
       }));
-      
+
+
+      setAiSuggestedTasks(taskItems);
       setAiSuggestedGoals(goalItems);
     }
   }, [aiSuggestions]);
-  
+
+
   // Helper function to determine priority
   const determinePriority = (taskName: string): string => {
     const name = taskName.toLowerCase();
@@ -185,24 +184,24 @@ export default function TasksPage() {
       return 'low';
     return 'medium'; // Default
   };
-  
+
   // Helper function for clearing date filters
   const clearDateFilter = () => {
     setDateRange({ from: undefined, to: undefined });
     setDateFilterActive(false);
   };
-  
+
   // Helper function to check if a date is within the selected range
   const isDateInRange = (date: string | null | undefined) => {
     if (!date || !dateRange.from) return true; // If no date or no filter, include it
-    
+
     const taskDate = new Date(date);
-    
+
     if (dateRange.from && !dateRange.to) {
       // If only "from" date is set, check if task date is after or equal to "from"
       return taskDate >= startOfDay(dateRange.from);
     }
-    
+
     if (dateRange.from && dateRange.to) {
       // If both "from" and "to" dates are set, check if task date is within the range
       return isWithinInterval(taskDate, {
@@ -210,10 +209,10 @@ export default function TasksPage() {
         end: endOfDay(dateRange.to)
       });
     }
-    
+
     return true;
   };
-  
+
   // Add suggested task mutation
   const addTaskMutation = useMutation({
     mutationFn: async (task: QuickTaskValues) => {
@@ -236,7 +235,7 @@ export default function TasksPage() {
       });
     },
   });
-  
+
   // Add suggested goal mutation
   const addGoalMutation = useMutation({
     mutationFn: async ({ name, description, userId, relatedTasks }: {
@@ -254,13 +253,13 @@ export default function TasksPage() {
         progress: 0,
         category: "Personal"
       });
-      
+
       if (!createGoalRes.ok) {
         throw new Error('Failed to create goal');
       }
-      
+
       const goal = await createGoalRes.json();
-      
+
       // Then create any related tasks as part of this goal
       if (relatedTasks && relatedTasks.length > 0) {
         // Create tasks in sequence
@@ -274,7 +273,7 @@ export default function TasksPage() {
           });
         }
       }
-      
+
       return goal;
     },
     onSuccess: () => {
@@ -298,29 +297,29 @@ export default function TasksPage() {
   // Add a suggested task to user's tasks
   const addSuggestedTask = (task: (typeof AI_SUGGESTED_TASKS)[0]) => {
     if (!user) return;
-    
+
     addTaskMutation.mutate({
       title: task.title,
       description: task.description,
       priority: task.priority,
       userId: user.id
     });
-    
+
     // Remove from suggestions
     setAiSuggestedTasks(prev => prev.filter(t => t.id !== task.id));
   };
-  
+
   // Add a suggested goal with related tasks
   const addSuggestedGoal = (goal: typeof aiSuggestedGoals[0]) => {
     if (!user) return;
-    
+
     addGoalMutation.mutate({
       name: goal.name,
       description: goal.description,
       userId: user.id,
       relatedTasks: goal.relatedTasks
     });
-    
+
     // Remove from suggestions
     setAiSuggestedGoals(prev => prev.filter(g => g.id !== goal.id));
   };
@@ -378,7 +377,7 @@ export default function TasksPage() {
                 <TabsTrigger value="completed">Completed</TabsTrigger>
               </TabsList>
             </Tabs>
-            
+
             {/* Date Range Filter */}
             <Popover open={dateRangeOpen} onOpenChange={setDateRangeOpen}>
               <PopoverTrigger asChild>
@@ -433,7 +432,7 @@ export default function TasksPage() {
                 )}
               </PopoverContent>
             </Popover>
-            
+
             {/* Sort Options */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -445,7 +444,7 @@ export default function TasksPage() {
               <DropdownMenuContent>
                 <DropdownMenuLabel>Sort Tasks</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                
+
                 <DropdownMenuGroup>
                   <DropdownMenuRadioGroup value={sortBy} onValueChange={(value) => setSortBy(value as any)}>
                     <DropdownMenuRadioItem value="dueDate">
@@ -462,9 +461,9 @@ export default function TasksPage() {
                     </DropdownMenuRadioItem>
                   </DropdownMenuRadioGroup>
                 </DropdownMenuGroup>
-                
+
                 <DropdownMenuSeparator />
-                
+
                 <DropdownMenuItem onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}>
                   {sortDirection === 'asc' ? (
                     <>
@@ -520,7 +519,7 @@ export default function TasksPage() {
                     )}
                   </TabsTrigger>
                 </TabsList>
-                
+
                 {/* Task suggestions tab */}
                 <TabsContent value="tasks">
                   {aiSuggestedTasks.length === 0 ? (
@@ -571,7 +570,7 @@ export default function TasksPage() {
                     </div>
                   )}
                 </TabsContent>
-                
+
                 {/* Goal suggestions tab */}
                 <TabsContent value="goals">
                   {aiSuggestedGoals.length === 0 ? (
@@ -584,7 +583,7 @@ export default function TasksPage() {
                         <div key={goal.id} className="bg-[#fff8f9] p-5 rounded-xl border border-[#F5B8DB] border-opacity-30">
                           <h4 className="font-medium text-gray-800 text-lg mb-3">{goal.name}</h4>
                           <p className="text-sm text-gray-600 mb-4">{goal.description}</p>
-                          
+
                           {goal.relatedTasks && goal.relatedTasks.length > 0 && (
                             <div className="mb-4">
                               <h5 className="text-sm font-medium text-gray-700 mb-2">Related Tasks:</h5>
@@ -595,7 +594,7 @@ export default function TasksPage() {
                               </ul>
                             </div>
                           )}
-                          
+
                           <div className="flex items-center gap-2 mt-4">
                             <div className="flex-1"></div>
                             <Button 

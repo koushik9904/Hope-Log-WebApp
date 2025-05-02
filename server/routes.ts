@@ -585,23 +585,43 @@ Your role is to:
       const sentiment = await analyzeSentiment(content);
       await storage.updateJournalEntrySentiment(journalEntry.id, sentiment);
       
-      // Add identified goals to AI suggestions instead of creating them directly
-      if (sentiment.goals && sentiment.goals.length > 0) {
+      // Process identified tasks and goals from sentiment analysis
+      if (sentiment.tasks || sentiment.goals) {
         try {
-          // Store these goals in AI suggestions table/endpoint
-          await storage.storeAiSuggestions({
-            userId,
-            type: 'goals',
-            suggestions: sentiment.goals.map(goal => ({
+          const suggestions = [];
+          
+          // Process tasks
+          if (sentiment.tasks && sentiment.tasks.length > 0) {
+            suggestions.push(...sentiment.tasks.map(task => ({
+              name: task.name,
+              description: `Task identified from your journal entry: "${title}"`,
+              type: 'task',
+              priority: task.priority || 'medium',
+              source: 'Journal Analysis'
+            })));
+          }
+          
+          // Process goals
+          if (sentiment.goals && sentiment.goals.length > 0) {
+            suggestions.push(...sentiment.goals.map(goal => ({
               name: goal.name,
               description: `Goal identified from your journal entry: "${title}"`,
               type: 'goal',
               source: 'Journal Analysis',
               category: getGoalCategory(goal.name)
-            }))
-          });
+            })));
+          }
+          
+          // Store all suggestions
+          if (suggestions.length > 0) {
+            await storage.storeAiSuggestions({
+              userId,
+              type: 'mixed',
+              suggestions
+            });
+          }
         } catch (error) {
-          console.error("Error storing AI goal suggestions:", error);
+          console.error("Error storing AI suggestions:", error);
         }
       }
       

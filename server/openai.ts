@@ -26,7 +26,7 @@ export async function generateJournalTitle(content: string): Promise<string> {
       max_tokens: 30,
       temperature: 0.7,
     });
-    
+
     const title = response.choices[0].message.content?.trim() || "Journal Entry";
     return title;
   } catch (error) {
@@ -44,7 +44,7 @@ export async function generateEmbedding(text: string): Promise<number[]> {
       input: text,
       encoding_format: "float",
     });
-    
+
     return response.data[0].embedding;
   } catch (error) {
     console.error("Error generating embedding:", error);
@@ -56,19 +56,19 @@ export async function generateEmbedding(text: string): Promise<number[]> {
 export async function storeEmbedding(journalEntryId: number, text: string): Promise<void> {
   try {
     const embedding = await generateEmbedding(text);
-    
+
     try {
       // Try to insert into journal_embeddings table
       await db.insert(journalEmbeddings).values({
         journalEntryId,
         embeddingJson: embedding as any
       });
-      
+
       console.log(`Stored embedding for journal entry ${journalEntryId}`);
     } catch (dbError) {
       // If table doesn't exist yet, just log but don't fail
       console.log(`Could not store embedding (table may not exist yet): ${dbError}`);
-      
+
       // We could queue this for later processing if needed
     }
   } catch (error) {
@@ -87,7 +87,7 @@ export async function retrieveSimilarEntries(
     try {
       // Generate embedding for the query
       const queryEmbedding = await generateEmbedding(query);
-      
+
       // Get all embeddings for the user's journal entries
       const userEntries = await db.select({
         id: journalEntries.id,
@@ -108,7 +108,7 @@ export async function retrieveSimilarEntries(
           eq(journalEntries.isJournal, true) // Only retrieve from permanent journal entries, not temporary chat messages
         )
       );
-      
+
       // If we successfully got entries with embeddings, calculate similarity
       if (userEntries.length > 0) {
         // Calculate similarity using cosine similarity
@@ -116,20 +116,20 @@ export async function retrieveSimilarEntries(
           .map(entry => {
             // Extract embedding
             const entryEmbedding = entry.embedding as unknown as number[];
-            
+
             // Calculate cosine similarity
             let dotProduct = 0;
             let queryMagnitude = 0;
             let entryMagnitude = 0;
-            
+
             for (let i = 0; i < queryEmbedding.length; i++) {
               dotProduct += queryEmbedding[i] * entryEmbedding[i];
               queryMagnitude += queryEmbedding[i] * queryEmbedding[i];
               entryMagnitude += entryEmbedding[i] * entryEmbedding[i];
             }
-            
+
             const similarity = dotProduct / (Math.sqrt(queryMagnitude) * Math.sqrt(entryMagnitude));
-            
+
             return {
               id: entry.id,
               content: entry.content,
@@ -140,13 +140,13 @@ export async function retrieveSimilarEntries(
           })
           .sort((a, b) => b.similarity - a.similarity)
           .slice(0, limit);
-        
+
         return similarEntries;
       }
     } catch (e) {
       console.log("Embeddings table may not exist yet, falling back to keyword search:", e);
     }
-    
+
     // Fallback: Get recent entries and use OpenAI to find relevant ones
     // This approach doesn't require the embeddings table
     const userEntries = await db.select({
@@ -165,11 +165,11 @@ export async function retrieveSimilarEntries(
     )
     .orderBy(desc(journalEntries.date))
     .limit(10);
-    
+
     if (userEntries.length === 0) {
       return [];
     }
-    
+
     // If only a few entries, return them all with arbitrary similarity scores
     if (userEntries.length <= limit) {
       return userEntries.map((entry, index) => ({
@@ -180,7 +180,7 @@ export async function retrieveSimilarEntries(
         similarity: 1 - (index * 0.1) // Simple decreasing similarity 
       }));
     }
-    
+
     // Use OpenAI to rank the relevance of entries to the query
     try {
       const response = await openai.chat.completions.create({
@@ -203,12 +203,12 @@ export async function retrieveSimilarEntries(
         response_format: { type: "json_object" },
         temperature: 0.3,
       });
-      
+
       // Parse the response to get the indices
       const jsonResponse = JSON.parse(response.choices[0].message.content || '{"indices":[0,1,2]}');
       const relevantIndices = Array.isArray(jsonResponse.indices) ? jsonResponse.indices : 
                               Array.isArray(jsonResponse) ? jsonResponse : [0, 1, 2];
-      
+
       // Map the indices to entries
       return relevantIndices
         .filter((index: number) => index >= 0 && index < userEntries.length)
@@ -220,10 +220,10 @@ export async function retrieveSimilarEntries(
           similarity: 1 - (rank * 0.1) // Arbitrary similarity score based on rank
         }))
         .slice(0, limit);
-      
+
     } catch (oaiError) {
       console.error("OpenAI ranking failed, returning most recent entries:", oaiError);
-      
+
       // If OpenAI fails, just return the most recent entries
       return userEntries.slice(0, limit).map((entry, index) => ({
         id: entry.id,
@@ -233,7 +233,7 @@ export async function retrieveSimilarEntries(
         similarity: 1 - (index * 0.1)
       }));
     }
-    
+
   } catch (error) {
     console.error("Error retrieving similar entries:", error);
     return [];
@@ -269,17 +269,17 @@ export async function generateAIResponse(
 
     // Check if the conversation history already contains a system message
     const hasSystemMessage = conversationHistory.some(msg => msg.role === "system");
-    
+
     let systemContent = '';
-    
+
     // Use a different system prompt for multi-part prompts if no system message exists
     if (!hasSystemMessage) {
       if (isMultiPartPrompt) {
         systemContent = `You are Hope Log, guiding ${username} through a structured journaling exercise.
         Break down complex prompts into smaller steps and guide the user through them one by one.
-        
+
         ${contextFromPastEntries ? `\n\n${contextFromPastEntries}\n\n` : ""}
-        
+
         Guidelines for structured journaling:
         - Ask about ONE part of the prompt at a time
         - Wait for the user's response before moving to the next part
@@ -292,17 +292,17 @@ export async function generateAIResponse(
         systemContent = `You are Hope Log, an empathetic AI journal assistant. 
         Your purpose is to help ${username} with mental wellness through supportive conversation.
         Be warm, thoughtful, and encouraging. 
-        
+
         ${contextFromPastEntries ? `\n\n${contextFromPastEntries}\n\n` : ""}
-        
+
         VERY IMPORTANT: When the user selects a suggested prompt (like "How am I feeling today?"), 
         do NOT treat this as if the user is asking YOU this question. Instead, recognize this is a 
         journaling prompt the user wants to explore. Respond by asking THEM about it.
-        
+
         For example:
         - If prompt is "How am I feeling today?" → respond with "How are you feeling today? Would you like to share more about your emotions?"
         - If prompt is "What's something I'm grateful for?" → respond with "I'd love to hear about something you're grateful for today. What comes to mind?"
-        
+
         Guidelines:
         - Keep responses concise (2-3 sentences)
         - Be empathetic and supportive
@@ -312,10 +312,10 @@ export async function generateAIResponse(
         - If the user expresses severe distress, suggest professional help`;
       }
     }
-    
+
     // Build messages array
     let messages = [] as any[];
-    
+
     if (hasSystemMessage) {
       // Use the existing system message from the history
       messages = [
@@ -359,35 +359,28 @@ export async function analyzeSentiment(text: string): Promise<{
   score: number;
   emotions: string[];
   themes: string[];
-  goals?: {
-    name: string;
-    isNew: boolean;
-    completion?: number;
-  }[];
+  goals: { name: string; isNew: boolean; completion?: number }[];
+  tasks: { name: string; description: string }[];
 }> {
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      model: "gpt-4o", 
       messages: [
         {
           role: "system",
-          content: `You are a sentiment analysis expert with a special focus on goal identification. Analyze the journal entry and provide:
-          
-          1. A rating from 1 (negative) to 5 (positive)
-          2. Key emotions present (top 3)
-          3. Main themes discussed (up to 3)
-          4. Any goals or tasks mentioned by the user
-          
-          For goals, determine:
-          - If it's a new goal or an update to an existing one
-          - For updates, include the estimated completion percentage (0-100)
-          
-          Format as JSON with keys:
-          - 'score': number from 1-5
-          - 'emotions': array of strings
-          - 'themes': array of strings
-          - 'goals': array of objects with { name: string, isNew: boolean, completion?: number }
-          `,
+          content: `Analyze the journal entry for sentiment, emotions, and identify potential tasks and goals. 
+
+Tasks are:
+- Single actions that can be completed quickly (within a few hours)
+- Concrete, immediate activities
+- Examples: "write a blog post", "attend meeting", "call doctor"
+
+Goals are:
+- Longer-term achievements requiring multiple steps
+- Complex objectives that need planning
+- Examples: "learn to cook", "plan software architecture", "secure funding"
+
+For each identified task/goal, determine if it's a task (quick, single action) or goal (multiple steps, longer-term).  Return results as JSON with keys: 'score', 'emotions', 'themes', 'goals' (array of {name:string, isNew:boolean, completion?:number}), and 'tasks' (array of {name:string, description:string}).`,
         },
         {
           role: "user",
@@ -397,7 +390,7 @@ export async function analyzeSentiment(text: string): Promise<{
       response_format: { type: "json_object" },
     });
 
-    const content = response.choices[0].message.content || '{"score":3,"emotions":[],"themes":[],"goals":[]}';
+    const content = response.choices[0].message.content || '{"score":3,"emotions":[],"themes":[],"goals":[],"tasks":[]}';
     const result = JSON.parse(content);
 
     return {
@@ -405,14 +398,16 @@ export async function analyzeSentiment(text: string): Promise<{
       emotions: result.emotions || [],
       themes: result.themes || [],
       goals: result.goals || [],
+      tasks: result.tasks || [],
     };
   } catch (error) {
     console.error("Error analyzing sentiment:", error);
     return {
-      score: 3, // Neutral fallback
+      score: 3, 
       emotions: ["unknown"],
       themes: ["unknown"],
       goals: [],
+      tasks: [],
     };
   }
 }
@@ -479,7 +474,7 @@ export async function generateCustomPrompts(
     const avgMood = userMoods.length > 0
       ? userMoods.reduce((sum, current) => sum + current, 0) / userMoods.length
       : 3;
-    
+
     const moodDescription = avgMood < 2.5 
       ? "lower than average" 
       : avgMood > 3.5 
@@ -529,7 +524,7 @@ export async function generateGoalSuggestions(
     const entriesText = recentEntries
       .map(entry => `Entry from ${new Date(entry.date).toDateString()}: ${entry.content}`)
       .join("\n\n");
-    
+
     // Get relevant past entries using RAG if possible
     let similarEntries: Array<{id: number; content: string; date: string; transcript?: string | null; similarity: number}> = [];
     if (recentEntries.length > 0 && recentEntries[0].id) {
@@ -544,7 +539,7 @@ export async function generateGoalSuggestions(
         console.log("Error retrieving similar entries, continuing without RAG context:", error);
       }
     }
-    
+
     // Format the similar entries if any were found
     const similarEntriesText = similarEntries.length > 0
       ? `\n\nHere are additional relevant journal entries for context:\n${
@@ -554,22 +549,22 @@ export async function generateGoalSuggestions(
             .join("\n\n")
         }`
       : "";
-    
+
     const existingGoalsText = existingGoals.length > 0
       ? `Current goals:\n${existingGoals.map(goal => 
           `- ${goal.name} (${goal.progress}% complete${goal.targetDate ? `, target: ${goal.targetDate}` : ''})`
         ).join('\n')}`
       : "The user currently has no active goals or habits.";
-    
+
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         {
           role: "system",
           content: `You are an AI wellness assistant that helps identify potential goals and habits from journal entries.
-          
+
           Based on the user's journal entries, suggest actionable goals or habits that would support their wellness journey.
-          
+
           Guidelines:
           - Suggest 3-5 items in total
           - Classify each as either a 'goal' (one-time achievement) or 'habit' (recurring activity)
@@ -579,7 +574,7 @@ export async function generateGoalSuggestions(
           - Avoid suggesting goals/habits the user already has
           - Base suggestions on the user's actual journal content, not generic advice
           - Use the most relevant information from all provided entries
-          
+
           Return a JSON object with a 'goals' array containing objects with:
           - 'name': short title (5-7 words max)
           - 'type': either 'goal' or 'habit'
@@ -613,30 +608,30 @@ export async function generateTaskSuggestions(
     const entriesText = recentEntries
       .map(entry => `Entry from ${new Date(entry.date).toDateString()}: ${entry.content}`)
       .join("\n\n");
-    
+
     const existingTasksText = existingTasks.length > 0
       ? `Current tasks:\n${existingTasks.map(task => 
           `- ${task.title} (${task.completed ? 'Completed' : 'Pending'})`
         ).join('\n')}`
       : "The user currently has no active tasks.";
-      
+
     const existingGoalsText = existingGoals.length > 0
       ? `Current goals:\n${existingGoals.map(goal => 
           `- ${goal.name} (Progress: ${goal.progress}%)`
         ).join('\n')}`
       : "The user currently has no active goals.";
-    
+
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         {
           role: "system",
           content: `You are an AI wellness assistant that helps identify actionable tasks and meaningful goals from journal entries.
-          
+
           Based on the user's journal entries, suggest:
           1. Short-term, discrete tasks that would support their wellness journey
           2. Potential goals that could connect multiple tasks under a common purpose
-          
+
           For TASKS - Guidelines:
           - Suggest 4-6 tasks in total
           - Tasks should be specific, immediate actions that can be completed in a single sitting
@@ -645,14 +640,14 @@ export async function generateTaskSuggestions(
           - Avoid suggesting tasks the user already has
           - Base suggestions on the user's actual journal content, not generic advice
           - Tasks should be simpler and more immediate than goals
-          
+
           For GOALS - Guidelines:
           - Suggest 2-3 potential goals that connect multiple tasks
           - Goals should represent larger achievements that might take weeks to complete
           - Include 2-4 related task names that would help accomplish each goal
           - Goals should be specific and personally meaningful based on journal entries
           - Avoid suggesting goals the user already has
-          
+
           Return a JSON object with:
           1. 'tasks' array containing objects with:
              - 'name': short title (5-7 words max)
