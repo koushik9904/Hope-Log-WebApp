@@ -641,12 +641,24 @@ export async function generateTaskSuggestions(
           - Base suggestions on the user's actual journal content, not generic advice
           - Tasks should be simpler and more immediate than goals
 
-          For GOALS - Guidelines:
-          - Suggest 2-3 potential goals that connect multiple tasks
-          - Goals should represent larger achievements that might take weeks to complete
-          - Include 2-4 related task names that would help accomplish each goal
-          - Goals should be specific and personally meaningful based on journal entries
-          - Avoid suggesting goals the user already has
+          For categorization, use these criteria:
+
+    TASKS are:
+    - Single actions that can be completed quickly (within a few hours)
+    - Concrete, specific activities
+    - Examples: writing a blog post, attending an event, booking an appointment
+    
+    GOALS are:
+    - Larger achievements requiring multiple tasks/actions
+    - Take longer to complete (days/weeks/months)
+    - Usually need a series of steps to accomplish
+    - Examples: learning a new skill, planning software architecture, securing funding
+    
+    Guidelines:
+    - Suggest 2-3 meaningful goals based on journal context
+    - For each goal, include 2-4 related tasks that would help accomplish it
+    - Ensure suggestions align with the categorization criteria above
+    - Avoid suggesting goals the user already has
 
           Return a JSON object with:
           1. 'tasks' array containing objects with:
