@@ -8,7 +8,7 @@ async function migrateGoalsAndTasksToSuggestions() {
     await db.execute(sql`
       DROP TABLE IF EXISTS ai_task_suggestions;
       DROP TABLE IF EXISTS ai_goal_suggestions;
-      
+
       CREATE TABLE IF NOT EXISTS ai_task_suggestions (
         id SERIAL PRIMARY KEY,
         user_id INTEGER NOT NULL REFERENCES users(id),
@@ -37,6 +37,51 @@ async function migrateGoalsAndTasksToSuggestions() {
       const goals = await storage.getGoalsByUserId(user.id);
       const tasks = await storage.getTasksByUserId(user.id);
 
+      // First add some default suggestions for each user
+      const defaultTaskSuggestions = [
+        {
+          name: "Schedule a 30-minute walk",
+          description: "Take a short walk outdoors to clear your mind and improve mood",
+          priority: "medium"
+        },
+        {
+          name: "Create a to-do list for tomorrow",
+          description: "Plan your day ahead to reduce morning stress",
+          priority: "medium"
+        }
+      ];
+
+      const defaultGoalSuggestions = [
+        {
+          name: "Improve sleep quality",
+          description: "Focus on better sleep habits to improve overall wellbeing"
+        },
+        {
+          name: "Practice daily mindfulness",
+          description: "Regular mindfulness practice to manage stress levels"
+        }
+      ];
+
+      // Insert default task suggestions
+      await db.transaction(async (tx) => {
+        for (const task of defaultTaskSuggestions) {
+          await tx.execute(
+            sql`INSERT INTO ai_task_suggestions (user_id, name, description, priority) 
+                VALUES (${user.id}, ${task.name}, ${task.description}, ${task.priority})`
+          );
+        }
+      });
+
+      // Insert default goal suggestions
+      await db.transaction(async (tx) => {
+        for (const goal of defaultGoalSuggestions) {
+          await tx.execute(
+            sql`INSERT INTO ai_goal_suggestions (user_id, name, description) 
+                VALUES (${user.id}, ${goal.name}, ${goal.description})`
+          );
+        }
+      });
+
       // Categorize tasks and goals based on the defined criteria
       const suggestions = {
         tasks: [] as any[],
@@ -49,7 +94,7 @@ async function migrateGoalsAndTasksToSuggestions() {
           sql`INSERT INTO ai_task_suggestions (user_id, name, description, priority) 
               VALUES (${task.userId}, ${task.title}, ${task.description || ''}, ${task.priority || 'medium'})`
         );
-        
+
         // Delete the original task after migration
         await db.execute(
           sql`DELETE FROM tasks WHERE id = ${task.id}`
