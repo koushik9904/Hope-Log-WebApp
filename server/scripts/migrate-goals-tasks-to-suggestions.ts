@@ -1,5 +1,7 @@
 
 import { storage } from '../storage';
+import { db } from '../db';
+import { sql } from 'drizzle-orm';
 
 async function migrateGoalsAndTasksToSuggestions() {
   try {
