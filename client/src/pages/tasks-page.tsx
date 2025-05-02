@@ -139,19 +139,16 @@ export default function TasksPage() {
     data: aiSuggestions, 
     isLoading: isSuggestionsLoading 
   } = useQuery<TasksSuggestionResponse>({
-    queryKey: [`/api/tasks/${user?.id}/suggestions`],
+    queryKey: [`/api/tasks/${user?.id}/ai-suggestions`],
     enabled: !!user?.id,
-    staleTime: 300000, // 5 minutes
-    retry: false // Don't retry since our endpoint might not exist yet
+    staleTime: 300000 // 5 minutes
   });
-
 
   // Update AI suggested tasks and goals when data is loaded
   useEffect(() => {
-    if (aiSuggestions) {
-      const combinedSuggestions = [...(aiSuggestions.tasks || []), ...(aiSuggestions.goalSuggestions || [])];
-      const tasks = combinedSuggestions.filter(item => item.isTask);
-      const goals = combinedSuggestions.filter(item => !item.isTask);
+    if (aiSuggestions?.tasks || aiSuggestions?.goalSuggestions) {
+      const tasks = aiSuggestions.tasks || [];
+      const goals = aiSuggestions.goalSuggestions || [];
 
       const taskItems = tasks.map((item: TaskSuggestion, index: number) => ({
           id: `ai-task-${index}`,
