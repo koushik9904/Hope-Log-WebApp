@@ -90,28 +90,21 @@ async function migrateGoalsAndTasksToSuggestions() {
 
       // Move all existing tasks to suggestions
       for (const task of tasks) {
+        // Add task to suggestions
         await db.execute(
           sql`INSERT INTO ai_task_suggestions (user_id, name, description, priority) 
               VALUES (${task.userId}, ${task.title}, ${task.description || ''}, ${task.priority || 'medium'})`
         );
+      }
 
-        // Delete the original task after migration
+      // Move all existing goals to suggestions
+      for (const goal of goals) {
         await db.execute(
-          sql`DELETE FROM tasks WHERE id = ${task.id}`
+          sql`INSERT INTO ai_goal_suggestions (user_id, name, description) 
+              VALUES (${goal.userId}, ${goal.name}, ${goal.description || ''})`
         );
       }
 
-      // Process existing goals
-      for (const goal of goals) {
-        // Get related tasks for this goal
-        const relatedTasks = await storage.getTasksByGoalId(goal.id);
-
-        suggestions.goalSuggestions.push({
-          name: goal.name,
-          description: goal.description || `Goal identified from existing data: "${goal.name}"`,
-          relatedTasks: relatedTasks.map(t => t.title)
-        });
-      }
 
       // Store suggestions
       if (suggestions.tasks.length > 0) {
