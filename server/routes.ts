@@ -585,28 +585,25 @@ Your role is to:
       const sentiment = await analyzeSentiment(content);
       await storage.updateJournalEntrySentiment(journalEntry.id, sentiment);
       
-      // Process any goals from the journal entry
+      // Add identified goals to AI suggestions instead of creating them directly
       if (sentiment.goals && sentiment.goals.length > 0) {
-        for (const goal of sentiment.goals) {
-          if (goal.isNew) {
-            // Create a new goal
-            await storage.createGoal({
-              userId,
+        try {
+          // Store these goals in AI suggestions table/endpoint
+          await storage.storeAiSuggestions({
+            userId,
+            type: 'goals',
+            suggestions: sentiment.goals.map(goal => ({
               name: goal.name,
-              target: 100, // Default target
-              progress: 0,
-              unit: "%",
-              colorScheme: 1
-            });
-          } else if (goal.completion !== undefined) {
-            // Find the existing goal to update
-            const existingGoals = await storage.getGoalsByUserId(userId);
-            const matchingGoal = existingGoals.find(g => 
-              g.name.toLowerCase() === goal.name.toLowerCase()
-            );
-            
-            if (matchingGoal) {
-              // Update the goal progress
+              description: `Goal identified from your journal entry: "${title}"`,
+              type: 'goal',
+              source: 'Journal Analysis',
+              category: getGoalCategory(goal.name)
+            }))
+          });
+        } catch (error) {
+          console.error("Error storing AI goal suggestions:", error);
+        }
+      }rogress
               await storage.updateGoalProgress(matchingGoal.id, goal.completion);
             }
           }
