@@ -4,13 +4,17 @@ import { sql } from 'drizzle-orm';
 
 async function migrateGoalsAndTasksToSuggestions() {
   try {
-    // Create tables if they don't exist using sql template literal
+    // Drop existing suggestion tables to start fresh
     await db.execute(sql`
+      DROP TABLE IF EXISTS ai_task_suggestions;
+      DROP TABLE IF EXISTS ai_goal_suggestions;
+      
       CREATE TABLE IF NOT EXISTS ai_task_suggestions (
         id SERIAL PRIMARY KEY,
         user_id INTEGER NOT NULL REFERENCES users(id),
         name VARCHAR(255) NOT NULL,
         description TEXT,
+        priority VARCHAR(50),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
@@ -39,25 +43,17 @@ async function migrateGoalsAndTasksToSuggestions() {
         goalSuggestions: [] as any[]
       };
 
-      // Process existing tasks
+      // Move all existing tasks to suggestions
       for (const task of tasks) {
-        // Check if this is really a task (can be completed quickly, single action)
-        const isQuickTask = isTaskByDefinition(task.title, task.description);
-
-        if (isQuickTask) {
-          suggestions.tasks.push({
-            name: task.title,
-            description: task.description || `Task identified from existing data: "${task.title}"`,
-            priority: task.priority || 'medium'
-          });
-        } else {
-          // If it's not a quick task, it might be a goal
-          suggestions.goalSuggestions.push({
-            name: task.title,
-            description: task.description || `Goal identified from task: "${task.title}"`,
-            relatedTasks: []
-          });
-        }
+        await db.execute(
+          sql`INSERT INTO ai_task_suggestions (user_id, name, description, priority) 
+              VALUES (${task.userId}, ${task.title}, ${task.description || ''}, ${task.priority || 'medium'})`
+        );
+        
+        // Delete the original task after migration
+        await db.execute(
+          sql`DELETE FROM tasks WHERE id = ${task.id}`
+        );
       }
 
       // Process existing goals
