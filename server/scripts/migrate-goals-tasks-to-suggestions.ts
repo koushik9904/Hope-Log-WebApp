@@ -83,12 +83,11 @@ async function migrateGoalsAndTasksToSuggestions() {
         await db.transaction(async (tx) => {
           for (const task of tasksValues) {
             await tx.execute(
-              sql`INSERT INTO ai_task_suggestions (user_id, name, description) VALUES (${task.user_id}, ${task.name}, ${task.description})`
+              sql`INSERT INTO ai_task_suggestions (user_id, name, description) VALUES (${task.user_id}, ${task.name}, ${task.description || ''})`
             );
           }
         });
       }
-
 
       if (suggestions.goalSuggestions.length > 0) {
         const goalsValues = suggestions.goalSuggestions.map(goal => ({
@@ -100,7 +99,7 @@ async function migrateGoalsAndTasksToSuggestions() {
         await db.transaction(async (tx) => {
           for (const goal of goalsValues) {
             await tx.execute(
-              sql`INSERT INTO ai_goal_suggestions (user_id, name, description) VALUES (${goal.user_id}, ${goal.name}, ${goal.description})`
+              sql`INSERT INTO ai_goal_suggestions (user_id, name, description) VALUES (${goal.user_id}, ${goal.name}, ${goal.description || ''})`
             );
           }
         });
