@@ -987,7 +987,9 @@ export default function GoalsPage() {
                     </div>
                   ) : goals.length > 0 ? (
                     <div className="space-y-6">
-                      {Object.entries(goalsByCategory).map(([category, categoryGoals]) => (
+                      {Object.entries(goalsByCategory)
+                        .sort(([a], [b]) => a.localeCompare(b))
+                        .map(([category, categoryGoals]) => (
                         <div key={category} className="space-y-4">
                           <h3 className="text-lg font-medium flex items-center gap-2 font-['Montserrat_Variable']">
                             <span className="inline-block w-3 h-3 rounded-full bg-[#9AAB63]"></span>
@@ -1084,11 +1086,12 @@ export default function GoalsPage() {
                                     <span>Progress</span>
                                     <span>{goal.progress}%</span>
                                   </div>
-                                  <Progress 
-                                    value={goal.progress} 
-                                    className="h-2 bg-gray-100" 
-                                    indicatorClassName="bg-[#9AAB63]" 
-                                  />
+                                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                    <div 
+                                      className="h-full bg-[#9AAB63] transition-all duration-300" 
+                                      style={{ width: `${goal.progress}%` }}
+                                    />
+                                  </div>
                                 </div>
                                 
                                 <div className="flex items-center text-sm text-gray-600">
