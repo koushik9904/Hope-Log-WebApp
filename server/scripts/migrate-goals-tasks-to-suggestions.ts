@@ -3,6 +3,25 @@ import { storage } from '../storage';
 
 async function migrateGoalsAndTasksToSuggestions() {
   try {
+    // Create tables if they don't exist
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS ai_task_suggestions (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id),
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS ai_goal_suggestions (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id),
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
     // Get all users
     const users = await storage.getAllUsers();
     
