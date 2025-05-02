@@ -803,6 +803,11 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
+  async storeAiSuggestions(data: { userId: number; type: string; suggestions: any[] }): Promise<void> {
+    const key = `ai_suggestions_${data.type}_${data.userId}`;
+    await this.setSystemSetting(key, JSON.stringify(data.suggestions));
+  }
+
   private async createDefaultPrompts() {
     // Check if default prompts already exist
     const existingPrompts = await db
