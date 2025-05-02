@@ -5,8 +5,8 @@ import { sql } from 'drizzle-orm';
 
 async function migrateGoalsAndTasksToSuggestions() {
   try {
-    // Create tables if they don't exist
-    await db.execute(`
+    // Create tables if they don't exist using sql template literal
+    await db.execute(sql`
       CREATE TABLE IF NOT EXISTS ai_task_suggestions (
         id SERIAL PRIMARY KEY,
         user_id INTEGER NOT NULL REFERENCES users(id),
