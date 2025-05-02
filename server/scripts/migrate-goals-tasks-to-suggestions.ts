@@ -88,20 +88,52 @@ async function migrateGoalsAndTasksToSuggestions() {
         goalSuggestions: [] as any[]
       };
 
-      // Move all existing tasks to suggestions
+      // Helper function to determine if something is a task by analyzing its name and description
+      const isTaskByAnalysis = (name: string, description?: string | null): boolean => {
+        const text = `${name} ${description || ''}`.toLowerCase();
+        
+        // Keywords that suggest a task (quick, single action items)
+        const taskKeywords = [
+          'call', 'email', 'write', 'book', 'buy', 'schedule', 'attend',
+          'review', 'send', 'create', 'make', 'post', 'update', 'check',
+          'today', 'tomorrow', 'meeting', 'appointment', 'deadline'
+        ];
+
+        // Keywords that suggest a goal (longer-term, aspirational)
+        const goalKeywords = [
+          'learn', 'master', 'improve', 'develop', 'build', 'achieve',
+          'monthly', 'yearly', 'long-term', 'strategy', 'plan',
+          'become', 'grow', 'establish', 'transform'
+        ];
+
+        const taskMatches = taskKeywords.filter(keyword => text.includes(keyword)).length;
+        const goalMatches = goalKeywords.filter(keyword => text.includes(keyword)).length;
+
+        return taskMatches > goalMatches;
+      };
+
+      // Process existing goals and categorize them
+      for (const goal of goals) {
+        if (isTaskByAnalysis(goal.name, goal.description)) {
+          // This "goal" is actually more like a task
+          await db.execute(
+            sql`INSERT INTO ai_task_suggestions (user_id, name, description, priority) 
+                VALUES (${goal.userId}, ${goal.name}, ${goal.description || ''}, 'medium')`
+          );
+        } else {
+          // This is a proper goal
+          await db.execute(
+            sql`INSERT INTO ai_goal_suggestions (user_id, name, description) 
+                VALUES (${goal.userId}, ${goal.name}, ${goal.description || ''})`
+          );
+        }
+      }
+
+      // Move all existing tasks to task suggestions
       for (const task of tasks) {
-        // Add task to suggestions
         await db.execute(
           sql`INSERT INTO ai_task_suggestions (user_id, name, description, priority) 
               VALUES (${task.userId}, ${task.title}, ${task.description || ''}, ${task.priority || 'medium'})`
-        );
-      }
-
-      // Move all existing goals to suggestions
-      for (const goal of goals) {
-        await db.execute(
-          sql`INSERT INTO ai_goal_suggestions (user_id, name, description) 
-              VALUES (${goal.userId}, ${goal.name}, ${goal.description || ''})`
         );
       }
 
