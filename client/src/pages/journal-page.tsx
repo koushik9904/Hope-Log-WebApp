@@ -917,11 +917,11 @@ export default function JournalPage() {
                       return acc;
                     }, {} as Record<number, JournalEntry[]>);
 
-                    // Get days in month
-                    const daysInMonth = new Date(year, month, 0).getDate();
-
-                    // Get year and month from selectedMonth
+                    // Get year and month from selectedMonth 
                     const [selectedYear, selectedMonthNum] = selectedMonth.split('-').map(Number);
+                    
+                    // Get days in month using the selected year and month
+                    const daysInMonth = new Date(selectedYear, selectedMonthNum, 0).getDate();
                     
                     // Create array for calendar grid
                     const firstDayOfMonth = new Date(selectedYear, selectedMonthNum - 1, 1).getDay();
@@ -933,11 +933,8 @@ export default function JournalPage() {
                       calendarDays.push(null);
                     }
 
-                    // Get days in month using the selected year and month
-                    const daysInSelectedMonth = new Date(selectedYear, selectedMonthNum, 0).getDate();
-
                     // Add days of current month
-                    for (let i = 1; i <= daysInSelectedMonth; i++) {
+                    for (let i = 1; i <= daysInMonth; i++) {
                       calendarDays.push(i);
                     }
 
