@@ -707,7 +707,8 @@ Your role is to:
   });
   
   // Get AI-suggested goals and habits based on journal entries
-  app.get("/api/goals/:userId/suggestions", async (req, res) => {
+  // This endpoint generates new AI suggested goals and stores them in the database
+  app.get("/api/goals/:userId/generate-suggestions", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     
     const userId = Number(req.params.userId);
@@ -730,10 +731,107 @@ Your role is to:
       // Generate suggestions based on journal content
       const suggestions = await generateGoalSuggestions(filteredEntries, existingGoals);
       
-      res.json(suggestions);
+      // Store new suggested goals in the database
+      const createdGoals = [];
+      for (const suggestion of suggestions.goals) {
+        // Check if a similar goal already exists by comparing names
+        const similarGoalExists = existingGoals.some(
+          existingGoal => existingGoal.name.toLowerCase() === suggestion.name.toLowerCase()
+        );
+        
+        if (!similarGoalExists) {
+          // Create a new goal with suggested status and ai source
+          const newGoal = await storage.createGoal({
+            userId,
+            name: suggestion.name,
+            description: suggestion.description || "",
+            category: suggestion.category || "Personal",
+            target: 100, // Default target
+            status: "suggested",
+            source: "ai",
+            aiExplanation: suggestion.explanation || "Generated from your journal entries"
+          });
+          
+          createdGoals.push(newGoal);
+        }
+      }
+      
+      res.json({ goals: createdGoals });
     } catch (error) {
-      console.error("Error generating goal suggestions:", error);
+      console.error("Error generating and storing goal suggestions:", error);
       res.status(500).json({ error: "Failed to generate goal suggestions" });
+    }
+  });
+  
+  // This endpoint retrieves all AI suggested goals for a user
+  app.get("/api/goals/:userId/ai-suggestions", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const userId = Number(req.params.userId);
+    if (req.user?.id !== userId) return res.sendStatus(403);
+    
+    try {
+      const suggestions = await storage.getAISuggestedGoals(userId);
+      res.json({ goals: suggestions });
+    } catch (error) {
+      console.error("Error retrieving AI goal suggestions:", error);
+      res.status(500).json({ error: "Failed to retrieve AI goal suggestions" });
+    }
+  });
+  
+  // This endpoint accepts an AI suggested goal
+  app.post("/api/goals/:goalId/accept", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const goalId = Number(req.params.goalId);
+    
+    try {
+      // Get the goal to verify ownership
+      const goal = await storage.getGoalById(goalId);
+      
+      if (!goal) {
+        return res.status(404).json({ error: "Goal not found" });
+      }
+      
+      if (req.user?.id !== goal.userId) {
+        return res.sendStatus(403);
+      }
+      
+      // Update the goal status to in_progress
+      const updatedGoal = await storage.updateGoalStatus(goalId, "in_progress");
+      
+      res.json(updatedGoal);
+    } catch (error) {
+      console.error("Error accepting AI goal suggestion:", error);
+      res.status(500).json({ error: "Failed to accept goal suggestion" });
+    }
+  });
+  
+  // This endpoint rejects an AI suggested goal
+  app.post("/api/goals/:goalId/reject", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const goalId = Number(req.params.goalId);
+    
+    try {
+      // Get the goal to verify ownership
+      const goal = await storage.getGoalById(goalId);
+      
+      if (!goal) {
+        return res.status(404).json({ error: "Goal not found" });
+      }
+      
+      if (req.user?.id !== goal.userId) {
+        return res.sendStatus(403);
+      }
+      
+      // Delete the suggested goal
+      await storage.deleteGoal(goalId);
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error rejecting AI goal suggestion:", error);
+      res.status(500).json({ error: "Failed to reject goal suggestion" });
     }
   });
   

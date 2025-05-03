@@ -518,7 +518,7 @@ export async function generateCustomPrompts(
 export async function generateGoalSuggestions(
   recentEntries: { content: string; date: string; id?: number }[],
   existingGoals: { name: string; targetDate?: string | null; progress: number }[] = []
-): Promise<{ goals: { name: string; type: 'goal' | 'habit'; description: string }[] }> {
+): Promise<{ goals: { name: string; type: 'goal' | 'habit'; description: string; category?: string; explanation?: string }[] }> {
   try {
     // Extract the content of the journal entries
     const entriesText = recentEntries
@@ -561,24 +561,26 @@ export async function generateGoalSuggestions(
       messages: [
         {
           role: "system",
-          content: `You are an AI wellness assistant that helps identify potential goals and habits from journal entries.
+          content: `You are an AI wellness assistant that helps identify potential goals from journal entries.
 
-          Based on the user's journal entries, suggest actionable goals or habits that would support their wellness journey.
+          Based on the user's journal entries, suggest actionable goals that would support their wellness journey.
 
           Guidelines:
-          - Suggest 3-5 items in total
-          - Classify each as either a 'goal' (one-time achievement) or 'habit' (recurring activity)
+          - Suggest 3-5 goals in total
           - Goals should be specific, measurable, achievable, relevant, and time-bound
-          - Habits should be concrete daily or weekly actions
           - Add a brief description of why this would be beneficial
-          - Avoid suggesting goals/habits the user already has
+          - Avoid suggesting goals the user already has
           - Base suggestions on the user's actual journal content, not generic advice
           - Use the most relevant information from all provided entries
+          - Categorize goals (e.g., Personal, Career, Health, Relationships, Financial, etc.)
+          - Include a detailed explanation of why this goal was suggested based on the journal content
 
           Return a JSON object with a 'goals' array containing objects with:
           - 'name': short title (5-7 words max)
-          - 'type': either 'goal' or 'habit'
-          - 'description': 1-2 sentence explanation of the benefit`
+          - 'type': 'goal' (keep this static value for compatibility)
+          - 'description': 1-2 sentence explanation of what the goal involves
+          - 'category': one of 'Personal', 'Career', 'Health', 'Relationships', 'Financial', 'Education', 'Spiritual', 'Creative'
+          - 'explanation': 2-3 sentences explaining why this goal was suggested based on journal content`
         },
         {
           role: "user",

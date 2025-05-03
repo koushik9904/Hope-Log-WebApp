@@ -57,6 +57,8 @@ export interface IStorage {
   createGoal(goal: InsertGoal): Promise<Goal>;
   updateGoalProgress(id: number, progress: number): Promise<Goal>;
   deleteGoal(id: number): Promise<void>;
+  getAISuggestedGoals(userId: number): Promise<Goal[]>;
+  updateGoalStatus(id: number, status: string): Promise<Goal>;
   
   // Task methods
   getTasksByUserId(userId: number): Promise<Task[]>;
@@ -402,6 +404,38 @@ export class DatabaseStorage implements IStorage {
     await db
       .delete(goals)
       .where(eq(goals.id, id));
+  }
+  
+  async getAISuggestedGoals(userId: number): Promise<Goal[]> {
+    return await db
+      .select()
+      .from(goals)
+      .where(
+        and(
+          eq(goals.userId, userId),
+          eq(goals.status, 'suggested'),
+          eq(goals.source, 'ai')
+        )
+      )
+      .orderBy(desc(goals.createdAt));
+  }
+  
+  async updateGoalStatus(id: number, status: string): Promise<Goal> {
+    const result = await db
+      .update(goals)
+      .set({ 
+        status,
+        // If accepting a suggested goal, update it to in_progress
+        ...(status === 'accepted' ? { status: 'in_progress' } : {})
+      })
+      .where(eq(goals.id, id))
+      .returning();
+      
+    if (result.length === 0) {
+      throw new Error(`Goal with id ${id} not found`);
+    }
+    
+    return result[0];
   }
   
   // Task methods
