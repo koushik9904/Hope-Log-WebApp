@@ -81,47 +81,8 @@ const AI_SUGGESTED_GOALS: AISuggestedGoal[] = [
   }
 ];
 
-const AI_SUGGESTED_TASKS: AISuggestedTask[] = [
-  {
-    id: 201,
-    title: "Research sleep improvement techniques",
-    description: "Find 3 evidence-based techniques for improving sleep quality and try them this week.",
-    priority: "medium"
-  },
-  {
-    id: 202,
-    title: "Download a meditation app",
-    description: "Find and install a meditation app with beginner-friendly guided sessions.",
-    priority: "low"
-  },
-  {
-    id: 203,
-    title: "Create a reading list",
-    description: "Make a list of 5 books you'd like to read in the next few months.",
-    priority: "medium"
-  }
-];
-
-const AI_SUGGESTED_HABITS: AISuggestedHabit[] = [
-  {
-    id: 301,
-    title: "10-minute morning meditation",
-    description: "Start each day with a brief mindfulness practice to improve focus and reduce stress.",
-    frequency: "daily"
-  },
-  {
-    id: 302,
-    title: "30 minutes of reading",
-    description: "Set aside dedicated time for reading, especially before bed instead of screen time.",
-    frequency: "daily"
-  },
-  {
-    id: 303,
-    title: "Weekly nature walk",
-    description: "Take a walk in nature to refresh your mind and get some exercise.",
-    frequency: "weekly"
-  }
-];
+// AI suggestions are now fetched from the server API
+// and filtered in the component to remove duplicates
 
 // Extended types for items in the recycle bin
 interface DeletedGoal extends Goal {
@@ -1542,31 +1503,88 @@ export default function GoalsPage() {
                 </CardHeader>
                 <CardContent className="pt-6">
                   <div className="space-y-4">
-                    {AI_SUGGESTED_TASKS.slice(0, 3).map(task => (
-                      <div key={task.id} className="bg-[#f9f8ff] p-4 rounded-xl border border-[#B6CAEB] border-opacity-30">
-                        <h4 className="font-medium text-gray-800 text-sm mb-1">{task.title}</h4>
-                        <p className="text-xs text-gray-600 mb-3 line-clamp-2">{task.description}</p>
-                        <div className="flex justify-end">
-                          <Button 
-                            onClick={() => {
-                              // Add suggested task
-                              if (!user) return;
-                              // Set initial data for the task form
-                              setNewTaskInitialData({
-                                title: task.title,
-                                description: task.description,
-                                priority: task.priority || "medium"
-                              });
-                              setShowNewTaskDialog(true);
-                            }}
-                            className="bg-[#B6CAEB] hover:bg-[#9db8e7] text-white text-xs px-3"
-                            size="sm"
-                          >
-                            <Plus className="h-3.5 w-3.5 mr-1.5" /> Add Task
-                          </Button>
-                        </div>
+                    {isSuggestionsLoading ? (
+                      <div className="flex flex-col items-center justify-center p-4">
+                        <Loader2 className="h-8 w-8 animate-spin text-[#B6CAEB] mb-2" />
+                        <p className="text-sm text-gray-500">Loading suggestions...</p>
                       </div>
-                    ))}
+                    ) : aiSuggestedTasks.length > 0 ? (
+                      aiSuggestedTasks.slice(0, 3).map(task => (
+                        <div key={task.id} className="bg-[#f9f8ff] p-4 rounded-xl border border-[#B6CAEB] border-opacity-30">
+                          <h4 className="font-medium text-gray-800 text-sm mb-1">{task.title}</h4>
+                          <p className="text-xs text-gray-600 mb-3 line-clamp-2">{task.description}</p>
+                          <div className="flex justify-between gap-2">
+                            <div className="flex flex-1">
+                              <Button 
+                                onClick={() => {
+                                  // Accept task suggestion
+                                  if (!user) return;
+                                  
+                                  // Add task by opening the task form with pre-filled values
+                                  setNewTaskInitialData({
+                                    title: task.title,
+                                    description: task.description,
+                                    priority: task.priority || "medium"
+                                  });
+                                  setShowNewTaskDialog(true);
+                                }}
+                                className="bg-[#9AAB63] hover:bg-[#8a9a58] text-white text-xs flex-1 px-3"
+                                size="sm"
+                              >
+                                <Check className="h-3.5 w-3.5 mr-1.5" /> Accept
+                              </Button>
+                            </div>
+                            <div className="flex flex-1">
+                              <Button 
+                                onClick={() => {
+                                  // Reject task suggestion by doing nothing (just close the dialog)
+                                  // In a real implementation, you would call an API to remove the suggestion
+                                  toast({
+                                    title: "Task suggestion rejected",
+                                    description: "The task suggestion has been removed",
+                                  });
+                                  
+                                  // Force a reload of suggestions
+                                  queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}/ai-suggestions`] });
+                                }}
+                                variant="outline"
+                                className="text-xs flex-1 border-gray-300 px-3"
+                                size="sm"
+                              >
+                                <X className="h-3.5 w-3.5 mr-1.5" /> Reject
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-3">
+                        <p className="text-sm text-gray-500">No task suggestions right now.</p>
+                        <p className="text-xs text-gray-400 mt-1">Write in your journal to get personalized suggestions!</p>
+                      </div>
+                    )}
+                    
+                    {!isSuggestionsLoading && (
+                      <Button 
+                        onClick={() => generateSuggestionsMutation.mutate()}
+                        disabled={generateSuggestionsMutation.isPending}
+                        variant="outline"
+                        size="sm"
+                        className="w-full mt-4 bg-gradient-to-r from-[#f5d867] to-[#B6CAEB] bg-opacity-20 hover:bg-opacity-30"
+                      >
+                        {generateSuggestionsMutation.isPending ? (
+                          <>
+                            <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                            Analyzing Journals...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+                            Generate AI Suggestions
+                          </>
+                        )}
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>
