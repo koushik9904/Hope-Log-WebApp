@@ -444,11 +444,17 @@ export default function GoalsPage() {
       } catch (error: any) {
         console.error("Generate suggestions API error:", error);
         
-        // Handle specific error cases
+        // Enhanced error handling with more specific messages
         if (error.toString().includes("OpenAI API key")) {
           throw new Error("OpenAI API key is missing. Please contact support.");
         } else if (error.toString().includes("network") || error.toString().includes("fetch")) {
           throw new Error("Network error. Please check your internet connection and try again.");
+        } else if (error.toString().includes("timed out") || error.toString().includes("timeout")) {
+          throw new Error("Request timed out. The server might be busy analyzing your journal entries. Please try again in a moment.");
+        } else if (error.toString().includes("no journal entries") || error.toString().includes("No journal entries")) {
+          throw new Error("You need to create some journal entries first before generating suggestions.");
+        } else if (error.toString().includes("already been analyzed")) {
+          throw new Error("Your recent journal entries have already been analyzed. Try writing new entries for more suggestions.");
         } else if (error.message) {
           // Use the error message if available
           throw error;
