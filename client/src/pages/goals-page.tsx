@@ -409,9 +409,24 @@ export default function GoalsPage() {
   const generateSuggestionsMutation = useMutation({
     mutationFn: async () => {
       console.log("Attempting to generate suggestions for user:", user?.id);
-      const res = await apiRequest("GET", `/api/goals/${user?.id}/generate-suggestions`, {});
-      console.log("Received generate suggestions response:", res.status);
-      return await res.json();
+      
+      // Check if user is authenticated
+      if (!user || !user.id) {
+        console.error("Failed to generate suggestions: User not authenticated");
+        throw new Error("You must be logged in to generate suggestions.");
+      }
+      
+      try {
+        const res = await apiRequest("GET", `/api/goals/${user.id}/generate-suggestions`, {});
+        console.log("Received generate suggestions response:", res.status);
+        return await res.json();
+      } catch (error: any) {
+        console.error("Generate suggestions API error:", error);
+        const errorMessage = error.toString().includes("OpenAI API key") 
+          ? "OpenAI API key is missing. Please contact support."
+          : "Failed to generate suggestions. Please try again later.";
+        throw new Error(errorMessage);
+      }
     },
     onSuccess: (data) => {
       const goalCount = data.goals?.length || 0;
@@ -434,10 +449,11 @@ export default function GoalsPage() {
       // Invalidate suggestions query
       queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}/ai-suggestions`] });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
+      console.error("Generate suggestions mutation error:", error);
       toast({
         title: "Failed to generate suggestions",
-        description: "There was an error generating suggestions.",
+        description: error.message || "There was an error generating suggestions.",
         variant: "destructive",
       });
     },

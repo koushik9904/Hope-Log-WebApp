@@ -813,8 +813,33 @@ Your role is to:
       return res.sendStatus(403);
     }
     
+    // Check if OpenAI API key is configured
+    if (!process.env.OPENAI_API_KEY) {
+      console.error("⚠️ OPENAI_API_KEY is missing. Cannot generate suggestions.");
+      return res.status(500).json({ 
+        error: "OpenAI API key is missing. Please contact support to enable AI features." 
+      });
+    }
+    
     try {
-      console.log(`✅ Processing unanalyzed journal entries for user ${userId}`);
+      // Get count of unanalyzed journal entries
+      const journalEntries = await storage.getUnanalyzedJournalEntriesByUserId(userId);
+      
+      if (journalEntries.length === 0) {
+        console.log(`⚠️ No unanalyzed journal entries found for user ${userId}`);
+        return res.status(200).json({ 
+          goals: [],
+          habits: [],
+          summary: {
+            goalsCreated: 0, tasksCreated: 0, habitsCreated: 0,
+            goalsSkipped: 0, tasksSkipped: 0, habitsSkipped: 0
+          },
+          message: "No journal entries to analyze. Write in your journal first to get suggestions."
+        });
+      }
+      
+      console.log(`✅ Processing ${Math.min(journalEntries.length, 3)} unanalyzed journal entries for user ${userId}`);
+      
       // Process a limited number of unanalyzed journal entries using the unified AI suggestion module
       // Limit to 3 entries at a time to prevent timeouts and API overload
       const result = await processAllEntriesForUser(userId, 3);
@@ -836,9 +861,19 @@ Your role is to:
           habitsSkipped: result.habitsSkipped
         }
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error generating and storing AI suggestions:", error);
-      res.status(500).json({ error: "Failed to generate AI suggestions" });
+      
+      // Provide more specific error messages based on the error type
+      if (error.toString().includes("OpenAI API")) {
+        res.status(500).json({ 
+          error: "There was an issue with the AI suggestion system. Please try again later or contact support." 
+        });
+      } else {
+        res.status(500).json({ 
+          error: "Failed to generate AI suggestions. Please try again later." 
+        });
+      }
     }
   });
   
