@@ -580,51 +580,29 @@ Your role is to:
         title, // Add the AI-generated title
         isAiResponse: false,
         isJournal: true, // This is a permanent journal entry
-        transcript: transcript || content // Use provided transcript if available, otherwise use content
+        transcript: transcript || content, // Use provided transcript if available, otherwise use content
+        analyzed: false // Mark for processing by the unified AI suggestion module
       });
       
       // Get sentiment analysis
       const sentiment = await analyzeSentiment(content);
       await storage.updateJournalEntrySentiment(journalEntry.id, sentiment);
       
-      // Process identified tasks and goals from sentiment analysis
-      if (sentiment.tasks || sentiment.goals) {
-        try {
-          const suggestions = [];
+      // Process with the unified AI suggestion module
+      try {
+        if (content.length > 100) { // Only process substantial entries
+          // Process in the background - don't wait for it to complete
+          processSingleEntry(journalEntry).catch(error => {
+            console.error(`Background AI suggestion processing for entry ${journalEntry.id} failed:`, error);
+          });
           
-          // Process tasks
-          if (sentiment.tasks && sentiment.tasks.length > 0) {
-            suggestions.push(...sentiment.tasks.map(task => ({
-              name: task.name,
-              description: `Task identified from your journal entry: "${title}"`,
-              type: 'task',
-              priority: task.priority || 'medium',
-              source: 'Journal Analysis'
-            })));
-          }
-          
-          // Process goals
-          if (sentiment.goals && sentiment.goals.length > 0) {
-            suggestions.push(...sentiment.goals.map(goal => ({
-              name: goal.name,
-              description: `Goal identified from your journal entry: "${title}"`,
-              type: 'goal',
-              source: 'Journal Analysis',
-              category: getGoalCategory(goal.name)
-            })));
-          }
-          
-          // Store all suggestions
-          if (suggestions.length > 0) {
-            await storage.storeAiSuggestions({
-              userId,
-              type: 'mixed',
-              suggestions
-            });
-          }
-        } catch (error) {
-          console.error("Error storing AI suggestions:", error);
+          console.log(`Started background AI suggestion processing for journal entry ${journalEntry.id}`);
+        } else {
+          console.log(`Journal entry ${journalEntry.id} too short for AI suggestion processing (${content.length} chars)`);
         }
+      } catch (suggestError) {
+        console.error("Error initiating AI suggestion processing:", suggestError);
+        // This shouldn't fail the whole request
       }
       
       // Process goal progress updates if needed
@@ -1238,6 +1216,51 @@ Your role is to:
   app.use("/api/settings", oauthSettingsRoutes);
   app.use("/api/settings", openaiSettingsRoutes);
   app.use("/api/admin", adminStatsRoutes);
+  
+  // Trigger AI suggestion processing for all users (admin only)
+  app.post("/api/admin/process-all-journal-entries", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user?.isAdmin) return res.sendStatus(403);
+    
+    try {
+      // This is a non-blocking operation - it will run in the background
+      processAllEntries().catch(error => {
+        console.error("Background processing of all journal entries failed:", error);
+      });
+      
+      res.json({ 
+        success: true, 
+        message: "AI suggestion processing has been triggered for all users and will run in the background."
+      });
+    } catch (error) {
+      console.error("Error starting AI suggestion processing:", error);
+      res.status(500).json({ error: "Failed to start processing" });
+    }
+  });
+  
+  // Manually trigger AI suggestion processing for a specific user
+  app.post("/api/suggestions/process-user/:userId", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const userId = Number(req.params.userId);
+    
+    // Verify ownership or admin
+    if (req.user?.id !== userId && !req.user?.isAdmin) {
+      return res.sendStatus(403);
+    }
+    
+    try {
+      const result = await processAllEntriesForUser(userId);
+      
+      res.json({
+        success: true,
+        message: `Successfully processed unanalyzed journal entries and generated ${result.goalsCreated} goals and ${result.tasksCreated} tasks.`,
+        result
+      });
+    } catch (error) {
+      console.error(`Error processing journal entries for user ${userId}:`, error);
+      res.status(500).json({ error: "Failed to process journal entries" });
+    }
+  });
   app.use("/api/subscription", subscriptionRoutes);
   app.use("/api", paypalSettingsRoutes);
 
