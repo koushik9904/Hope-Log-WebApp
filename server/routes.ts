@@ -722,7 +722,7 @@ Your role is to:
     }
   });
   
-  // This endpoint retrieves all AI suggested goals for a user
+  // This endpoint retrieves all AI suggested goals and habits for a user
   app.get("/api/goals/:userId/ai-suggestions", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     
@@ -730,11 +730,16 @@ Your role is to:
     if (req.user?.id !== userId) return res.sendStatus(403);
     
     try {
-      const suggestions = await storage.getAISuggestedGoals(userId);
-      res.json({ goals: suggestions });
+      const goalSuggestions = await storage.getAISuggestedGoals(userId);
+      const habitSuggestions = await storage.getAISuggestedHabits(userId);
+      
+      res.json({ 
+        goals: goalSuggestions, 
+        habits: habitSuggestions 
+      });
     } catch (error) {
-      console.error("Error retrieving AI goal suggestions:", error);
-      res.status(500).json({ error: "Failed to retrieve AI goal suggestions" });
+      console.error("Error retrieving AI suggestions:", error);
+      res.status(500).json({ error: "Failed to retrieve AI suggestions" });
     }
   });
   
