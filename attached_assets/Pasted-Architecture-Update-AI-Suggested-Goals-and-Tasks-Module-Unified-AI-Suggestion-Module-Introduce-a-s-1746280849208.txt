@@ -1,0 +1,26 @@
+Architecture Update: AI-Suggested Goals and Tasks Module
+Unified AI Suggestion Module:
+Introduce a single backend module responsible for analyzing user journals and chat entries to extract both Goals and Tasks. This module will automatically trigger every time a new journal or chat is saved. For efficiency, each journal/chat entry will include a status flag (e.g., analyzed: true/false). Only entries that are new or modified since the last analysis will be processed. This ensures performance while keeping suggestions up to date.
+
+Differentiation of Goals and Tasks:
+The AI prompt will be structured to return two separate lists:
+
+Goals: Long-term outcomes requiring multiple steps.
+
+Tasks: One-time, atomic actions that cannot be further broken down.
+The backend will parse the AI response and store items in their respective categories.
+
+Database Design:
+Use two separate collections or tables: goals and tasks. Each document will include:
+
+userId, text, source (e.g., 'AI'), status ('Suggested' or 'Accepted'), createdAt, and optionally a category and parentGoalId (if a task belongs to a goal).
+Before saving any entry, the system will check for duplicates by comparing normalized text against existing records for the user.
+
+Deduplication Strategy:
+To avoid duplicates, the system will normalize goal/task text (e.g., lowercase, remove punctuation) and check for matches against previous suggestions and accepted items. Only unique items will be stored; duplicates will be skipped or logged for reference.
+
+Trigger Mechanism:
+The analysis function will be embedded in the backend logic of journal/chat saving routes (e.g., /api/journal, /api/chat). Once a new entry is saved, the function checks for unprocessed content, triggers AI analysis, and updates suggestions accordingly.
+
+Frontend Display Logic:
+The UI will include separate views or tabs for “AI-Suggested Goals” and “AI-Suggested Tasks.” Each will call its respective endpoint (e.g., /api/goals/suggested, /api/tasks/suggested) and display items with actions like “Accept” or “Edit.” Accepted items will move to the user’s main Goals or Tasks list.

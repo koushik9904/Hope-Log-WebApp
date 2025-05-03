@@ -1,0 +1,20 @@
+Unified AI Suggestion Module:
+A single backend module (e.g., aiGoalTaskAnalyzer.js) will be responsible for analyzing user-written journals and chat entries to identify both Goals and Tasks. This function will be automatically triggered every time a new journal entry or chat message is saved. It will collect recent entries for the user and pass them to the AI model to extract actionable items.
+
+Differentiating Goals and Tasks:
+The prompt sent to the AI model will be structured to return two separate lists: one for Goals (longer-term outcomes composed of multiple steps) and another for Tasks (atomic, one-time actions that cannot be broken down further). The AI's response will be parsed and categorized accordingly in the backend.
+
+Database Structure:
+Two MongoDB collections will be used: goals and tasks. Each entry will include fields like userId, text, source: 'AI', status: 'Suggested' or 'Accepted', createdAt, and optionally a category and parentGoalId (for tasks linked to specific goals). Before inserting any new suggestion, the module will check for duplicates by comparing trimmed text values within recent suggestions for that user.
+
+Automatic Deduplication:
+To prevent AI-generated duplicates, the module will normalize goal/task text (e.g., lowercase, trim punctuation), then compare against existing suggestions and accepted entries before saving. Only unique entries will be inserted, and the rest discarded or logged.
+
+Trigger Point:
+This AI analysis function will be triggered in the backend inside the route or service that handles saving journals or chat entries (e.g., after saving to /api/journal or /api/chat). It ensures new emotional signals are immediately reflected in updated suggestions.
+
+Frontend Display Separation:
+On the frontend, two separate components or tabs will be used: one for Suggested/Accepted Goals and another for Suggested/Accepted Tasks. These components will call their respective APIs (e.g., /api/goals/suggested, /api/tasks/suggested) and display them under clearly labeled sections. Each item will have an “Accept” or “Add to My Goals/Tasks” button, and optionally an “Edit” feature.
+
+Future Enhancements:
+Tasks can later be linked under specific goals (parentGoalId) to visualize progress or nested structure. You may also add priority levels, deadlines, or reminders. AI can also be enhanced to identify blocked goals (stuck due to incomplete tasks) or patterns over time.
