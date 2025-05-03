@@ -350,8 +350,8 @@ export default function GoalsPage() {
     staleTime: 60000, // 1 minute
   });
   
-  // Fetch AI-suggested goals
-  const { data: aiSuggestions = { goals: [] }, isLoading: isSuggestionsLoading } = useQuery<{ goals: AISuggestedGoal[] }>({
+  // Fetch AI-suggested goals and habits
+  const { data: aiSuggestions = { goals: [], habits: [] }, isLoading: isSuggestionsLoading } = useQuery<{ goals: AISuggestedGoal[], habits: AISuggestedHabit[] }>({
     queryKey: [`/api/goals/${user?.id}/ai-suggestions`],
     enabled: !!user?.id,
     staleTime: 300000, // 5 minutes - these don't change as frequently
@@ -412,10 +412,14 @@ export default function GoalsPage() {
       return await res.json();
     },
     onSuccess: (data) => {
-      if (data.goals && data.goals.length > 0) {
+      const goalCount = data.goals?.length || 0;
+      const habitCount = data.habits?.length || 0;
+      const totalCount = goalCount + habitCount;
+      
+      if (totalCount > 0) {
         toast({
           title: "New suggestions generated",
-          description: `${data.goals.length} new goal suggestions have been generated based on your journal entries.`,
+          description: `${totalCount} new suggestions have been generated (${goalCount} goals, ${habitCount} habits) based on your journal entries.`,
           variant: "default",
         });
       } else {
@@ -431,7 +435,7 @@ export default function GoalsPage() {
     onError: (error) => {
       toast({
         title: "Failed to generate suggestions",
-        description: "There was an error generating goal suggestions.",
+        description: "There was an error generating suggestions.",
         variant: "destructive",
       });
     },
@@ -439,6 +443,7 @@ export default function GoalsPage() {
 
   // Use the AI suggestions directly as they are already in the required format
   const aiSuggestedGoals = aiSuggestions.goals || [];
+  const aiSuggestedHabits = aiSuggestions.habits || [];
   
   // Helper function to determine a category for a goal
   const getGoalCategory = (goalName: string): string => {
