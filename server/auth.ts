@@ -320,22 +320,36 @@ export async function setupAuth(app: Express) {
   }
 
   passport.serializeUser((user, done) => {
-    console.log(`Serializing user:`, user.id);
+    console.log(`🔒 Serializing user ID:`, user.id);
+    // Store only the user ID in the session
     done(null, user.id);
   });
   
   passport.deserializeUser(async (id: number, done) => {
-    console.log(`Deserializing user ID: ${id}`);
+    console.log(`🔓 Deserializing user ID: ${id}`);
     try {
       const user = await storage.getUser(id);
       if (!user) {
-        console.error(`Deserialization failed: User ID ${id} not found in database`);
+        console.error(`❌ Deserialization failed: User ID ${id} not found in database`);
         return done(null, false);
       }
-      console.log(`Successfully deserialized user: ${user.id}`);
+      
+      console.log(`✅ User deserialized successfully: ${user.id} (${user.username})`);
+      // Force session save to make sure the newly deserialized user is stored
+      if (globalReq?.session) {
+        globalReq.session.save((err) => {
+          if (err) {
+            console.error('Session save error during deserialization:', err);
+          } else {
+            console.log('Session explicitly saved during deserialization');
+          }
+        });
+      }
+      
+      // We now have the full user object with all properties
       done(null, user);
     } catch (error) {
-      console.error(`Error deserializing user ${id}:`, error);
+      console.error(`❌ Deserialization error:`, error);
       done(error, null);
     }
   });

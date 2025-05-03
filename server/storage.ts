@@ -949,11 +949,14 @@ export class DatabaseStorage implements IStorage {
       // that aren't in the schema. We'll continue to use raw SQL for these.
       try {
         // First clear existing suggestions for this user
-        await pool.query(`DELETE FROM ai_task_suggestions WHERE user_id = $1`, [data.userId]);
+        await this.executeRawQuery(
+          `DELETE FROM ai_task_suggestions WHERE user_id = $1`, 
+          [data.userId]
+        );
         
         // Insert new suggestions
         for (const suggestion of data.suggestions) {
-          await pool.query(
+          await this.executeRawQuery(
             `INSERT INTO ai_task_suggestions (user_id, name, description) VALUES ($1, $2, $3)`,
             [data.userId, suggestion.title || suggestion.name, suggestion.description || null]
           );
@@ -967,11 +970,14 @@ export class DatabaseStorage implements IStorage {
       // that aren't in the schema. We'll continue to use raw SQL for these.
       try {
         // First clear existing suggestions for this user
-        await pool.query(`DELETE FROM ai_goal_suggestions WHERE user_id = $1`, [data.userId]);
+        await this.executeRawQuery(
+          `DELETE FROM ai_goal_suggestions WHERE user_id = $1`, 
+          [data.userId]
+        );
         
         // Insert new suggestions
         for (const suggestion of data.suggestions) {
-          await pool.query(
+          await this.executeRawQuery(
             `INSERT INTO ai_goal_suggestions (user_id, name, description) VALUES ($1, $2, $3)`,
             [data.userId, suggestion.name, suggestion.description || null]
           );
