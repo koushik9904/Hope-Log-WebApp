@@ -673,6 +673,20 @@ export class DatabaseStorage implements IStorage {
       .where(eq(habits.id, id));
   }
   
+  async getAISuggestedHabits(userId: number): Promise<Habit[]> {
+    return await db
+      .select()
+      .from(habits)
+      .where(
+        and(
+          eq(habits.userId, userId),
+          eq(habits.status, 'suggested'),
+          eq(habits.source, 'ai')
+        )
+      )
+      .orderBy(desc(habits.createdAt));
+  }
+  
   async getDefaultPrompts(): Promise<Prompt[]> {
     return await db
       .select()

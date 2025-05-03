@@ -695,7 +695,8 @@ export async function generateTaskSuggestions(
 export async function generateCombinedSuggestions(
   recentEntries: { content: string; date: string; id?: number }[],
   existingGoals: { name: string; progress: number; targetDate?: string | null; id?: number }[] = [],
-  existingTasks: { title: string; status: string }[] = []
+  existingTasks: { title: string; status: string }[] = [],
+  existingHabits: { title: string; frequency: string }[] = []
 ): Promise<{ 
   goals: { 
     name: string; 
@@ -709,7 +710,13 @@ export async function generateCombinedSuggestions(
     priority?: string; 
     goalId?: number | null;
     explanation?: string
-  }[] 
+  }[];
+  habits: {
+    title: string;
+    description: string;
+    frequency: string;
+    explanation?: string
+  }[]
 }> {
   try {
     // Extract the content of the journal entries
@@ -753,32 +760,45 @@ export async function generateCombinedSuggestions(
           `- ${task.title} (${task.status})`
         ).join('\n')}`
       : "The user currently has no active tasks.";
+      
+    const existingHabitsText = existingHabits.length > 0
+      ? `Current habits:\n${existingHabits.map(habit => 
+          `- ${habit.title} (${habit.frequency})`
+        ).join('\n')}`
+      : "The user currently has no active habits.";
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         {
           role: "system",
-          content: `You are an AI wellness assistant that analyzes journal entries to suggest both goals and tasks.
+          content: `You are an AI wellness assistant that analyzes journal entries to suggest goals, tasks and habits.
 
-Based on the user's journal entries, provide two distinct lists:
+Based on the user's journal entries, provide three distinct lists:
 
 1. GOALS - Guidelines:
    - Long-term outcomes requiring multiple steps
-   - Suggest 2-4 goals in total
+   - Suggest 2-3 goals in total
    - Goals should be specific, measurable, achievable, relevant, and time-bound
    - Categorize each goal (e.g., Personal, Health, Career, Learning, Relationships, Financial)
    - Include a detailed explanation of why each goal was suggested based on journal content
 
 2. TASKS - Guidelines:
    - One-time, atomic actions that cannot be further broken down
-   - Suggest 3-5 tasks in total
+   - Suggest 2-4 tasks in total
    - Tasks should be specific, immediate actions completable within a day
    - Assign a priority level (high, medium, low) to each task
    - Include an explanation of why the task would be beneficial
    - If appropriate, link tasks to suggested goals or existing goals
 
-Avoid suggesting goals or tasks that the user already has.
+3. HABITS - Guidelines:
+   - Repeated actions that should be performed daily, weekly, or monthly
+   - Suggest 2-3 habits in total
+   - Habits should be specific, sustainable, and beneficial for long-term wellbeing
+   - Specify frequency (daily, weekly, monthly) for each habit
+   - Include an explanation of why developing this habit would be beneficial based on journal content
+
+Avoid suggesting anything that the user already has.
 Base all suggestions on the user's actual journal content, not generic advice.
 
 Return a JSON object with:
@@ -793,18 +813,24 @@ Return a JSON object with:
    - 'description': 1-2 sentence explanation
    - 'priority': 'high', 'medium', or 'low'
    - 'explanation': 1-2 sentences explaining why this task was suggested
-   - 'relatedGoal': name of a related suggested or existing goal (optional)`
+   - 'relatedGoal': name of a related suggested or existing goal (optional)
+
+3. 'habits' array containing objects with:
+   - 'title': short, specific habit name
+   - 'description': 1-2 sentence explanation of the habit
+   - 'frequency': 'daily', 'weekly', or 'monthly'
+   - 'explanation': 1-2 sentences explaining why this habit was suggested based on journal content`
         },
         {
           role: "user",
-          content: `Here are my recent journal entries:\n\n${entriesText}${similarEntriesText}\n\n${existingGoalsText}\n\n${existingTasksText}`
+          content: `Here are my recent journal entries:\n\n${entriesText}${similarEntriesText}\n\n${existingGoalsText}\n\n${existingTasksText}\n\n${existingHabitsText}`
         }
       ],
       response_format: { type: "json_object" },
       temperature: 0.7,
     });
 
-    const content = response.choices[0].message.content || '{"goals":[], "tasks":[]}';
+    const content = response.choices[0].message.content || '{"goals":[], "tasks":[], "habits":[]}';
     const parsed = JSON.parse(content);
     
     // Process the tasks to match our expected format
@@ -830,9 +856,20 @@ Return a JSON object with:
       };
     }) || [];
     
+    // Process the habits to match our expected format
+    const processedHabits = parsed.habits?.map((habit: any) => {
+      return {
+        title: habit.title,
+        description: habit.description,
+        frequency: habit.frequency || "daily",
+        explanation: habit.explanation
+      };
+    }) || [];
+    
     return { 
       goals: parsed.goals || [], 
-      tasks: processedTasks 
+      tasks: processedTasks,
+      habits: processedHabits
     };
   } catch (error) {
     console.error("Error generating combined suggestions:", error);
