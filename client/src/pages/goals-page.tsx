@@ -1524,9 +1524,14 @@ export default function GoalsPage() {
                         </div>
                       ))
                     ) : (
-                      <div className="text-center py-3">
-                        <p className="text-sm text-gray-500">No task suggestions right now.</p>
-                        <p className="text-xs text-gray-400 mt-1">Write in your journal to get personalized suggestions!</p>
+                      <div className="flex flex-col items-center justify-center p-4 text-center">
+                        <div className="bg-gray-50 rounded-full p-3 mb-3">
+                          <Lightbulb className="h-6 w-6 text-gray-300" />
+                        </div>
+                        <p className="text-sm text-gray-500 mb-2">No task suggestions yet</p>
+                        <p className="text-xs text-gray-400">
+                          Write more in your journal to get AI-suggested tasks
+                        </p>
                       </div>
                     )}
                     
