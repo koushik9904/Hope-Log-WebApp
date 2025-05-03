@@ -890,17 +890,49 @@ export class DatabaseStorage implements IStorage {
   }
   
   async storeAiSuggestions(data: { userId: number; type: string; suggestions: any[] }): Promise<void> {
-    const table = data.type === 'tasks' ? 'ai_task_suggestions' : 'ai_goal_suggestions';
+    let table = 'ai_goal_suggestions';
+    if (data.type === 'tasks') {
+      table = 'ai_task_suggestions';
+    } else if (data.type === 'habits') {
+      table = 'habits';
+    }
     
     // First clear existing suggestions for this user
-    await db.execute(`DELETE FROM ${table} WHERE user_id = $1`, [data.userId]);
+    if (data.type === 'habits') {
+      // For habits, we only want to clear AI-suggested habits that haven't been accepted
+      await db.execute(
+        `DELETE FROM ${table} WHERE user_id = $1 AND source = 'ai' AND status = 'suggested'`,
+        [data.userId]
+      );
+    } else {
+      // For goals and tasks suggestions, clear all existing suggestions
+      await db.execute(`DELETE FROM ${table} WHERE user_id = $1`, [data.userId]);
+    }
     
     // Insert new suggestions
     for (const suggestion of data.suggestions) {
-      await db.execute(
-        `INSERT INTO ${table} (user_id, name, description) VALUES ($1, $2, $3)`,
-        [data.userId, suggestion.name, suggestion.description]
-      );
+      if (data.type === 'habits') {
+        // For habits, we need to include all required fields
+        await db.execute(
+          `INSERT INTO ${table} (user_id, title, description, frequency, status, source, ai_explanation) 
+           VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+          [
+            data.userId, 
+            suggestion.title || suggestion.name, 
+            suggestion.description || null, 
+            suggestion.frequency || 'daily',
+            'suggested',
+            'ai',
+            suggestion.aiExplanation || null
+          ]
+        );
+      } else {
+        // For goals and tasks, use the existing pattern
+        await db.execute(
+          `INSERT INTO ${table} (user_id, name, description) VALUES ($1, $2, $3)`,
+          [data.userId, suggestion.name, suggestion.description]
+        );
+      }
     }
   }
 
