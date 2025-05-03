@@ -22,36 +22,39 @@ interface Goal extends GoalBase {
 // AI suggestion interfaces
 interface AISuggestedGoal {
   id: number;
-  name: string;       // Using 'name' to match existing goal structure
-  title?: string;     // Optional for compatibility
-  description: string;
+  name: string;           // Using 'name' to match existing goal structure
+  title?: string;         // Optional for compatibility
+  description: string | null;
   category?: string;
   targetDate?: string | null;
-  status: string;     // 'suggested', 'in_progress', 'completed', etc.
-  source: string;     // 'ai', 'user', etc.
-  aiExplanation?: string; // AI's explanation for the suggestion
+  journalEntryId?: number; // Reference to the source journal entry
+  explanation?: string;    // AI's explanation for the suggestion
+  userId: number;
+  createdAt: string;
 }
 
 interface AISuggestedTask {
   id: number;
   title: string;
-  description: string;
+  description: string | null;
   priority?: string;
-  goalId?: number;
-  status?: string;
-  source?: string;
-  aiExplanation?: string;
-  createdAt?: string | null;
-  updatedAt?: string | null;
-  deletedAt?: string | null;
+  goalId?: number | null;
+  journalEntryId?: number; // Reference to the source journal entry
+  explanation?: string;    // AI's explanation for the suggestion
+  createdAt: string;
   userId: number;
+  dueDate?: string | null;
 }
 
 interface AISuggestedHabit {
   id: number;
   title: string;
-  description: string;
+  description: string | null;
   frequency?: string;
+  journalEntryId?: number; // Reference to the source journal entry
+  explanation?: string;    // AI's explanation for the suggestion
+  createdAt: string;
+  userId: number;
 }
 
 // AI suggestions are now fetched from the server API
@@ -327,7 +330,7 @@ export default function GoalsPage() {
   // Accept/reject AI goal suggestion mutations
   const acceptGoalSuggestionMutation = useMutation({
     mutationFn: async (goalId: number) => {
-      const res = await apiRequest("POST", `/api/goals/${goalId}/accept`, {});
+      const res = await apiRequest("POST", `/api/ai-goals/${goalId}/accept`, {});
       return await res.json();
     },
     onSuccess: () => {
@@ -352,7 +355,7 @@ export default function GoalsPage() {
 
   const rejectGoalSuggestionMutation = useMutation({
     mutationFn: async (goalId: number) => {
-      const res = await apiRequest("POST", `/api/goals/${goalId}/reject`, {});
+      const res = await apiRequest("DELETE", `/api/ai-goals/${goalId}`, {});
       return await res.json();
     },
     onSuccess: () => {
@@ -368,6 +371,102 @@ export default function GoalsPage() {
       toast({
         title: "Failed to remove suggestion",
         description: "There was an error removing the goal suggestion.",
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Accept/reject AI task suggestion mutations
+  const acceptTaskSuggestionMutation = useMutation({
+    mutationFn: async (taskId: number) => {
+      const res = await apiRequest("POST", `/api/ai-tasks/${taskId}/accept`, {});
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Task added successfully",
+        description: "The suggested task has been added to your tasks.",
+        variant: "default",
+      });
+      // Invalidate tasks query and manually refetch suggestions
+      queryClient.invalidateQueries({ queryKey: [`/api/tasks/${user?.id}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}/ai-suggestions`] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to add task",
+        description: "There was an error adding the suggested task.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const rejectTaskSuggestionMutation = useMutation({
+    mutationFn: async (taskId: number) => {
+      const res = await apiRequest("DELETE", `/api/ai-tasks/${taskId}`, {});
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Suggestion removed",
+        description: "The task suggestion has been removed.",
+        variant: "default",
+      });
+      // Invalidate suggestions query
+      queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}/ai-suggestions`] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to remove suggestion",
+        description: "There was an error removing the task suggestion.",
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Accept/reject AI habit suggestion mutations
+  const acceptHabitSuggestionMutation = useMutation({
+    mutationFn: async (habitId: number) => {
+      const res = await apiRequest("POST", `/api/ai-habits/${habitId}/accept`, {});
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Habit added successfully",
+        description: "The suggested habit has been added to your habits.",
+        variant: "default",
+      });
+      // Invalidate habits query and manually refetch suggestions
+      queryClient.invalidateQueries({ queryKey: [`/api/habits/${user?.id}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}/ai-suggestions`] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to add habit",
+        description: "There was an error adding the suggested habit.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const rejectHabitSuggestionMutation = useMutation({
+    mutationFn: async (habitId: number) => {
+      const res = await apiRequest("DELETE", `/api/ai-habits/${habitId}`, {});
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Suggestion removed",
+        description: "The habit suggestion has been removed.",
+        variant: "default",
+      });
+      // Invalidate suggestions query
+      queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}/ai-suggestions`] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to remove suggestion",
+        description: "There was an error removing the habit suggestion.",
         variant: "destructive",
       });
     },
@@ -1040,13 +1139,13 @@ export default function GoalsPage() {
                           <h4 className="font-medium text-gray-800 text-sm mb-1">{goal.name}</h4>
                           <p className="text-xs text-gray-600 mb-3">{goal.description}</p>
                           
-                          {goal.aiExplanation && (
+                          {goal.explanation && (
                             <div className="bg-[#F5F5FF] p-2 rounded-md text-xs text-gray-600 mb-3">
                               <div className="flex items-center gap-1 mb-1">
                                 <Sparkles className="h-3 w-3 text-[#B6CAEB]" />
                                 <span className="font-medium text-gray-700">Why this was suggested:</span>
                               </div>
-                              {goal.aiExplanation}
+                              {goal.explanation}
                             </div>
                           )}
                           
