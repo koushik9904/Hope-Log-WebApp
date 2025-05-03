@@ -22,11 +22,14 @@ interface Goal extends GoalBase {
 // AI suggestion interfaces
 interface AISuggestedGoal {
   id: number;
-  name: string;  // Using 'name' to match existing goal structure
-  title?: string; // Optional for compatibility
+  name: string;       // Using 'name' to match existing goal structure
+  title?: string;     // Optional for compatibility
   description: string;
   category?: string;
   targetDate?: string | null;
+  status: string;     // 'suggested', 'in_progress', 'completed', etc.
+  source: string;     // 'ai', 'user', etc.
+  aiExplanation?: string; // AI's explanation for the suggestion
 }
 
 interface AISuggestedTask {
@@ -44,28 +47,37 @@ interface AISuggestedHabit {
   frequency?: string;
 }
 
-// Sample AI suggested data (in a real application, this would come from the backend)
+// Sample AI suggested data (only used for fallback)
 const AI_SUGGESTED_GOALS: AISuggestedGoal[] = [
   {
     id: 101,
     name: "Improve sleep quality",
     description: "Based on your journal entries, focusing on better sleep habits could help your overall wellbeing.",
-    category: "health",
-    targetDate: null
+    category: "Health",
+    targetDate: null,
+    status: "suggested",
+    source: "ai",
+    aiExplanation: "Your journal shows frequent mentions of feeling tired and having trouble concentrating during the day."
   },
   {
     id: 102,
     name: "Practice daily mindfulness",
     description: "You've mentioned feeling overwhelmed - regular mindfulness could help manage stress levels.",
-    category: "wellness",
-    targetDate: null
+    category: "Personal",
+    targetDate: null,
+    status: "suggested",
+    source: "ai",
+    aiExplanation: "In several entries, you've written about stress and feeling overwhelmed with daily tasks."
   },
   {
     id: 103,
     name: "Read more regularly",
     description: "You've expressed interest in reading more. Setting a structured goal could help make this happen.",
-    category: "personal",
-    targetDate: null
+    category: "Learning",
+    targetDate: null,
+    status: "suggested",
+    source: "ai",
+    aiExplanation: "You've mentioned books you want to read and a desire to make more time for reading."
   }
 ];
 
@@ -163,7 +175,11 @@ import {
   X,
   ListChecks,
   ClipboardList,
-  MoreHorizontal
+  MoreHorizontal,
+  Loader2,
+  ThumbsUp,
+  ThumbsDown,
+  RefreshCw
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
@@ -336,35 +352,93 @@ export default function GoalsPage() {
   
   // Fetch AI-suggested goals
   const { data: aiSuggestions = { goals: [] }, isLoading: isSuggestionsLoading } = useQuery<{ goals: AISuggestedGoal[] }>({
-    queryKey: [`/api/goals/${user?.id}/suggestions`],
+    queryKey: [`/api/goals/${user?.id}/ai-suggestions`],
     enabled: !!user?.id,
     staleTime: 300000, // 5 minutes - these don't change as frequently
   });
+
+  // Accept/reject AI goal suggestion mutations
+  const acceptGoalSuggestionMutation = useMutation({
+    mutationFn: async (goalId: number) => {
+      const res = await apiRequest("POST", `/api/goals/${goalId}/accept`, {});
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Goal added successfully",
+        description: "The suggested goal has been added to your goals.",
+        variant: "default",
+      });
+      // Invalidate both goals and suggestions queries
+      queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}/ai-suggestions`] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to add goal",
+        description: "There was an error adding the suggested goal.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const rejectGoalSuggestionMutation = useMutation({
+    mutationFn: async (goalId: number) => {
+      const res = await apiRequest("POST", `/api/goals/${goalId}/reject`, {});
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Suggestion removed",
+        description: "The goal suggestion has been removed.",
+        variant: "default",
+      });
+      // Invalidate suggestions query
+      queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}/ai-suggestions`] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to remove suggestion",
+        description: "There was an error removing the goal suggestion.",
+        variant: "destructive",
+      });
+    },
+  });
   
-  // Convert API suggestions to the format used in the UI
-  const [aiSuggestedGoals, setAiSuggestedGoals] = useState<AISuggestedGoal[]>([]);
-  
-  // Process AI suggestions when they're loaded
-  useEffect(() => {
-    if (aiSuggestions.goals && aiSuggestions.goals.length > 0) {
-      // Process each suggestion to ensure it has the required fields
-      const goalItems = aiSuggestions.goals
-        .filter(item => item.type === 'goal')
-        .map((item, index) => ({
-          id: index + 1000, // Ensure unique ID
-          name: item.name,
-          description: item.description || `Goal suggestion: ${item.name}`,
-          category: item.category || getGoalCategory(item.name),
-          targetDate: null,
-          source: item.source || "Based on your journal entries"
-        }));
-      
-      setAiSuggestedGoals(goalItems.length > 0 ? goalItems : []);
-    } else {
-      // Fallback to example data if no suggestions
-      setAiSuggestedGoals([]);
-    }
-  }, [aiSuggestions]);
+  // Generate new suggestions mutation
+  const generateSuggestionsMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("GET", `/api/goals/${user?.id}/generate-suggestions`, {});
+      return await res.json();
+    },
+    onSuccess: (data) => {
+      if (data.goals && data.goals.length > 0) {
+        toast({
+          title: "New suggestions generated",
+          description: `${data.goals.length} new goal suggestions have been generated based on your journal entries.`,
+          variant: "default",
+        });
+      } else {
+        toast({
+          title: "No new suggestions",
+          description: "We couldn't generate any new suggestions at this time. Try writing more in your journal.",
+          variant: "default",
+        });
+      }
+      // Invalidate suggestions query
+      queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}/ai-suggestions`] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to generate suggestions",
+        description: "There was an error generating goal suggestions.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Use the AI suggestions directly as they are already in the required format
+  const aiSuggestedGoals = aiSuggestions.goals || [];
   
   // Helper function to determine a category for a goal
   const getGoalCategory = (goalName: string): string => {
