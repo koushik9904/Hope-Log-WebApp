@@ -868,7 +868,14 @@ export default function GoalsPage() {
                       <FormItem>
                         <FormLabel>Description (optional)</FormLabel>
                         <FormControl>
-                          <Input placeholder="Brief description of your goal" {...field} />
+                          <Input 
+                            placeholder="Brief description of your goal" 
+                            value={field.value || ""}
+                            onChange={field.onChange}
+                            onBlur={field.onBlur}
+                            name={field.name}
+                            ref={field.ref}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -911,7 +918,15 @@ export default function GoalsPage() {
                         <FormItem>
                           <FormLabel>Target Date (optional)</FormLabel>
                           <FormControl>
-                            <Input type="date" {...field} className="bg-white" />
+                            <Input 
+                              type="date" 
+                              className="bg-white"
+                              value={field.value || ""}
+                              onChange={field.onChange}
+                              onBlur={field.onBlur}
+                              name={field.name}
+                              ref={field.ref}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
