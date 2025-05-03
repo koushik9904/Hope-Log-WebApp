@@ -353,6 +353,68 @@ export const insertSubscriptionSchema = createInsertSchema(subscriptions).omit({
 export type InsertSubscription = z.infer<typeof insertSubscriptionSchema>;
 export type Subscription = typeof subscriptions.$inferSelect;
 
+// AI Suggested Goals table
+export const aiGoals = pgTable("ai_goals", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  description: text("description"),
+  category: text("category").notNull().default("Personal"),
+  explanation: text("explanation"), // AI explanation for why this goal was suggested
+  journalEntryId: integer("journal_entry_id").references(() => journalEntries.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
+});
+
+export const insertAiGoalSchema = createInsertSchema(aiGoals).omit({ 
+  id: true,
+  createdAt: true
+});
+
+export type InsertAiGoal = z.infer<typeof insertAiGoalSchema>;
+export type AISuggestedGoal = typeof aiGoals.$inferSelect;
+
+// AI Suggested Tasks table
+export const aiTasks = pgTable("ai_tasks", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  description: text("description"),
+  priority: text("priority").default("medium"),
+  dueDate: timestamp("due_date", { mode: 'string' }),
+  goalId: integer("goal_id").references(() => goals.id),
+  explanation: text("explanation"), // AI explanation for why this task was suggested
+  journalEntryId: integer("journal_entry_id").references(() => journalEntries.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
+});
+
+export const insertAiTaskSchema = createInsertSchema(aiTasks).omit({ 
+  id: true,
+  createdAt: true
+});
+
+export type InsertAiTask = z.infer<typeof insertAiTaskSchema>;
+export type AISuggestedTask = typeof aiTasks.$inferSelect;
+
+// AI Suggested Habits table
+export const aiHabits = pgTable("ai_habits", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  description: text("description"),
+  frequency: text("frequency").default("daily"),
+  explanation: text("explanation"), // AI explanation for why this habit was suggested
+  journalEntryId: integer("journal_entry_id").references(() => journalEntries.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
+});
+
+export const insertAiHabitSchema = createInsertSchema(aiHabits).omit({ 
+  id: true,
+  createdAt: true
+});
+
+export type InsertAiHabit = z.infer<typeof insertAiHabitSchema>;
+export type AISuggestedHabit = typeof aiHabits.$inferSelect;
+
 // Payment transactions table
 export const payments = pgTable("payments", {
   id: serial("id").primaryKey(),

@@ -10,8 +10,12 @@ import {
   Notification, InsertNotification,
   NotificationPreferences, InsertNotificationPreferences,
   SystemSettings, InsertSystemSettings,
+  AISuggestedGoal, InsertAiGoal,
+  AISuggestedTask, InsertAiTask,
+  AISuggestedHabit, InsertAiHabit,
   users, journalEntries, moods, goals, tasks, habits, prompts, summaries,
-  notifications, notificationPreferences, systemSettings
+  notifications, notificationPreferences, systemSettings,
+  aiGoals, aiTasks, aiHabits
 } from "@shared/schema";
 import session from "express-session";
 import { db, pool } from "./db";
@@ -60,8 +64,15 @@ export interface IStorage {
   createGoal(goal: InsertGoal): Promise<Goal>;
   updateGoalProgress(id: number, progress: number): Promise<Goal>;
   deleteGoal(id: number): Promise<void>;
-  getAISuggestedGoals(userId: number): Promise<Goal[]>;
+  getAISuggestedGoals(userId: number): Promise<Goal[]>; // Legacy method
   updateGoalStatus(id: number, status: string): Promise<Goal>;
+  
+  // AI Goal methods
+  getAiGoalsByUserId(userId: number): Promise<AISuggestedGoal[]>;
+  getAiGoalById(id: number): Promise<AISuggestedGoal | undefined>;
+  createAiGoal(goal: InsertAiGoal): Promise<AISuggestedGoal>;
+  deleteAiGoal(id: number): Promise<void>;
+  acceptAiGoal(id: number): Promise<Goal>; // Moves from AI table to main table
   
   // Task methods
   getTasksByUserId(userId: number): Promise<Task[]>;
@@ -71,7 +82,14 @@ export interface IStorage {
   deleteTask(id: number): Promise<void>;
   getCompletedTasksByUserId(userId: number): Promise<Task[]>;
   getTasksByGoalId(goalId: number): Promise<Task[]>;
-  getAISuggestedTasks(userId: number): Promise<Task[]>;
+  getAISuggestedTasks(userId: number): Promise<Task[]>; // Legacy method
+  
+  // AI Task methods
+  getAiTasksByUserId(userId: number): Promise<AISuggestedTask[]>;
+  getAiTaskById(id: number): Promise<AISuggestedTask | undefined>;
+  createAiTask(task: InsertAiTask): Promise<AISuggestedTask>;
+  deleteAiTask(id: number): Promise<void>;
+  acceptAiTask(id: number): Promise<Task>; // Moves from AI table to main table
   
   // Habit methods
   getHabitsByUserId(userId: number): Promise<Habit[]>;
@@ -83,7 +101,14 @@ export interface IStorage {
   getDeletedHabitsByUserId(userId: number): Promise<Habit[]>;
   restoreHabit(id: number): Promise<Habit>;
   permanentlyDeleteHabit(id: number): Promise<void>;
-  getAISuggestedHabits(userId: number): Promise<Habit[]>;
+  getAISuggestedHabits(userId: number): Promise<Habit[]>; // Legacy method
+  
+  // AI Habit methods
+  getAiHabitsByUserId(userId: number): Promise<AISuggestedHabit[]>;
+  getAiHabitById(id: number): Promise<AISuggestedHabit | undefined>;
+  createAiHabit(habit: InsertAiHabit): Promise<AISuggestedHabit>;
+  deleteAiHabit(id: number): Promise<void>;
+  acceptAiHabit(id: number): Promise<Habit>; // Moves from AI table to main table
   
   // Prompt methods
   getDefaultPrompts(): Promise<Prompt[]>;
@@ -451,17 +476,124 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getAISuggestedGoals(userId: number): Promise<Goal[]> {
+    // Legacy method - redirects to getAiGoalsByUserId and converts format
+    const aiGoalsResult = await this.getAiGoalsByUserId(userId);
+    
+    // Convert AISuggestedGoal to Goal format for backward compatibility
+    return aiGoalsResult.map(aiGoal => ({
+      id: aiGoal.id,
+      userId: aiGoal.userId,
+      name: aiGoal.name,
+      description: aiGoal.description,
+      category: aiGoal.category,
+      startDate: null,
+      targetDate: null,
+      target: 100,
+      progress: 0,
+      unit: '%',
+      colorScheme: 1,
+      status: 'suggested',
+      source: 'ai',
+      aiExplanation: aiGoal.explanation,
+      dependsOn: [],
+      deletedAt: null,
+      createdAt: aiGoal.createdAt,
+      updatedAt: null
+    }));
+  }
+  
+  // New AI Goal methods
+  async getAiGoalsByUserId(userId: number): Promise<AISuggestedGoal[]> {
     return await db
+      .select()
+      .from(aiGoals)
+      .where(eq(aiGoals.userId, userId))
+      .orderBy(desc(aiGoals.createdAt));
+  }
+  
+  async getAiGoalById(id: number): Promise<AISuggestedGoal | undefined> {
+    const result = await db
+      .select()
+      .from(aiGoals)
+      .where(eq(aiGoals.id, id));
+      
+    return result[0];
+  }
+  
+  async createAiGoal(goal: InsertAiGoal): Promise<AISuggestedGoal> {
+    // Normalize the name for better duplicate checking
+    const normalizedName = goal.name.toLowerCase().trim();
+    
+    // Check if similar goal already exists in main goals table
+    const existingGoals = await db
       .select()
       .from(goals)
       .where(
         and(
-          eq(goals.userId, userId),
-          eq(goals.status, 'suggested'),
-          eq(goals.source, 'ai')
+          eq(goals.userId, goal.userId),
+          sql`LOWER(TRIM(${goals.name})) = ${normalizedName}`
         )
-      )
-      .orderBy(desc(goals.createdAt));
+      );
+      
+    if (existingGoals.length > 0) {
+      console.log(`Skipping duplicate goal: ${goal.name} (exists in main table)`);
+      throw new Error(`Goal with similar name already exists`);
+    }
+    
+    // Check if similar goal already exists in AI goals table
+    const existingAiGoals = await db
+      .select()
+      .from(aiGoals)
+      .where(
+        and(
+          eq(aiGoals.userId, goal.userId),
+          sql`LOWER(TRIM(${aiGoals.name})) = ${normalizedName}`
+        )
+      );
+      
+    if (existingAiGoals.length > 0) {
+      console.log(`Skipping duplicate goal: ${goal.name} (exists in AI table)`);
+      throw new Error(`Goal suggestion with similar name already exists`);
+    }
+    
+    // Create the AI goal if no duplicates were found
+    const result = await db
+      .insert(aiGoals)
+      .values(goal)
+      .returning();
+      
+    return result[0];
+  }
+  
+  async deleteAiGoal(id: number): Promise<void> {
+    await db
+      .delete(aiGoals)
+      .where(eq(aiGoals.id, id));
+  }
+  
+  async acceptAiGoal(id: number): Promise<Goal> {
+    // Get the AI goal
+    const aiGoal = await this.getAiGoalById(id);
+    if (!aiGoal) {
+      throw new Error(`AI Goal with id ${id} not found`);
+    }
+    
+    // Create a new goal in the main goals table
+    const newGoal = await this.createGoal({
+      userId: aiGoal.userId,
+      name: aiGoal.name,
+      description: aiGoal.description || '',
+      category: aiGoal.category,
+      target: 100, // Default
+      status: 'in_progress',
+      source: 'ai',
+      aiExplanation: aiGoal.explanation
+    });
+    
+    // Delete the AI goal
+    await this.deleteAiGoal(id);
+    
+    return newGoal;
   }
   
   async updateGoalStatus(id: number, status: string): Promise<Goal> {
@@ -574,18 +706,124 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getAISuggestedTasks(userId: number): Promise<Task[]> {
+    // Legacy method - redirects to getAiTasksByUserId and converts format
+    const aiTasksResult = await this.getAiTasksByUserId(userId);
+    
+    // Convert AISuggestedTask to Task format for backward compatibility
+    return aiTasksResult.map(aiTask => ({
+      id: aiTask.id,
+      userId: aiTask.userId,
+      title: aiTask.title,
+      description: aiTask.description,
+      dueDate: aiTask.dueDate,
+      completed: false,
+      completedAt: null,
+      goalId: aiTask.goalId,
+      priority: aiTask.priority || 'medium',
+      colorScheme: 1,
+      status: 'suggested',
+      source: 'ai',
+      aiExplanation: aiTask.explanation,
+      deletedAt: null,
+      createdAt: aiTask.createdAt,
+      updatedAt: null
+    }));
+  }
+  
+  // New AI Task methods
+  async getAiTasksByUserId(userId: number): Promise<AISuggestedTask[]> {
     return await db
+      .select()
+      .from(aiTasks)
+      .where(eq(aiTasks.userId, userId))
+      .orderBy(desc(aiTasks.createdAt));
+  }
+  
+  async getAiTaskById(id: number): Promise<AISuggestedTask | undefined> {
+    const result = await db
+      .select()
+      .from(aiTasks)
+      .where(eq(aiTasks.id, id));
+      
+    return result[0];
+  }
+  
+  async createAiTask(task: InsertAiTask): Promise<AISuggestedTask> {
+    // Normalize the title for better duplicate checking
+    const normalizedTitle = task.title.toLowerCase().trim();
+    
+    // Check if similar task already exists in main tasks table
+    const existingTasks = await db
       .select()
       .from(tasks)
       .where(
         and(
-          eq(tasks.userId, userId),
-          eq(tasks.status, 'suggested'),
-          eq(tasks.source, 'ai'),
+          eq(tasks.userId, task.userId),
+          sql`LOWER(TRIM(${tasks.title})) = ${normalizedTitle}`,
           isNull(tasks.deletedAt)
         )
-      )
-      .orderBy(desc(tasks.createdAt));
+      );
+      
+    if (existingTasks.length > 0) {
+      console.log(`Skipping duplicate task: ${task.title} (exists in main table)`);
+      throw new Error(`Task with similar title already exists`);
+    }
+    
+    // Check if similar task already exists in AI tasks table
+    const existingAiTasks = await db
+      .select()
+      .from(aiTasks)
+      .where(
+        and(
+          eq(aiTasks.userId, task.userId),
+          sql`LOWER(TRIM(${aiTasks.title})) = ${normalizedTitle}`
+        )
+      );
+      
+    if (existingAiTasks.length > 0) {
+      console.log(`Skipping duplicate task: ${task.title} (exists in AI table)`);
+      throw new Error(`Task suggestion with similar title already exists`);
+    }
+    
+    // Create the AI task if no duplicates were found
+    const result = await db
+      .insert(aiTasks)
+      .values(task)
+      .returning();
+      
+    return result[0];
+  }
+  
+  async deleteAiTask(id: number): Promise<void> {
+    await db
+      .delete(aiTasks)
+      .where(eq(aiTasks.id, id));
+  }
+  
+  async acceptAiTask(id: number): Promise<Task> {
+    // Get the AI task
+    const aiTask = await this.getAiTaskById(id);
+    if (!aiTask) {
+      throw new Error(`AI Task with id ${id} not found`);
+    }
+    
+    // Create a new task in the main tasks table
+    const newTask = await this.createTask({
+      userId: aiTask.userId,
+      title: aiTask.title,
+      description: aiTask.description || '',
+      priority: aiTask.priority || 'medium',
+      goalId: aiTask.goalId,
+      dueDate: aiTask.dueDate,
+      status: 'pending',
+      source: 'ai',
+      aiExplanation: aiTask.explanation
+    });
+    
+    // Delete the AI task
+    await this.deleteAiTask(id);
+    
+    return newTask;
   }
   
   // Habit methods
@@ -695,17 +933,122 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getAISuggestedHabits(userId: number): Promise<Habit[]> {
+    // Legacy method - redirects to getAiHabitsByUserId and converts format
+    const aiHabitsResult = await this.getAiHabitsByUserId(userId);
+    
+    // Convert AISuggestedHabit to Habit format for backward compatibility
+    return aiHabitsResult.map(aiHabit => ({
+      id: aiHabit.id,
+      userId: aiHabit.userId,
+      title: aiHabit.title,
+      description: aiHabit.description,
+      frequency: aiHabit.frequency || 'daily',
+      streak: 0,
+      completedToday: false,
+      lastCompletedAt: null,
+      completionHistory: {},
+      colorScheme: 1,
+      status: 'suggested',
+      source: 'ai',
+      aiExplanation: aiHabit.explanation,
+      deletedAt: null,
+      createdAt: aiHabit.createdAt,
+      updatedAt: null
+    }));
+  }
+  
+  // New AI Habit methods
+  async getAiHabitsByUserId(userId: number): Promise<AISuggestedHabit[]> {
     return await db
+      .select()
+      .from(aiHabits)
+      .where(eq(aiHabits.userId, userId))
+      .orderBy(desc(aiHabits.createdAt));
+  }
+  
+  async getAiHabitById(id: number): Promise<AISuggestedHabit | undefined> {
+    const result = await db
+      .select()
+      .from(aiHabits)
+      .where(eq(aiHabits.id, id));
+      
+    return result[0];
+  }
+  
+  async createAiHabit(habit: InsertAiHabit): Promise<AISuggestedHabit> {
+    // Normalize the title for better duplicate checking
+    const normalizedTitle = habit.title.toLowerCase().trim();
+    
+    // Check if similar habit already exists in main habits table
+    const existingHabits = await db
       .select()
       .from(habits)
       .where(
         and(
-          eq(habits.userId, userId),
-          eq(habits.status, 'suggested'),
-          eq(habits.source, 'ai')
+          eq(habits.userId, habit.userId),
+          sql`LOWER(TRIM(${habits.title})) = ${normalizedTitle}`,
+          isNull(habits.deletedAt)
         )
-      )
-      .orderBy(desc(habits.createdAt));
+      );
+      
+    if (existingHabits.length > 0) {
+      console.log(`Skipping duplicate habit: ${habit.title} (exists in main table)`);
+      throw new Error(`Habit with similar title already exists`);
+    }
+    
+    // Check if similar habit already exists in AI habits table
+    const existingAiHabits = await db
+      .select()
+      .from(aiHabits)
+      .where(
+        and(
+          eq(aiHabits.userId, habit.userId),
+          sql`LOWER(TRIM(${aiHabits.title})) = ${normalizedTitle}`
+        )
+      );
+      
+    if (existingAiHabits.length > 0) {
+      console.log(`Skipping duplicate habit: ${habit.title} (exists in AI table)`);
+      throw new Error(`Habit suggestion with similar title already exists`);
+    }
+    
+    // Create the AI habit if no duplicates were found
+    const result = await db
+      .insert(aiHabits)
+      .values(habit)
+      .returning();
+      
+    return result[0];
+  }
+  
+  async deleteAiHabit(id: number): Promise<void> {
+    await db
+      .delete(aiHabits)
+      .where(eq(aiHabits.id, id));
+  }
+  
+  async acceptAiHabit(id: number): Promise<Habit> {
+    // Get the AI habit
+    const aiHabit = await this.getAiHabitById(id);
+    if (!aiHabit) {
+      throw new Error(`AI Habit with id ${id} not found`);
+    }
+    
+    // Create a new habit in the main habits table
+    const newHabit = await this.createHabit({
+      userId: aiHabit.userId,
+      title: aiHabit.title,
+      description: aiHabit.description || '',
+      frequency: aiHabit.frequency || 'daily',
+      status: 'active',
+      source: 'ai',
+      aiExplanation: aiHabit.explanation
+    });
+    
+    // Delete the AI habit
+    await this.deleteAiHabit(id);
+    
+    return newHabit;
   }
   
   async getDefaultPrompts(): Promise<Prompt[]> {
