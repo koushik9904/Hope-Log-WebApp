@@ -960,8 +960,36 @@ Your role is to:
     const userId = Number(req.params.userId);
     if (req.user?.id !== userId) return res.sendStatus(403);
     
+    // Check if OpenAI API key is configured
+    if (!process.env.OPENAI_API_KEY) {
+      console.error("⚠️ OPENAI_API_KEY is missing. Cannot generate task suggestions.");
+      return res.status(500).json({ 
+        error: "OpenAI API key is missing. Please contact support to enable AI features." 
+      });
+    }
+    
     try {
-      // This endpoint now uses the unified AI suggestion module
+      // Get count of unanalyzed journal entries
+      const journalEntries = await storage.getUnanalyzedJournalEntriesByUserId(userId);
+      
+      if (journalEntries.length === 0) {
+        console.log(`⚠️ No unanalyzed journal entries found for user ${userId}`);
+        
+        // Get all tasks to display to the user - even with no new suggestions
+        const tasks = await storage.getTasksByUserId(userId);
+        
+        return res.status(200).json({ 
+          tasks: tasks,
+          summary: {
+            goalsCreated: 0, tasksCreated: 0, habitsCreated: 0,
+            goalsSkipped: 0, tasksSkipped: 0, habitsSkipped: 0
+          },
+          message: "No journal entries to analyze. Write in your journal first to get suggestions."
+        });
+      }
+      
+      console.log(`✅ Processing ${Math.min(journalEntries.length, 3)} unanalyzed journal entries for user ${userId}`);
+      
       // Process a limited number of unanalyzed journal entries
       const result = await processAllEntriesForUser(userId, 3);
       
@@ -980,9 +1008,19 @@ Your role is to:
           habitsSkipped: result.habitsSkipped
         }
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error generating task suggestions:", error);
-      res.status(500).json({ error: "Failed to generate task suggestions" });
+      
+      // Provide more specific error messages based on the error type
+      if (error.toString().includes("OpenAI API")) {
+        res.status(500).json({ 
+          error: "There was an issue with the AI suggestion system. Please try again later or contact support." 
+        });
+      } else {
+        res.status(500).json({ 
+          error: "Failed to generate task suggestions. Please try again later." 
+        });
+      }
     }
   });
   
@@ -992,9 +1030,37 @@ Your role is to:
     const userId = Number(req.params.userId);
     if (req.user?.id !== userId) return res.sendStatus(403);
     
+    // Check if OpenAI API key is configured
+    if (!process.env.OPENAI_API_KEY) {
+      console.error("⚠️ OPENAI_API_KEY is missing. Cannot generate habit suggestions.");
+      return res.status(500).json({ 
+        error: "OpenAI API key is missing. Please contact support to enable AI features." 
+      });
+    }
+    
     try {
-      // This endpoint uses the unified AI suggestion module
-      // Process a limited number of unanalyzed journal entries which will generate goals, tasks, and habits
+      // Get count of unanalyzed journal entries
+      const journalEntries = await storage.getUnanalyzedJournalEntriesByUserId(userId);
+      
+      if (journalEntries.length === 0) {
+        console.log(`⚠️ No unanalyzed journal entries found for user ${userId}`);
+        
+        // Get AI suggested habits - even with no new suggestions
+        const suggestedHabits = await storage.getAISuggestedHabits(userId);
+        
+        return res.status(200).json({ 
+          habits: suggestedHabits,
+          summary: {
+            goalsCreated: 0, tasksCreated: 0, habitsCreated: 0,
+            goalsSkipped: 0, tasksSkipped: 0, habitsSkipped: 0
+          },
+          message: "No journal entries to analyze. Write in your journal first to get suggestions."
+        });
+      }
+      
+      console.log(`✅ Processing ${Math.min(journalEntries.length, 3)} unanalyzed journal entries for user ${userId}`);
+      
+      // Process a limited number of unanalyzed journal entries
       const result = await processAllEntriesForUser(userId, 3);
       
       // Get AI suggested habits
@@ -1011,9 +1077,19 @@ Your role is to:
           habitsSkipped: result.habitsSkipped
         }
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error generating habit suggestions:", error);
-      res.status(500).json({ error: "Failed to generate habit suggestions" });
+      
+      // Provide more specific error messages based on the error type
+      if (error.toString().includes("OpenAI API")) {
+        res.status(500).json({ 
+          error: "There was an issue with the AI suggestion system. Please try again later or contact support." 
+        });
+      } else {
+        res.status(500).json({ 
+          error: "Failed to generate habit suggestions. Please try again later." 
+        });
+      }
     }
   });
 

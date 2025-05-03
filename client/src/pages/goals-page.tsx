@@ -429,6 +429,16 @@ export default function GoalsPage() {
       }
     },
     onSuccess: (data) => {
+      // Check if there's a message in the response (e.g., no entries to analyze)
+      if (data.message) {
+        toast({
+          title: "Suggestion Generation",
+          description: data.message,
+          variant: "default",
+        });
+        return;
+      }
+      
       const goalCount = data.goals?.length || 0;
       const habitCount = data.habits?.length || 0;
       const totalCount = goalCount + habitCount;
@@ -442,7 +452,7 @@ export default function GoalsPage() {
       } else {
         toast({
           title: "No new suggestions",
-          description: "We couldn't generate any new suggestions at this time. Try writing more in your journal.",
+          description: "We couldn't generate any new suggestions at this time. Try writing more in your journal with detailed reflections.",
           variant: "default",
         });
       }
@@ -1022,16 +1032,30 @@ export default function GoalsPage() {
                       <div className="text-center p-4 text-gray-500 text-sm">
                         <p>No goal suggestions available right now.</p>
                         <p className="text-xs mt-1">Try writing more in your journal.</p>
-                        <Button
-                          onClick={() => generateSuggestionsMutation.mutate()}
-                          variant="outline"
-                          size="sm"
-                          className="mt-3 text-xs"
-                          disabled={generateSuggestionsMutation.isPending}
-                        >
-                          <RefreshCw className={`h-3 w-3 mr-1 ${generateSuggestionsMutation.isPending ? 'animate-spin' : ''}`} />
-                          Generate Suggestions
-                        </Button>
+                        <div className="flex flex-col items-center gap-2">
+                          <p className="text-gray-500 text-xs mt-3">
+                            Journal regularly to get personalized suggestions
+                          </p>
+                          <Button
+                            onClick={() => generateSuggestionsMutation.mutate()}
+                            variant="outline"
+                            size="sm"
+                            className="text-xs"
+                            disabled={generateSuggestionsMutation.isPending}
+                          >
+                            {generateSuggestionsMutation.isPending ? (
+                              <>
+                                <div className="h-3 w-3 mr-1 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
+                                Analyzing Journal...
+                              </>
+                            ) : (
+                              <>
+                                <RefreshCw className="h-3 w-3 mr-1" />
+                                Generate Suggestions
+                              </>
+                            )}
+                          </Button>
+                        </div>
                       </div>
                     )}
                   </div>
