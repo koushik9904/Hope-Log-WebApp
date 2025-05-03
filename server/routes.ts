@@ -379,6 +379,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Store embedding for RAG
       await storeEmbedding(journalEntry.id, transcript);
       
+      // Process with the unified AI suggestion module to generate AI suggestions
+      try {
+        // Process in the background - don't wait for it to complete
+        // This will save suggestions to the ai_goals, ai_tasks, ai_habits tables
+        processSingleEntry(journalEntry).catch(error => {
+          console.error(`Background AI suggestion processing for chat entry ${journalEntry.id} failed:`, error);
+        });
+        
+        console.log(`Started background AI suggestion processing for chat entry ${journalEntry.id} using new AI tables`);
+      } catch (suggestError) {
+        console.error("Error initiating AI suggestion processing for chat:", suggestError);
+        // This shouldn't fail the whole request
+        // Still mark as analyzed to avoid repeated processing attempts
+        await storage.updateJournalEntry(journalEntry.id, { analyzed: true });
+      }
+      
       // Delete individual chat entries to clear the chat
       // This is necessary to avoid storing individual messages as separate journal entries
       for (const entry of chatEntries) {
@@ -680,22 +696,27 @@ Your role is to:
         // Continue with the process - sentiment analysis is not critical
       }
       
-      // Process with the unified AI suggestion module
+      // Process with the unified AI suggestion module to generate AI suggestions
       try {
-        // Process chat entries regardless of length, but require journal entries to be substantial
-        if (journalEntry.isJournal === false || content.length > 100) {
+        // Process journal entries if they are substantial
+        if (content.length > 100) {
           // Process in the background - don't wait for it to complete
+          // This will now save suggestions to the ai_goals, ai_tasks, ai_habits tables
           processSingleEntry(journalEntry).catch(error => {
             console.error(`Background AI suggestion processing for entry ${journalEntry.id} failed:`, error);
           });
           
-          console.log(`Started background AI suggestion processing for entry ${journalEntry.id}`);
+          console.log(`Started background AI suggestion processing for entry ${journalEntry.id} using new AI tables`);
         } else {
           console.log(`Journal entry ${journalEntry.id} too short for AI suggestion processing (${content.length} chars)`);
+          // Still mark as analyzed to avoid processing it later
+          await storage.updateJournalEntry(journalEntry.id, { analyzed: true });
         }
       } catch (suggestError) {
         console.error("Error initiating AI suggestion processing:", suggestError);
         // This shouldn't fail the whole request
+        // Still mark as analyzed to avoid repeated processing attempts
+        await storage.updateJournalEntry(journalEntry.id, { analyzed: true });
       }
       
       // Process goal progress updates if needed
