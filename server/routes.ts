@@ -682,13 +682,14 @@ Your role is to:
       
       // Process with the unified AI suggestion module
       try {
-        if (content.length > 100) { // Only process substantial entries
+        // Process chat entries regardless of length, but require journal entries to be substantial
+        if (isJournal === false || content.length > 100) {
           // Process in the background - don't wait for it to complete
           processSingleEntry(journalEntry).catch(error => {
             console.error(`Background AI suggestion processing for entry ${journalEntry.id} failed:`, error);
           });
           
-          console.log(`Started background AI suggestion processing for journal entry ${journalEntry.id}`);
+          console.log(`Started background AI suggestion processing for entry ${journalEntry.id}`);
         } else {
           console.log(`Journal entry ${journalEntry.id} too short for AI suggestion processing (${content.length} chars)`);
         }
