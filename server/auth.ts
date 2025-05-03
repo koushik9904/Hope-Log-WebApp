@@ -111,17 +111,25 @@ export async function setupAuth(app: Express) {
   if (googleClientSecret) process.env.GOOGLE_CLIENT_SECRET = googleClientSecret;
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || "hopelog-secret-key",
-    resave: false,
-    saveUninitialized: false,
+    resave: true, // Changed to true to ensure session is saved on each request
+    saveUninitialized: true, // Changed to true to allow session tracking before login
     store: storage.sessionStore,
     cookie: {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: false, // Set to false during development to work in all environments
       sameSite: "lax"
     },
     rolling: true // Refresh the cookie on each request
   };
+  
+  console.log(`Session configuration: 
+    - Secret length: ${(process.env.SESSION_SECRET || "hopelog-secret-key").length}
+    - Session store type: ${storage.sessionStore.constructor.name}
+    - Cookie maxAge: ${7 * 24 * 60 * 60 * 1000}ms (1 week)
+    - Secure cookies: ${process.env.NODE_ENV === "production"}
+    - Environment: ${process.env.NODE_ENV}
+  `);
 
   app.set("trust proxy", 1);
   app.use(session(sessionSettings));
@@ -302,10 +310,25 @@ export async function setupAuth(app: Express) {
     );
   }
 
-  passport.serializeUser((user, done) => done(null, user.id));
+  passport.serializeUser((user, done) => {
+    console.log(`Serializing user:`, user.id);
+    done(null, user.id);
+  });
+  
   passport.deserializeUser(async (id: number, done) => {
-    const user = await storage.getUser(id);
-    done(null, user);
+    console.log(`Deserializing user ID: ${id}`);
+    try {
+      const user = await storage.getUser(id);
+      if (!user) {
+        console.error(`Deserialization failed: User ID ${id} not found in database`);
+        return done(null, false);
+      }
+      console.log(`Successfully deserialized user: ${user.id}`);
+      done(null, user);
+    } catch (error) {
+      console.error(`Error deserializing user ${id}:`, error);
+      done(error, null);
+    }
   });
 
   app.post("/api/register", async (req, res, next) => {
