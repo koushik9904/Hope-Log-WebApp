@@ -1,11 +1,7 @@
 import { db } from "./db";
 import { storage } from "./storage";
 import { JournalEntry } from "@shared/schema";
-import { 
-  generateGoalSuggestions, 
-  generateTaskSuggestions,
-  generateCombinedSuggestions
-} from "./openai";
+import { generateCombinedSuggestions } from "./openai";
 
 /**
  * Unified AI Suggestion Module
@@ -55,8 +51,20 @@ export async function processSingleEntry(journalEntry: JournalEntry): Promise<Su
     const existingGoals = await storage.getGoalsByUserId(userId);
     const existingTasks = await storage.getTasksByUserId(userId);
     
+    // Format entries and tasks for the AI
+    const journalEntryFormatted = {
+      content: journalEntry.content,
+      date: journalEntry.date,
+      id: journalEntry.id
+    };
+    
+    const existingTasksFormatted = existingTasks.map(task => ({
+      title: task.title,
+      status: task.completed ? 'completed' : 'pending'
+    }));
+    
     // Generate combined suggestions using the new unified approach
-    const suggestions = await generateCombinedSuggestions([journalEntry], existingGoals, existingTasks);
+    const suggestions = await generateCombinedSuggestions([journalEntryFormatted], existingGoals, existingTasksFormatted);
     
     let result: SuggestionResult = {
       goalsCreated: 0,
@@ -105,14 +113,13 @@ export async function processSingleEntry(journalEntry: JournalEntry): Promise<Su
         
         if (!similarTaskExists) {
           // Create a new task with suggested status
+          // Note: Task schema doesn't have status/source/aiExplanation fields yet
+          // We'll just create it with the appropriate fields for now
           await storage.createTask({
             userId,
             title: suggestion.title,
             description: suggestion.description || "",
             priority: suggestion.priority || "medium",
-            status: "suggested", // Using "suggested" status instead of "pending"
-            source: "ai",
-            aiExplanation: suggestion.explanation || "Generated from your journal entries",
             goalId: suggestion.goalId || null
           });
           

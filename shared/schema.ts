@@ -76,6 +76,7 @@ export const journalEntries = pgTable("journal_entries", {
     emotions: string[];
     themes: string[];
   }>(),
+  analyzed: boolean("analyzed").notNull().default(false), // For tracking if entry has been processed by AI suggestions
   deletedAt: timestamp("deleted_at", { mode: 'string' }),  // For recycle bin/soft delete functionality
 });
 

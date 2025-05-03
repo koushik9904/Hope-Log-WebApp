@@ -39,7 +39,9 @@ export interface IStorage {
   getJournalEntryById(id: number): Promise<JournalEntry | undefined>;
   getRecentJournalEntriesByUserId(userId: number, limit: number): Promise<JournalEntry[]>;
   getJournalEntriesForLastWeek(userId: number): Promise<JournalEntry[]>;
+  getUnanalyzedJournalEntriesByUserId(userId: number): Promise<JournalEntry[]>;
   createJournalEntry(entry: InsertJournalEntry): Promise<JournalEntry>;
+  updateJournalEntry(id: number, updates: Partial<JournalEntry>): Promise<JournalEntry>;
   updateJournalEntrySentiment(id: number, sentiment: { score: number; emotions: string[]; themes: string[] }): Promise<JournalEntry>;
   deleteJournalEntry(id: number): Promise<void>;
   getDeletedJournalEntriesByUserId(userId: number): Promise<JournalEntry[]>;
@@ -275,13 +277,10 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
   
-  async updateJournalEntrySentiment(
-    id: number,
-    sentiment: { score: number; emotions: string[]; themes: string[] }
-  ): Promise<JournalEntry> {
+  async updateJournalEntry(id: number, updates: Partial<JournalEntry>): Promise<JournalEntry> {
     const result = await db
       .update(journalEntries)
-      .set({ sentiment })
+      .set(updates)
       .where(eq(journalEntries.id, id))
       .returning();
       
@@ -290,6 +289,28 @@ export class DatabaseStorage implements IStorage {
     }
     
     return result[0];
+  }
+  
+  async updateJournalEntrySentiment(
+    id: number,
+    sentiment: { score: number; emotions: string[]; themes: string[] }
+  ): Promise<JournalEntry> {
+    return this.updateJournalEntry(id, { sentiment });
+  }
+  
+  async getUnanalyzedJournalEntriesByUserId(userId: number): Promise<JournalEntry[]> {
+    return await db
+      .select()
+      .from(journalEntries)
+      .where(
+        and(
+          eq(journalEntries.userId, userId),
+          eq(journalEntries.isJournal, true),
+          eq(journalEntries.analyzed, false),
+          sql`${journalEntries.deletedAt} IS NULL`
+        )
+      )
+      .orderBy(desc(journalEntries.date));
   }
   
   async deleteJournalEntry(id: number): Promise<void> {
