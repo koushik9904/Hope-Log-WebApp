@@ -182,6 +182,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
+import AISuggestions from "@/components/goals/ai-suggestions";
+
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 
 // Goal categories
