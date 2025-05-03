@@ -191,14 +191,18 @@ export async function processSingleEntry(journalEntry: JournalEntry): Promise<Su
 /**
  * Process all unanalyzed journal entries for a user
  * @param userId The user ID to process entries for
+ * @param maxEntries Maximum number of entries to process at once
  * @returns Summary of suggestions created
  */
-export async function processAllEntriesForUser(userId: number): Promise<SuggestionResult> {
+export async function processAllEntriesForUser(userId: number, maxEntries: number = 5): Promise<SuggestionResult> {
   try {
     // Get recent unanalyzed journal entries
     const journalEntries = await storage.getUnanalyzedJournalEntriesByUserId(userId);
     
-    console.log(`Found ${journalEntries.length} unanalyzed journal entries for user ${userId}`);
+    // Limit the number of entries to process at once
+    const entriesToProcess = journalEntries.slice(0, maxEntries);
+    
+    console.log(`Found ${journalEntries.length} unanalyzed journal entries for user ${userId}, processing ${entriesToProcess.length}`);
     
     // Process each entry
     let totalResult: SuggestionResult = {
@@ -210,19 +214,25 @@ export async function processAllEntriesForUser(userId: number): Promise<Suggesti
       habitsSkipped: 0
     };
     
-    for (const entry of journalEntries) {
-      const result = await processSingleEntry(entry);
-      totalResult.goalsCreated += result.goalsCreated;
-      totalResult.tasksCreated += result.tasksCreated;
-      totalResult.habitsCreated += result.habitsCreated;
-      totalResult.goalsSkipped += result.goalsSkipped;
-      totalResult.tasksSkipped += result.tasksSkipped;
-      totalResult.habitsSkipped += result.habitsSkipped;
+    for (const entry of entriesToProcess) {
+      try {
+        const result = await processSingleEntry(entry);
+        totalResult.goalsCreated += result.goalsCreated;
+        totalResult.tasksCreated += result.tasksCreated;
+        totalResult.habitsCreated += result.habitsCreated;
+        totalResult.goalsSkipped += result.goalsSkipped;
+        totalResult.tasksSkipped += result.tasksSkipped;
+        totalResult.habitsSkipped += result.habitsSkipped;
+      } catch (entryError) {
+        console.error(`Error processing entry ${entry.id}, marking as analyzed to prevent future retries:`, entryError);
+        // Mark as analyzed even if it fails to prevent repeated processing attempts
+        await storage.updateJournalEntry(entry.id, { analyzed: true });
+      }
     }
     
     return totalResult;
   } catch (error) {
-    console.error(`Error processing all entries for user ${userId}:`, error);
+    console.error(`Error processing entries for user ${userId}:`, error);
     throw error;
   }
 }
@@ -230,15 +240,16 @@ export async function processAllEntriesForUser(userId: number): Promise<Suggesti
 /**
  * Process all unanalyzed journal entries for all users
  * This can be run as a scheduled job
+ * @param maxEntriesPerUser Maximum number of entries to process per user
  */
-export async function processAllEntries(): Promise<void> {
+export async function processAllEntries(maxEntriesPerUser: number = 5): Promise<void> {
   try {
     const users = await storage.getAllUsers();
-    console.log(`Processing entries for ${users.length} users`);
+    console.log(`Processing entries for ${users.length} users (max ${maxEntriesPerUser} entries per user)`);
     
     for (const user of users) {
       try {
-        const result = await processAllEntriesForUser(user.id);
+        const result = await processAllEntriesForUser(user.id, maxEntriesPerUser);
         console.log(`User ${user.id}: ${result.goalsCreated} goals, ${result.tasksCreated} tasks, and ${result.habitsCreated} habits created`);
       } catch (error) {
         console.error(`Error processing entries for user ${user.id}:`, error);

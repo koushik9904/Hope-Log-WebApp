@@ -696,8 +696,9 @@ Your role is to:
     if (req.user?.id !== userId) return res.sendStatus(403);
     
     try {
-      // Process all unanalyzed journal entries using the unified AI suggestion module
-      const result = await processAllEntriesForUser(userId);
+      // Process a limited number of unanalyzed journal entries using the unified AI suggestion module
+      // Limit to 3 entries at a time to prevent timeouts and API overload
+      const result = await processAllEntriesForUser(userId, 3);
       
       // Get the newly created suggested goals and habits
       const suggestedGoals = await storage.getAISuggestedGoals(userId);
@@ -807,8 +808,8 @@ Your role is to:
     
     try {
       // This endpoint now uses the unified AI suggestion module
-      // Process all unanalyzed journal entries
-      const result = await processAllEntriesForUser(userId);
+      // Process a limited number of unanalyzed journal entries
+      const result = await processAllEntriesForUser(userId, 3);
       
       // Get all tasks to display to the user
       const tasks = await storage.getTasksByUserId(userId);
@@ -839,8 +840,8 @@ Your role is to:
     
     try {
       // This endpoint uses the unified AI suggestion module
-      // Process all unanalyzed journal entries which will generate goals, tasks, and habits
-      const result = await processAllEntriesForUser(userId);
+      // Process a limited number of unanalyzed journal entries which will generate goals, tasks, and habits
+      const result = await processAllEntriesForUser(userId, 3);
       
       // Get AI suggested habits
       const suggestedHabits = await storage.getAISuggestedHabits(userId);
