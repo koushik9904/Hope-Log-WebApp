@@ -885,9 +885,10 @@ Your role is to:
     if (req.user?.id !== userId) return res.sendStatus(403);
     
     try {
-      const goalSuggestions = await storage.getAISuggestedGoals(userId);
-      const taskSuggestions = await storage.getAISuggestedTasks(userId);
-      const habitSuggestions = await storage.getAISuggestedHabits(userId);
+      // Use the new AI suggestion tables
+      const goalSuggestions = await storage.getAiGoalsByUserId(userId);
+      const taskSuggestions = await storage.getAiTasksByUserId(userId);
+      const habitSuggestions = await storage.getAiHabitsByUserId(userId);
       
       console.log(`Retrieved AI suggestions for user ${userId}: ${goalSuggestions.length} goals, ${taskSuggestions.length} tasks, ${habitSuggestions.length} habits`);
       
@@ -899,6 +900,172 @@ Your role is to:
     } catch (error) {
       console.error("Error retrieving AI suggestions:", error);
       res.status(500).json({ error: "Failed to retrieve AI suggestions" });
+    }
+  });
+  
+  // New endpoint for accepting an AI suggested goal
+  app.post("/api/ai-goals/:id/accept", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const goalId = Number(req.params.id);
+      
+      // Get the AI goal to verify ownership
+      const aiGoal = await storage.getAiGoalById(goalId);
+      if (!aiGoal) {
+        return res.status(404).json({ error: "AI suggested goal not found" });
+      }
+      
+      // Verify ownership
+      if (req.user?.id !== aiGoal.userId) {
+        return res.sendStatus(403);
+      }
+      
+      // Accept the goal (moves it to main goals table and deletes from AI table)
+      const newGoal = await storage.acceptAiGoal(goalId);
+      
+      res.status(200).json(newGoal);
+    } catch (error) {
+      console.error("Error accepting AI suggested goal:", error);
+      res.status(500).json({ error: "Failed to accept AI suggested goal" });
+    }
+  });
+  
+  // New endpoint for accepting an AI suggested task
+  app.post("/api/ai-tasks/:id/accept", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const taskId = Number(req.params.id);
+      
+      // Get the AI task to verify ownership
+      const aiTask = await storage.getAiTaskById(taskId);
+      if (!aiTask) {
+        return res.status(404).json({ error: "AI suggested task not found" });
+      }
+      
+      // Verify ownership
+      if (req.user?.id !== aiTask.userId) {
+        return res.sendStatus(403);
+      }
+      
+      // Accept the task (moves it to main tasks table and deletes from AI table)
+      const newTask = await storage.acceptAiTask(taskId);
+      
+      res.status(200).json(newTask);
+    } catch (error) {
+      console.error("Error accepting AI suggested task:", error);
+      res.status(500).json({ error: "Failed to accept AI suggested task" });
+    }
+  });
+  
+  // New endpoint for accepting an AI suggested habit
+  app.post("/api/ai-habits/:id/accept", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const habitId = Number(req.params.id);
+      
+      // Get the AI habit to verify ownership
+      const aiHabit = await storage.getAiHabitById(habitId);
+      if (!aiHabit) {
+        return res.status(404).json({ error: "AI suggested habit not found" });
+      }
+      
+      // Verify ownership
+      if (req.user?.id !== aiHabit.userId) {
+        return res.sendStatus(403);
+      }
+      
+      // Accept the habit (moves it to main habits table and deletes from AI table)
+      const newHabit = await storage.acceptAiHabit(habitId);
+      
+      res.status(200).json(newHabit);
+    } catch (error) {
+      console.error("Error accepting AI suggested habit:", error);
+      res.status(500).json({ error: "Failed to accept AI suggested habit" });
+    }
+  });
+  
+  // New endpoints for rejecting AI suggestions (just deletes them)
+  app.delete("/api/ai-goals/:id", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const goalId = Number(req.params.id);
+      
+      // Get the AI goal to verify ownership
+      const aiGoal = await storage.getAiGoalById(goalId);
+      if (!aiGoal) {
+        return res.status(404).json({ error: "AI suggested goal not found" });
+      }
+      
+      // Verify ownership
+      if (req.user?.id !== aiGoal.userId) {
+        return res.sendStatus(403);
+      }
+      
+      // Delete the AI goal
+      await storage.deleteAiGoal(goalId);
+      
+      res.sendStatus(204);
+    } catch (error) {
+      console.error("Error deleting AI suggested goal:", error);
+      res.status(500).json({ error: "Failed to delete AI suggested goal" });
+    }
+  });
+  
+  app.delete("/api/ai-tasks/:id", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const taskId = Number(req.params.id);
+      
+      // Get the AI task to verify ownership
+      const aiTask = await storage.getAiTaskById(taskId);
+      if (!aiTask) {
+        return res.status(404).json({ error: "AI suggested task not found" });
+      }
+      
+      // Verify ownership
+      if (req.user?.id !== aiTask.userId) {
+        return res.sendStatus(403);
+      }
+      
+      // Delete the AI task
+      await storage.deleteAiTask(taskId);
+      
+      res.sendStatus(204);
+    } catch (error) {
+      console.error("Error deleting AI suggested task:", error);
+      res.status(500).json({ error: "Failed to delete AI suggested task" });
+    }
+  });
+  
+  app.delete("/api/ai-habits/:id", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const habitId = Number(req.params.id);
+      
+      // Get the AI habit to verify ownership
+      const aiHabit = await storage.getAiHabitById(habitId);
+      if (!aiHabit) {
+        return res.status(404).json({ error: "AI suggested habit not found" });
+      }
+      
+      // Verify ownership
+      if (req.user?.id !== aiHabit.userId) {
+        return res.sendStatus(403);
+      }
+      
+      // Delete the AI habit
+      await storage.deleteAiHabit(habitId);
+      
+      res.sendStatus(204);
+    } catch (error) {
+      console.error("Error deleting AI suggested habit:", error);
+      res.status(500).json({ error: "Failed to delete AI suggested habit" });
     }
   });
   

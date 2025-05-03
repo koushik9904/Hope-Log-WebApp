@@ -102,108 +102,71 @@ export async function processSingleEntry(journalEntry: JournalEntry): Promise<Su
       habitsSkipped: 0
     };
     
-    // Process goal suggestions
+    // Process goal suggestions to AI goals table
     if (suggestions.goals && suggestions.goals.length > 0) {
       for (const suggestion of suggestions.goals) {
         try {
-          // Check if a similar goal already exists by comparing normalized names
-          const normalizedSuggestion = suggestion.name.toLowerCase().trim();
-          const similarGoalExists = existingGoals.some(
-            existingGoal => existingGoal.name.toLowerCase().trim() === normalizedSuggestion
-          );
+          // Create in the aiGoals table instead of goals table
+          await storage.createAiGoal({
+            userId,
+            name: suggestion.name,
+            description: suggestion.description || "",
+            category: suggestion.category || "Personal",
+            explanation: suggestion.explanation || "Generated from your journal entries",
+            journalEntryId: journalEntry.id
+          });
           
-          if (!similarGoalExists) {
-            // Create a new goal with suggested status and ai source
-            await storage.createGoal({
-              userId,
-              name: suggestion.name,
-              description: suggestion.description || "",
-              category: suggestion.category || "Personal",
-              target: 100, // Default target
-              status: "suggested",
-              source: "ai",
-              aiExplanation: suggestion.explanation || "Generated from your journal entries"
-            });
-            
-            result.goalsCreated++;
-            console.log(`Created goal suggestion: ${suggestion.name}`);
-          } else {
-            result.goalsSkipped++;
-            console.log(`Skipped duplicate goal: ${suggestion.name}`);
-          }
+          result.goalsCreated++;
+          console.log(`Created AI goal suggestion: ${suggestion.name}`);
         } catch (goalError) {
-          console.error(`Error creating goal "${suggestion.name}":`, goalError);
+          console.error(`Error creating AI goal "${suggestion.name}":`, goalError);
           result.goalsSkipped++;
         }
       }
     }
     
-    // Process task suggestions
+    // Process task suggestions to AI tasks table
     if (suggestions.tasks && suggestions.tasks.length > 0) {
       for (const suggestion of suggestions.tasks) {
         try {
-          // Check if a similar task already exists
-          const normalizedSuggestion = suggestion.title.toLowerCase().trim();
-          const similarTaskExists = existingTasks.some(
-            existingTask => existingTask.title.toLowerCase().trim() === normalizedSuggestion
-          );
+          // Create in the aiTasks table instead of tasks table
+          await storage.createAiTask({
+            userId,
+            title: suggestion.title,
+            description: suggestion.description || "",
+            priority: suggestion.priority || "medium",
+            goalId: suggestion.goalId || null,
+            explanation: suggestion.explanation || "Generated from your journal entries",
+            journalEntryId: journalEntry.id
+          });
           
-          if (!similarTaskExists) {
-            // Create a new task with suggested status and ai source
-            await storage.createTask({
-              userId,
-              title: suggestion.title,
-              description: suggestion.description || "",
-              priority: suggestion.priority || "medium",
-              goalId: suggestion.goalId || null,
-              status: "suggested",
-              source: "ai",
-              aiExplanation: suggestion.explanation || "Generated from your journal entries"
-            });
-            
-            result.tasksCreated++;
-            console.log(`Created task suggestion: ${suggestion.title}`);
-          } else {
-            result.tasksSkipped++;
-            console.log(`Skipped duplicate task: ${suggestion.title}`);
-          }
+          result.tasksCreated++;
+          console.log(`Created AI task suggestion: ${suggestion.title}`);
         } catch (taskError) {
-          console.error(`Error creating task "${suggestion.title}":`, taskError);
+          console.error(`Error creating AI task "${suggestion.title}":`, taskError);
           result.tasksSkipped++;
         }
       }
     }
     
-    // Process habit suggestions
+    // Process habit suggestions to AI habits table
     if (suggestions.habits && suggestions.habits.length > 0) {
       for (const suggestion of suggestions.habits) {
         try {
-          // Check if a similar habit already exists
-          const normalizedSuggestion = suggestion.title.toLowerCase().trim();
-          const similarHabitExists = existingHabits.some(
-            existingHabit => existingHabit.title.toLowerCase().trim() === normalizedSuggestion
-          );
+          // Create in the aiHabits table instead of habits table
+          await storage.createAiHabit({
+            userId,
+            title: suggestion.title,
+            description: suggestion.description || "",
+            frequency: suggestion.frequency || "daily",
+            explanation: suggestion.explanation || "Generated from your journal entries",
+            journalEntryId: journalEntry.id
+          });
           
-          if (!similarHabitExists) {
-            // Create a new habit with suggested status and ai source
-            await storage.createHabit({
-              userId,
-              title: suggestion.title,
-              description: suggestion.description || "",
-              frequency: suggestion.frequency || "daily",
-              status: "suggested",
-              source: "ai",
-              aiExplanation: suggestion.explanation || "Generated from your journal entries"
-            });
-            
-            result.habitsCreated++;
-            console.log(`Created habit suggestion: ${suggestion.title}`);
-          } else {
-            result.habitsSkipped++;
-            console.log(`Skipped duplicate habit: ${suggestion.title}`);
-          }
+          result.habitsCreated++;
+          console.log(`Created AI habit suggestion: ${suggestion.title}`);
         } catch (habitError) {
-          console.error(`Error creating habit "${suggestion.title}":`, habitError);
+          console.error(`Error creating AI habit "${suggestion.title}":`, habitError);
           result.habitsSkipped++;
         }
       }
