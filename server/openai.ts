@@ -719,6 +719,11 @@ export async function generateCombinedSuggestions(
   }[]
 }> {
   try {
+    // Check if OpenAI API key is configured
+    if (!process.env.OPENAI_API_KEY) {
+      console.error("⚠️ OPENAI_API_KEY is missing. Cannot generate suggestions.");
+      throw new Error("OpenAI API key is missing. Please add OPENAI_API_KEY to your environment variables.");
+    }
     // Extract the content of the journal entries
     const entriesText = recentEntries
       .map(entry => `Entry from ${new Date(entry.date).toDateString()}: ${entry.content}`)
