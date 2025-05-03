@@ -719,10 +719,18 @@ export async function generateCombinedSuggestions(
   }[]
 }> {
   try {
+    console.log(`🔍 generateCombinedSuggestions called with ${recentEntries.length} entries`);
+    
     // Check if OpenAI API key is configured
     if (!process.env.OPENAI_API_KEY) {
       console.error("⚠️ OPENAI_API_KEY is missing. Cannot generate suggestions.");
       throw new Error("OpenAI API key is missing. Please add OPENAI_API_KEY to your environment variables.");
+    }
+    
+    // Check if we have any entries to analyze
+    if (!recentEntries || recentEntries.length === 0) {
+      console.warn("⚠️ No journal entries provided for AI analysis.");
+      throw new Error("No journal entries to analyze. Please create some journal entries first.");
     }
     // Extract the content of the journal entries
     const entriesText = recentEntries

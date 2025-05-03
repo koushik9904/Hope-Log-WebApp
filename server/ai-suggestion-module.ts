@@ -242,12 +242,26 @@ export async function processSingleEntry(journalEntry: JournalEntry): Promise<Su
 export async function processAllEntriesForUser(userId: number, maxEntries: number = 5): Promise<SuggestionResult> {
   try {
     // Get recent unanalyzed journal entries
+    console.log(`⏳ Fetching unanalyzed journal entries for user ${userId}...`);
     const journalEntries = await storage.getUnanalyzedJournalEntriesByUserId(userId);
+    
+    if (!journalEntries || journalEntries.length === 0) {
+      console.log(`ℹ️ No unanalyzed journal entries found for user ${userId}`);
+      return {
+        goalsCreated: 0,
+        tasksCreated: 0,
+        habitsCreated: 0,
+        goalsSkipped: 0,
+        tasksSkipped: 0,
+        habitsSkipped: 0
+      };
+    }
     
     // Limit the number of entries to process at once
     const entriesToProcess = journalEntries.slice(0, maxEntries);
     
-    console.log(`Found ${journalEntries.length} unanalyzed journal entries for user ${userId}, processing ${entriesToProcess.length}`);
+    console.log(`✅ Found ${journalEntries.length} unanalyzed journal entries for user ${userId}, processing ${entriesToProcess.length}`);
+    console.log(`ℹ️ Entry IDs to process: ${entriesToProcess.map(e => e.id).join(', ')}`);
     
     // Process each entry
     let totalResult: SuggestionResult = {
