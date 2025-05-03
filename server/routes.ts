@@ -877,7 +877,7 @@ Your role is to:
     }
   });
   
-  // This endpoint retrieves all AI suggested goals and habits for a user
+  // This endpoint retrieves all AI suggested goals, tasks, and habits for a user
   app.get("/api/goals/:userId/ai-suggestions", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     
@@ -886,10 +886,14 @@ Your role is to:
     
     try {
       const goalSuggestions = await storage.getAISuggestedGoals(userId);
+      const taskSuggestions = await storage.getAISuggestedTasks(userId);
       const habitSuggestions = await storage.getAISuggestedHabits(userId);
+      
+      console.log(`Retrieved AI suggestions for user ${userId}: ${goalSuggestions.length} goals, ${taskSuggestions.length} tasks, ${habitSuggestions.length} habits`);
       
       res.json({ 
         goals: goalSuggestions, 
+        tasks: taskSuggestions,
         habits: habitSuggestions 
       });
     } catch (error) {

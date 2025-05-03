@@ -350,8 +350,8 @@ export default function GoalsPage() {
     staleTime: 60000, // 1 minute
   });
   
-  // Fetch AI-suggested goals and habits
-  const { data: aiSuggestions = { goals: [], habits: [] }, isLoading: isSuggestionsLoading } = useQuery<{ goals: AISuggestedGoal[], habits: AISuggestedHabit[] }>({
+  // Fetch AI-suggested goals, tasks and habits
+  const { data: aiSuggestions = { goals: [], tasks: [], habits: [] }, isLoading: isSuggestionsLoading } = useQuery<{ goals: AISuggestedGoal[], tasks: AISuggestedTask[], habits: AISuggestedHabit[] }>({
     queryKey: [`/api/goals/${user?.id}/ai-suggestions`],
     enabled: !!user?.id,
     staleTime: 300000, // 5 minutes - these don't change as frequently
@@ -521,6 +521,15 @@ export default function GoalsPage() {
       goal.name.toLowerCase() === suggestion.name.toLowerCase() ||
       goal.name.toLowerCase().includes(suggestion.name.toLowerCase()) ||
       suggestion.name.toLowerCase().includes(goal.name.toLowerCase())
+    )
+  );
+  
+  // Filter task suggestions to avoid duplicates
+  const aiSuggestedTasks = (aiSuggestions.tasks || []).filter(suggestion => 
+    !allTasks.some(task => 
+      task.title.toLowerCase() === suggestion.title.toLowerCase() ||
+      task.title.toLowerCase().includes(suggestion.title.toLowerCase()) ||
+      suggestion.title.toLowerCase().includes(task.title.toLowerCase())
     )
   );
   
