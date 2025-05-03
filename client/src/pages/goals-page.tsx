@@ -334,6 +334,54 @@ export default function GoalsPage() {
     staleTime: 60000, // 1 minute
   });
   
+  // Fetch AI-suggested goals
+  const { data: aiSuggestions = { goals: [] }, isLoading: isSuggestionsLoading } = useQuery<{ goals: AISuggestedGoal[] }>({
+    queryKey: [`/api/goals/${user?.id}/suggestions`],
+    enabled: !!user?.id,
+    staleTime: 300000, // 5 minutes - these don't change as frequently
+  });
+  
+  // Convert API suggestions to the format used in the UI
+  const [aiSuggestedGoals, setAiSuggestedGoals] = useState<AISuggestedGoal[]>([]);
+  
+  // Process AI suggestions when they're loaded
+  useEffect(() => {
+    if (aiSuggestions.goals && aiSuggestions.goals.length > 0) {
+      // Process each suggestion to ensure it has the required fields
+      const goalItems = aiSuggestions.goals
+        .filter(item => item.type === 'goal')
+        .map((item, index) => ({
+          id: index + 1000, // Ensure unique ID
+          name: item.name,
+          description: item.description || `Goal suggestion: ${item.name}`,
+          category: item.category || getGoalCategory(item.name),
+          targetDate: null,
+          source: item.source || "Based on your journal entries"
+        }));
+      
+      setAiSuggestedGoals(goalItems.length > 0 ? goalItems : []);
+    } else {
+      // Fallback to example data if no suggestions
+      setAiSuggestedGoals([]);
+    }
+  }, [aiSuggestions]);
+  
+  // Helper function to determine a category for a goal
+  const getGoalCategory = (goalName: string): string => {
+    const name = goalName.toLowerCase();
+    if (name.includes('read') || name.includes('learn') || name.includes('study')) 
+      return 'Learning';
+    if (name.includes('exercise') || name.includes('workout') || name.includes('run') || name.includes('meditate'))
+      return 'Health';
+    if (name.includes('save') || name.includes('budget') || name.includes('invest'))
+      return 'Financial';
+    if (name.includes('family') || name.includes('friend') || name.includes('relationship'))
+      return 'Relationships';
+    if (name.includes('job') || name.includes('career') || name.includes('work'))
+      return 'Career';
+    return 'Personal';
+  };
+  
   // Recycle bin states
   const [showRecycleBin, setShowRecycleBin] = useState(false);
   const [deletedGoals, setDeletedGoals] = useState<DeletedGoal[]>([]);
@@ -823,36 +871,83 @@ export default function GoalsPage() {
                 </CardHeader>
                 <CardContent className="pt-6">
                   <div className="space-y-4">
-                    {AI_SUGGESTED_GOALS.slice(0, 3).map(goal => (
-                      <div key={goal.id} className="bg-[#fff8f9] p-4 rounded-xl border border-[#F5B8DB] border-opacity-30">
-                        <h4 className="font-medium text-gray-800 text-sm mb-1">{goal.name}</h4>
-                        <p className="text-xs text-gray-600 mb-3 line-clamp-2">{goal.description}</p>
-                        <div className="flex justify-end">
-                          <Button 
-                            onClick={() => {
-                              // Add suggested goal
-                              if (!user) return;
-                              
-                              addGoalMutation.mutate({
-                                name: goal.name,
-                                description: goal.description,
-                                category: goal.category || "Personal",
-                                targetDate: goal.targetDate,
-                                userId: user.id,
-                                target: 100,
-                                progress: 0,
-                                unit: "%",
-                                colorScheme: 1
-                              });
-                            }}
-                            className="bg-[#F5B8DB] hover:bg-[#f096c9] text-white text-xs px-3"
-                            size="sm"
-                          >
-                            <Plus className="h-3.5 w-3.5 mr-1.5" /> Add Goal
-                          </Button>
-                        </div>
+                    {isSuggestionsLoading ? (
+                      <div className="flex items-center justify-center py-6">
+                        <Loader2 className="h-8 w-8 animate-spin text-[#F5B8DB]" />
                       </div>
-                    ))}
+                    ) : aiSuggestedGoals.length > 0 ? (
+                      aiSuggestedGoals.slice(0, 3).map(goal => (
+                        <div key={goal.id} className="bg-[#fff8f9] p-4 rounded-xl border border-[#F5B8DB] border-opacity-30">
+                          <h4 className="font-medium text-gray-800 text-sm mb-1">{goal.name}</h4>
+                          <p className="text-xs text-gray-600 mb-3 line-clamp-2">{goal.description}</p>
+                          {goal.source && (
+                            <div className="text-xs text-gray-500 italic mb-2 flex items-center">
+                              <Lightbulb className="h-3 w-3 inline mr-1 text-[#9AAB63]" />
+                              {goal.source}
+                            </div>
+                          )}
+                          <div className="flex justify-end">
+                            <Button 
+                              onClick={() => {
+                                // Add suggested goal
+                                if (!user) return;
+                                
+                                addGoalMutation.mutate({
+                                  name: goal.name,
+                                  description: goal.description,
+                                  category: goal.category || "Personal",
+                                  targetDate: goal.targetDate,
+                                  userId: user.id,
+                                  target: 100,
+                                  progress: 0,
+                                  unit: "%",
+                                  colorScheme: 1
+                                });
+                                
+                                // Remove this suggestion after adding
+                                setAiSuggestedGoals(prev => prev.filter(g => g.id !== goal.id));
+                              }}
+                              className="bg-[#F5B8DB] hover:bg-[#f096c9] text-white text-xs px-3"
+                              size="sm"
+                            >
+                              <Plus className="h-3.5 w-3.5 mr-1.5" /> Add Goal
+                            </Button>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      // Show sample goals if there are no AI suggestions
+                      AI_SUGGESTED_GOALS.slice(0, 3).map(goal => (
+                        <div key={goal.id} className="bg-[#fff8f9] p-4 rounded-xl border border-[#F5B8DB] border-opacity-30">
+                          <h4 className="font-medium text-gray-800 text-sm mb-1">{goal.name}</h4>
+                          <p className="text-xs text-gray-600 mb-3 line-clamp-2">{goal.description}</p>
+                          <div className="flex justify-end">
+                            <Button 
+                              onClick={() => {
+                                // Add suggested goal
+                                if (!user) return;
+                                
+                                addGoalMutation.mutate({
+                                  name: goal.name,
+                                  description: goal.description,
+                                  category: goal.category || "Personal",
+                                  targetDate: goal.targetDate,
+                                  userId: user.id,
+                                  target: 100,
+                                  progress: 0,
+                                  unit: "%",
+                                  colorScheme: 1
+                                });
+                              }}
+                              className="bg-[#F5B8DB] hover:bg-[#f096c9] text-white text-xs px-3"
+                              size="sm"
+                            >
+                              <Plus className="h-3.5 w-3.5 mr-1.5" /> Add Goal
+                            </Button>
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </CardContent>
               </Card>
