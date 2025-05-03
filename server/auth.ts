@@ -11,12 +11,13 @@ import { User as SelectUser, users as usersTable } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, gt } from "drizzle-orm";
 
-// Extend express-session with passport property
+// Extend express-session with additional properties
 declare module "express-session" {
   interface SessionData {
     passport?: {
       user?: number;
     };
+    lastLogin?: string;
   }
 }
 
@@ -456,10 +457,20 @@ export async function setupAuth(app: Express) {
           return next(loginErr);
         }
         console.log(`✅ Login successful for user ID: ${user.id}`);
-        console.log(`✅ Session after login:`, {
+        
+        // Force session cookie to be reset with longer expiration
+        if (req.session?.cookie) {
+          req.session.cookie.maxAge = 7 * 24 * 60 * 60 * 1000; // 1 week
+        }
+        
+        // Add a timestamp to the session for debugging
+        req.session.lastLogin = new Date().toISOString();
+        
+        console.log(`✅ Updated session:`, {
           id: req.sessionID,
           cookie: req.session?.cookie,
           passport: req.session?.passport,
+          lastLogin: req.session?.lastLogin
         });
         
         // Explicitly save the session to ensure it persists
@@ -487,10 +498,28 @@ export async function setupAuth(app: Express) {
   });
 
   app.get("/api/user", (req, res) => {
-    console.log(`⭐ GET /api/user - Session ID: ${req.session?.id || 'none'}`);
+    console.log(`⭐ GET /api/user - Session ID: ${req.sessionID || 'none'}`);
     console.log(`⭐ GET /api/user - isAuthenticated: ${req.isAuthenticated()}`);
-    console.log(`⭐ GET /api/user - Session cookie: ${req.headers.cookie ? 'Present' : 'Missing'}`);
-    console.log(`⭐ GET /api/user - Passport: ${req.session?.passport ? JSON.stringify(req.session.passport) : 'Not in session'}`);
+    console.log(`⭐ GET /api/user - Session cookie:`, req.headers.cookie?.substring(0, 20) + '...');
+    console.log(`⭐ GET /api/user - Session data:`, {
+      passport: req.session?.passport,
+      lastLogin: req.session?.lastLogin,
+      cookie: req.session?.cookie ? {
+        maxAge: req.session.cookie.maxAge,
+        expires: req.session.cookie.expires
+      } : 'No cookie'
+    });
+    
+    // Try to refresh session if user exists but isn't properly authenticated
+    if (req.session?.passport?.user && !req.isAuthenticated()) {
+      console.log(`⚠️ GET /api/user - Found user ID in session but not authenticated. Attempting to restore...`);
+      
+      // Force touch the session and confirm cookie is valid
+      req.session.touch();
+      if (req.session.cookie) {
+        req.session.cookie.maxAge = 7 * 24 * 60 * 60 * 1000; // 1 week
+      }
+    }
     
     if (!req.isAuthenticated()) {
       console.log(`❌ GET /api/user failed authentication check - no authenticated session`);
