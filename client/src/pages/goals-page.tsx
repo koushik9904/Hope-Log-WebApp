@@ -38,6 +38,13 @@ interface AISuggestedTask {
   description: string;
   priority?: string;
   goalId?: number;
+  status?: string;
+  source?: string;
+  aiExplanation?: string;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+  deletedAt?: string | null;
+  userId: number;
 }
 
 interface AISuggestedHabit {
@@ -1502,12 +1509,21 @@ export default function GoalsPage() {
                       aiSuggestedTasks.slice(0, 3).map(task => (
                         <div key={task.id} className="bg-[#f9f8ff] p-4 rounded-xl border border-[#B6CAEB] border-opacity-30">
                           <h4 className="font-medium text-gray-800 text-sm mb-1">{task.title}</h4>
-                          <p className="text-xs text-gray-600 mb-3 line-clamp-2">{task.description}</p>
-                          <div className="flex justify-between gap-2">
-                            <div className="flex flex-1">
+                          <p className="text-xs text-gray-600 mb-3">{task.description}</p>
+                          
+                          <div className="mt-3">
+                            {/* Priority badge */}
+                            <div className="mb-3 text-xs text-gray-500 flex items-center">
+                              <AlertCircle className="h-3 w-3 inline mr-1 text-[#B6CAEB]" />
+                              {task.priority ? 
+                                (task.priority.charAt(0).toUpperCase() + task.priority.slice(1)) : 
+                                "Medium"} Priority
+                            </div>
+                            
+                            {/* Action buttons - now full width and properly aligned */}
+                            <div className="flex gap-2 justify-center w-full">
                               <Button 
                                 onClick={() => {
-                                  // Accept task suggestion
                                   if (!user) return;
                                   
                                   // Add task by opening the task form with pre-filled values
@@ -1518,17 +1534,16 @@ export default function GoalsPage() {
                                   });
                                   setShowNewTaskDialog(true);
                                 }}
-                                className="bg-[#9AAB63] hover:bg-[#8a9a58] text-white text-xs flex-1 px-3"
+                                variant="outline" 
                                 size="sm"
+                                className="h-7 px-3 flex-1 bg-[#B6CAEB] hover:bg-[#95b9e5] border-[#B6CAEB] text-white hover:text-white text-center justify-center"
                               >
-                                <Check className="h-3.5 w-3.5 mr-1.5" /> Accept
+                                <ThumbsUp className="h-3 w-3 mr-1" />
+                                <span className="text-xs">Accept</span>
                               </Button>
-                            </div>
-                            <div className="flex flex-1">
                               <Button 
                                 onClick={() => {
-                                  // Reject task suggestion by doing nothing (just close the dialog)
-                                  // In a real implementation, you would call an API to remove the suggestion
+                                  // Reject task suggestion
                                   toast({
                                     title: "Task suggestion rejected",
                                     description: "The task suggestion has been removed",
@@ -1537,11 +1552,12 @@ export default function GoalsPage() {
                                   // Force a reload of suggestions
                                   queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}/ai-suggestions`] });
                                 }}
-                                variant="outline"
-                                className="text-xs flex-1 border-gray-300 px-3"
+                                variant="outline" 
                                 size="sm"
+                                className="h-7 px-3 flex-1 border-gray-300 text-gray-500 hover:bg-gray-100 text-center justify-center"
                               >
-                                <X className="h-3.5 w-3.5 mr-1.5" /> Reject
+                                <ThumbsDown className="h-3 w-3 mr-1" />
+                                <span className="text-xs">Reject</span>
                               </Button>
                             </div>
                           </div>
@@ -1560,22 +1576,26 @@ export default function GoalsPage() {
                     )}
                     
                     {!isSuggestionsLoading && (
-                      <Button 
+                      <Button
                         onClick={() => generateSuggestionsMutation.mutate()}
-                        disabled={generateSuggestionsMutation.isPending}
                         variant="outline"
                         size="sm"
-                        className="w-full mt-4 bg-gradient-to-r from-[#f5d867] to-[#B6CAEB] bg-opacity-20 hover:bg-opacity-30"
+                        className={`text-xs relative w-full mt-4 transition-all overflow-hidden 
+                          ${generateSuggestionsMutation.isPending ? 
+                            "bg-[#f5f0e8] text-gray-600" : 
+                            "bg-gradient-to-r from-[#FFF8E8] to-[#f5f0e8] hover:bg-gradient-to-r hover:from-[#FFF8D0] hover:to-[#f5ebc0] border-[#F5D867]"
+                          }`}
+                        disabled={generateSuggestionsMutation.isPending}
                       >
                         {generateSuggestionsMutation.isPending ? (
                           <>
                             <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
-                            Analyzing Journals...
+                            <span>Analyzing Journal...</span>
                           </>
                         ) : (
                           <>
-                            <Sparkles className="h-3.5 w-3.5 mr-1.5" />
-                            Generate AI Suggestions
+                            <Sparkles className="h-3.5 w-3.5 mr-1.5 text-[#F5D867]" />
+                            <span>Generate AI Suggestions</span>
                           </>
                         )}
                       </Button>
