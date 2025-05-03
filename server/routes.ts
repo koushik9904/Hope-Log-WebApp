@@ -11,10 +11,12 @@ import {
   generateWeeklySummary, 
   generateCustomPrompts, 
   storeEmbedding,
-  generateGoalSuggestions,
-  generateTaskSuggestions,
   generateJournalTitle
 } from "./openai";
+import {
+  processSingleEntry,
+  processAllEntriesForUser
+} from "./ai-suggestion-module";
 import { journalEntries } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import oauthSettingsRoutes from "./routes/oauth-settings";
@@ -715,48 +717,22 @@ Your role is to:
     if (req.user?.id !== userId) return res.sendStatus(403);
     
     try {
-      // Get recent journal entries for analysis
-      const journalEntries = await storage.getRecentJournalEntriesByUserId(userId, 10);
+      // Process all unanalyzed journal entries using the unified AI suggestion module
+      const result = await processAllEntriesForUser(userId);
       
-      // Filter to only include actual journal entries, not chat messages
-      const filteredEntries = journalEntries.filter(entry => entry.isJournal);
+      // Get the newly created suggested goals
+      const suggestedGoals = await storage.getAISuggestedGoals(userId);
       
-      if (filteredEntries.length === 0) {
-        return res.json({ goals: [] });
-      }
-      
-      // Get existing goals to avoid duplicates
-      const existingGoals = await storage.getGoalsByUserId(userId);
-      
-      // Generate suggestions based on journal content
-      const suggestions = await generateGoalSuggestions(filteredEntries, existingGoals);
-      
-      // Store new suggested goals in the database
-      const createdGoals = [];
-      for (const suggestion of suggestions.goals) {
-        // Check if a similar goal already exists by comparing names
-        const similarGoalExists = existingGoals.some(
-          existingGoal => existingGoal.name.toLowerCase() === suggestion.name.toLowerCase()
-        );
-        
-        if (!similarGoalExists) {
-          // Create a new goal with suggested status and ai source
-          const newGoal = await storage.createGoal({
-            userId,
-            name: suggestion.name,
-            description: suggestion.description || "",
-            category: suggestion.category || "Personal",
-            target: 100, // Default target
-            status: "suggested",
-            source: "ai",
-            aiExplanation: suggestion.explanation || "Generated from your journal entries"
-          });
-          
-          createdGoals.push(newGoal);
+      // Return the summary of what was created
+      res.json({ 
+        goals: suggestedGoals,
+        summary: {
+          goalsCreated: result.goalsCreated,
+          tasksCreated: result.tasksCreated,
+          goalsSkipped: result.goalsSkipped,
+          tasksSkipped: result.tasksSkipped
         }
-      }
-      
-      res.json({ goals: createdGoals });
+      });
     } catch (error) {
       console.error("Error generating and storing goal suggestions:", error);
       res.status(500).json({ error: "Failed to generate goal suggestions" });
@@ -842,26 +818,23 @@ Your role is to:
     if (req.user?.id !== userId) return res.sendStatus(403);
     
     try {
-      // Get recent journal entries for analysis
-      const journalEntries = await storage.getRecentJournalEntriesByUserId(userId, 10);
+      // This endpoint now uses the unified AI suggestion module
+      // Process all unanalyzed journal entries
+      const result = await processAllEntriesForUser(userId);
       
-      // Filter to only include actual journal entries, not chat messages
-      const filteredEntries = journalEntries.filter(entry => entry.isJournal);
+      // Get all tasks to display to the user
+      const tasks = await storage.getTasksByUserId(userId);
       
-      if (filteredEntries.length === 0) {
-        return res.json({ tasks: [], goalSuggestions: [] });
-      }
-      
-      // Get existing tasks to avoid duplicates
-      const existingTasks = await storage.getTasksByUserId(userId);
-      
-      // Get existing goals for context
-      const existingGoals = await storage.getGoalsByUserId(userId);
-      
-      // Generate suggestions based on journal content
-      const suggestions = await generateTaskSuggestions(filteredEntries, existingTasks, existingGoals);
-      
-      res.json(suggestions);
+      // Return both the tasks and the summary of what was processed
+      res.json({ 
+        tasks: tasks,
+        summary: {
+          goalsCreated: result.goalsCreated,
+          tasksCreated: result.tasksCreated,
+          goalsSkipped: result.goalsSkipped,
+          tasksSkipped: result.tasksSkipped
+        }
+      });
     } catch (error) {
       console.error("Error generating task suggestions:", error);
       res.status(500).json({ error: "Failed to generate task suggestions" });
@@ -875,25 +848,31 @@ Your role is to:
     if (req.user?.id !== userId) return res.sendStatus(403);
     
     try {
-      // Get recent journal entries for analysis
-      const journalEntries = await storage.getRecentJournalEntriesByUserId(userId, 10);
+      // This endpoint also uses the unified AI suggestion module
+      // Process all unanalyzed journal entries which will generate both goals and tasks
+      const result = await processAllEntriesForUser(userId);
       
-      // Filter to only include actual journal entries, not chat messages
-      const filteredEntries = journalEntries.filter(entry => entry.isJournal);
+      // For habits, we'll consider them a subset of goals
+      // We'll use existing goals that have been AI-suggested and filter them
+      const suggestedGoals = await storage.getAISuggestedGoals(userId);
       
-      if (filteredEntries.length === 0) {
-        return res.json({ habits: [] });
-      }
+      // Filter goals that look like habits (we can enhance this later)
+      // For now, let's consider goals with certain keywords to be habits
+      const habitKeywords = ['daily', 'weekly', 'routine', 'regular', 'habit'];
+      const habitSuggestions = suggestedGoals.filter(goal => {
+        const name = goal.name.toLowerCase();
+        return habitKeywords.some(keyword => name.includes(keyword));
+      });
       
-      // Get existing habits to avoid duplicates
-      const existingHabits = await storage.getHabitsByUserId(userId);
-      
-      // Generate suggestions based on journal content - use the goal suggestions 
-      // function and filter to only return habits
-      const suggestions = await generateGoalSuggestions(filteredEntries, []);
-      const habitSuggestions = suggestions.goals.filter(item => item.type === 'habit');
-      
-      res.json({ habits: habitSuggestions });
+      res.json({ 
+        habits: habitSuggestions,
+        summary: {
+          goalsCreated: result.goalsCreated,
+          tasksCreated: result.tasksCreated,
+          goalsSkipped: result.goalsSkipped,
+          tasksSkipped: result.tasksSkipped
+        }
+      });
     } catch (error) {
       console.error("Error generating habit suggestions:", error);
       res.status(500).json({ error: "Failed to generate habit suggestions" });
