@@ -47,40 +47,6 @@ interface AISuggestedHabit {
   frequency?: string;
 }
 
-// Sample AI suggested data (only used for fallback)
-const AI_SUGGESTED_GOALS: AISuggestedGoal[] = [
-  {
-    id: 101,
-    name: "Improve sleep quality",
-    description: "Based on your journal entries, focusing on better sleep habits could help your overall wellbeing.",
-    category: "Health",
-    targetDate: null,
-    status: "suggested",
-    source: "ai",
-    aiExplanation: "Your journal shows frequent mentions of feeling tired and having trouble concentrating during the day."
-  },
-  {
-    id: 102,
-    name: "Practice daily mindfulness",
-    description: "You've mentioned feeling overwhelmed - regular mindfulness could help manage stress levels.",
-    category: "Personal",
-    targetDate: null,
-    status: "suggested",
-    source: "ai",
-    aiExplanation: "In several entries, you've written about stress and feeling overwhelmed with daily tasks."
-  },
-  {
-    id: 103,
-    name: "Read more regularly",
-    description: "You've expressed interest in reading more. Setting a structured goal could help make this happen.",
-    category: "Learning",
-    targetDate: null,
-    status: "suggested",
-    source: "ai",
-    aiExplanation: "You've mentioned books you want to read and a desire to make more time for reading."
-  }
-];
-
 // AI suggestions are now fetched from the server API
 // and filtered in the component to remove duplicates
 
@@ -1885,21 +1851,33 @@ export default function GoalsPage() {
                                   // Add suggested habit
                                   if (!user) return;
                                   setNewHabit({
-                                title: habit.title,
-                                description: habit.description,
-                                frequency: habit.frequency || "daily",
-                                userId: user.id
-                              });
-                              setShowNewHabitDialog(true);
-                            }}
-                            className="bg-[#9AAB63] hover:bg-[#8a9a58] text-white text-xs px-3"
-                            size="sm"
-                          >
-                            <Plus className="h-3.5 w-3.5 mr-1.5" /> Add Habit
-                          </Button>
+                                    title: habit.title,
+                                    description: habit.description,
+                                    frequency: habit.frequency || "daily",
+                                    userId: user.id
+                                  });
+                                  setShowNewHabitDialog(true);
+                                }}
+                                className="bg-[#9AAB63] hover:bg-[#8a9a58] text-white text-xs px-3"
+                                size="sm"
+                              >
+                                <Plus className="h-3.5 w-3.5 mr-1.5" /> Add Habit
+                              </Button>
+                            </div>
+                          </div>
                         </div>
+                      ))
+                    ) : (
+                      <div className="flex flex-col items-center justify-center p-4 text-center">
+                        <div className="bg-gray-50 rounded-full p-3 mb-3">
+                          <Lightbulb className="h-6 w-6 text-gray-300" />
+                        </div>
+                        <p className="text-sm text-gray-500 mb-2">No habit suggestions yet</p>
+                        <p className="text-xs text-gray-400">
+                          Write more in your journal to get AI-suggested habits
+                        </p>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </CardContent>
               </Card>
