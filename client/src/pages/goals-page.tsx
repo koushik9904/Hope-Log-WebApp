@@ -1326,10 +1326,16 @@ export default function GoalsPage() {
                                             // Create a new task based on this goal
                                             const createTask = async () => {
                                               try {
+                                                // First create the task
                                                 const res = await apiRequest("POST", "/api/tasks", taskData);
                                                 const newTask = await res.json();
                                                 
+                                                // Then delete the goal
+                                                await apiRequest("DELETE", `/api/goals/${goal.id}`);
+                                                
+                                                // Refresh both tasks and goals lists
                                                 queryClient.invalidateQueries({ queryKey: [`/api/tasks/${user?.id}`] });
+                                                queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}`] });
                                                 
                                                 toast({
                                                   title: "Task created",
@@ -1356,7 +1362,7 @@ export default function GoalsPage() {
                                         </DropdownMenuItem>
                                         <DropdownMenuItem
                                           onClick={() => {
-                                            // deleteGoalMutation.mutate(goal.id);
+                                            deleteGoalMutation.mutate(goal.id);
                                           }}
                                         >
                                           <Trash2 className="h-4 w-4 mr-2" />
