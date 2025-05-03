@@ -246,6 +246,9 @@ export const tasks = pgTable("tasks", {
   goalId: integer("goal_id").references(() => goals.id), // Optional association with a goal
   priority: text("priority").notNull().default("medium"), // 'low', 'medium', 'high'
   colorScheme: integer("color_scheme").notNull().default(1),
+  status: text("status").notNull().default("pending"), // 'pending', 'in_progress', 'completed', 'suggested'
+  source: text("source").default("user"), // 'user', 'ai', 'system'
+  aiExplanation: text("ai_explanation"), // Optional explanation from AI for why this task was suggested
   deletedAt: timestamp("deleted_at", { mode: 'string' }),
   createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
   updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow()
@@ -257,7 +260,8 @@ export const insertTaskSchema = createInsertSchema(tasks).omit({
   completedAt: true,
   deletedAt: true,
   createdAt: true, 
-  updatedAt: true 
+  updatedAt: true
+  // status, source, and aiExplanation are included as they can be set during creation
 });
 
 export type InsertTask = z.infer<typeof insertTaskSchema>;
