@@ -280,6 +280,9 @@ export const habits = pgTable("habits", {
   // Track completion history for calendar view
   completionHistory: jsonb("completion_history").$type<Record<string, boolean>>().default({}),
   colorScheme: integer("color_scheme").notNull().default(1),
+  status: text("status").notNull().default("active"), // 'active', 'suggested', 'archived'
+  source: text("source").default("user"), // 'user', 'ai', 'system'
+  aiExplanation: text("ai_explanation"), // Optional explanation from AI for why this habit was suggested
   deletedAt: timestamp("deleted_at", { mode: 'string' }),
   createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
   updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow()
@@ -293,7 +296,8 @@ export const insertHabitSchema = createInsertSchema(habits).omit({
   completionHistory: true,
   deletedAt: true,
   createdAt: true, 
-  updatedAt: true 
+  updatedAt: true
+  // status, source, and aiExplanation are included as they can be set during creation
 });
 
 export type InsertHabit = z.infer<typeof insertHabitSchema>;

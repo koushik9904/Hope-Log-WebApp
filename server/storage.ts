@@ -82,6 +82,7 @@ export interface IStorage {
   getDeletedHabitsByUserId(userId: number): Promise<Habit[]>;
   restoreHabit(id: number): Promise<Habit>;
   permanentlyDeleteHabit(id: number): Promise<void>;
+  getAISuggestedHabits(userId: number): Promise<Habit[]>;
   
   // Prompt methods
   getDefaultPrompts(): Promise<Prompt[]>;
