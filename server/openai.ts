@@ -687,3 +687,155 @@ export async function generateTaskSuggestions(
     return { tasks: [], goalSuggestions: [] };
   }
 }
+
+/**
+ * Generate combined goal and task suggestions based on journal entries
+ * This unified function replaces the separate goal and task suggestion functions
+ */
+export async function generateCombinedSuggestions(
+  recentEntries: { content: string; date: string; id?: number }[],
+  existingGoals: { name: string; progress: number; targetDate?: string | null; id?: number }[] = [],
+  existingTasks: { title: string; status: string }[] = []
+): Promise<{ 
+  goals: { 
+    name: string; 
+    description: string; 
+    category?: string; 
+    explanation?: string 
+  }[]; 
+  tasks: { 
+    title: string; 
+    description: string; 
+    priority?: string; 
+    goalId?: number | null;
+    explanation?: string
+  }[] 
+}> {
+  try {
+    // Extract the content of the journal entries
+    const entriesText = recentEntries
+      .map(entry => `Entry from ${new Date(entry.date).toDateString()}: ${entry.content}`)
+      .join("\n\n");
+
+    // Get relevant past entries using RAG if possible
+    let similarEntries: Array<{id: number; content: string; date: string; transcript?: string | null; similarity: number}> = [];
+    if (recentEntries.length > 0 && recentEntries[0].id) {
+      try {
+        // Get the user ID from the first entry (all entries should be from the same user)
+        const firstEntry = await storage.getJournalEntryById(recentEntries[0].id);
+        if (firstEntry && firstEntry.userId) {
+          // Use the first entry text as a query for similarity search
+          similarEntries = await retrieveSimilarEntries(recentEntries[0].content, firstEntry.userId, 5);
+        }
+      } catch (error) {
+        console.log("Error retrieving similar entries, continuing without RAG context:", error);
+      }
+    }
+
+    // Format the similar entries if any were found
+    const similarEntriesText = similarEntries.length > 0
+      ? `\n\nHere are additional relevant journal entries for context:\n${
+          similarEntries
+            .filter(entry => !recentEntries.some(recent => recent.id === entry.id)) // Avoid duplicates
+            .map(entry => `Entry from ${new Date(entry.date).toDateString()}: "${entry.content}"`)
+            .join("\n\n")
+        }`
+      : "";
+
+    const existingGoalsText = existingGoals.length > 0
+      ? `Current goals:\n${existingGoals.map(goal => 
+          `- ${goal.name} (${goal.progress}% complete${goal.targetDate ? `, target: ${goal.targetDate}` : ''})`
+        ).join('\n')}`
+      : "The user currently has no active goals.";
+
+    const existingTasksText = existingTasks.length > 0
+      ? `Current tasks:\n${existingTasks.map(task => 
+          `- ${task.title} (${task.status})`
+        ).join('\n')}`
+      : "The user currently has no active tasks.";
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: `You are an AI wellness assistant that analyzes journal entries to suggest both goals and tasks.
+
+Based on the user's journal entries, provide two distinct lists:
+
+1. GOALS - Guidelines:
+   - Long-term outcomes requiring multiple steps
+   - Suggest 2-4 goals in total
+   - Goals should be specific, measurable, achievable, relevant, and time-bound
+   - Categorize each goal (e.g., Personal, Health, Career, Learning, Relationships, Financial)
+   - Include a detailed explanation of why each goal was suggested based on journal content
+
+2. TASKS - Guidelines:
+   - One-time, atomic actions that cannot be further broken down
+   - Suggest 3-5 tasks in total
+   - Tasks should be specific, immediate actions completable within a day
+   - Assign a priority level (high, medium, low) to each task
+   - Include an explanation of why the task would be beneficial
+   - If appropriate, link tasks to suggested goals or existing goals
+
+Avoid suggesting goals or tasks that the user already has.
+Base all suggestions on the user's actual journal content, not generic advice.
+
+Return a JSON object with:
+1. 'goals' array containing objects with:
+   - 'name': short, specific goal title (5-7 words)
+   - 'description': 1-2 sentence explanation of what the goal involves
+   - 'category': one of 'Personal', 'Health', 'Career', 'Learning', 'Relationships', 'Financial'
+   - 'explanation': 2-3 sentences explaining why this goal was suggested
+
+2. 'tasks' array containing objects with:
+   - 'title': short, actionable task name
+   - 'description': 1-2 sentence explanation
+   - 'priority': 'high', 'medium', or 'low'
+   - 'explanation': 1-2 sentences explaining why this task was suggested
+   - 'relatedGoal': name of a related suggested or existing goal (optional)`
+        },
+        {
+          role: "user",
+          content: `Here are my recent journal entries:\n\n${entriesText}${similarEntriesText}\n\n${existingGoalsText}\n\n${existingTasksText}`
+        }
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.7,
+    });
+
+    const content = response.choices[0].message.content || '{"goals":[], "tasks":[]}';
+    const parsed = JSON.parse(content);
+    
+    // Process the tasks to match our expected format
+    const processedTasks = parsed.tasks?.map((task: any) => {
+      let goalId = null;
+      
+      // If there's a related goal, try to find its ID from existing goals
+      if (task.relatedGoal) {
+        const matchingGoal = existingGoals.find(g => 
+          g.name?.toLowerCase() === task.relatedGoal.toLowerCase() && g.id
+        );
+        if (matchingGoal) {
+          goalId = matchingGoal.id;
+        }
+      }
+      
+      return {
+        title: task.title,
+        description: task.description,
+        priority: task.priority || "medium",
+        goalId,
+        explanation: task.explanation
+      };
+    }) || [];
+    
+    return { 
+      goals: parsed.goals || [], 
+      tasks: processedTasks 
+    };
+  } catch (error) {
+    console.error("Error generating combined suggestions:", error);
+    return { goals: [], tasks: [] };
+  }
+}
