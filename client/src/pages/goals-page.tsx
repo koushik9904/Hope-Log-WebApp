@@ -953,77 +953,85 @@ export default function GoalsPage() {
                       aiSuggestedGoals.slice(0, 3).map(goal => (
                         <div key={goal.id} className="bg-[#fff8f9] p-4 rounded-xl border border-[#F5B8DB] border-opacity-30">
                           <h4 className="font-medium text-gray-800 text-sm mb-1">{goal.name}</h4>
-                          <p className="text-xs text-gray-600 mb-3 line-clamp-2">{goal.description}</p>
-                          {goal.source && (
-                            <div className="text-xs text-gray-500 italic mb-2 flex items-center">
-                              <Lightbulb className="h-3 w-3 inline mr-1 text-[#9AAB63]" />
-                              {goal.source}
+                          <p className="text-xs text-gray-600 mb-3">{goal.description}</p>
+                          
+                          {goal.aiExplanation && (
+                            <div className="bg-[#F5F5FF] p-2 rounded-md text-xs text-gray-600 mb-3">
+                              <div className="flex items-center gap-1 mb-1">
+                                <Sparkles className="h-3 w-3 text-[#B6CAEB]" />
+                                <span className="font-medium text-gray-700">Why this was suggested:</span>
+                              </div>
+                              {goal.aiExplanation}
                             </div>
                           )}
-                          <div className="flex justify-end">
-                            <Button 
-                              onClick={() => {
-                                // Add suggested goal
-                                if (!user) return;
-                                
-                                addGoalMutation.mutate({
-                                  name: goal.name,
-                                  description: goal.description,
-                                  category: goal.category || "Personal",
-                                  targetDate: goal.targetDate,
-                                  userId: user.id,
-                                  target: 100,
-                                  progress: 0,
-                                  unit: "%",
-                                  colorScheme: 1
-                                });
-                                
-                                // Remove this suggestion after adding
-                                setAiSuggestedGoals(prev => prev.filter(g => g.id !== goal.id));
-                              }}
-                              className="bg-[#F5B8DB] hover:bg-[#f096c9] text-white text-xs px-3"
-                              size="sm"
-                            >
-                              <Plus className="h-3.5 w-3.5 mr-1.5" /> Add Goal
-                            </Button>
+                          
+                          <div className="flex justify-between items-center mt-3">
+                            <div className="text-xs text-gray-500 flex items-center">
+                              <Lightbulb className="h-3 w-3 inline mr-1 text-[#9AAB63]" />
+                              {goal.category || "Personal"}
+                            </div>
+                            <div className="flex gap-2">
+                              <Button 
+                                onClick={() => acceptGoalSuggestionMutation.mutate(goal.id)}
+                                variant="outline" 
+                                size="sm"
+                                className="h-7 px-2 bg-[#F5B8DB] hover:bg-[#f096c9] border-[#F5B8DB] text-white hover:text-white"
+                                disabled={acceptGoalSuggestionMutation.isPending}
+                              >
+                                <ThumbsUp className="h-3 w-3 mr-1" />
+                                <span className="text-xs">Accept</span>
+                              </Button>
+                              <Button 
+                                onClick={() => rejectGoalSuggestionMutation.mutate(goal.id)}
+                                variant="outline" 
+                                size="sm"
+                                className="h-7 px-2 border-gray-300 text-gray-500 hover:bg-gray-100"
+                                disabled={rejectGoalSuggestionMutation.isPending}
+                              >
+                                <ThumbsDown className="h-3 w-3 mr-1" />
+                                <span className="text-xs">Reject</span>
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       ))
                     ) : (
-                      // Show sample goals if there are no AI suggestions
-                      AI_SUGGESTED_GOALS.slice(0, 3).map(goal => (
-                        <div key={goal.id} className="bg-[#fff8f9] p-4 rounded-xl border border-[#F5B8DB] border-opacity-30">
-                          <h4 className="font-medium text-gray-800 text-sm mb-1">{goal.name}</h4>
-                          <p className="text-xs text-gray-600 mb-3 line-clamp-2">{goal.description}</p>
-                          <div className="flex justify-end">
-                            <Button 
-                              onClick={() => {
-                                // Add suggested goal
-                                if (!user) return;
-                                
-                                addGoalMutation.mutate({
-                                  name: goal.name,
-                                  description: goal.description,
-                                  category: goal.category || "Personal",
-                                  targetDate: goal.targetDate,
-                                  userId: user.id,
-                                  target: 100,
-                                  progress: 0,
-                                  unit: "%",
-                                  colorScheme: 1
-                                });
-                              }}
-                              className="bg-[#F5B8DB] hover:bg-[#f096c9] text-white text-xs px-3"
-                              size="sm"
-                            >
-                              <Plus className="h-3.5 w-3.5 mr-1.5" /> Add Goal
-                            </Button>
-                          </div>
-                        </div>
-                      ))
+                      <div className="text-center p-4 text-gray-500 text-sm">
+                        <p>No goal suggestions available right now.</p>
+                        <p className="text-xs mt-1">Try writing more in your journal.</p>
+                        <Button
+                          onClick={() => generateSuggestionsMutation.mutate()}
+                          variant="outline"
+                          size="sm"
+                          className="mt-3 text-xs"
+                          disabled={generateSuggestionsMutation.isPending}
+                        >
+                          <RefreshCw className={`h-3 w-3 mr-1 ${generateSuggestionsMutation.isPending ? 'animate-spin' : ''}`} />
+                          Generate Suggestions
+                        </Button>
+                      </div>
                     )}
                   </div>
                 </CardContent>
+                {aiSuggestedGoals.length > 3 && (
+                  <CardFooter className="flex justify-center pt-0">
+                    <Button
+                      variant="link"
+                      size="sm"
+                      className="text-xs text-[#F5B8DB]"
+                      onClick={() => {
+                        // Open a dialog to show all suggestions
+                        // For simplicity, we're not implementing this now
+                        toast({
+                          title: "Coming soon",
+                          description: "View all suggestions will be available in a future update.",
+                        });
+                      }}
+                    >
+                      View all {aiSuggestedGoals.length} suggestions
+                    </Button>
+                  </CardFooter>
+                )}
               </Card>
               <Card className="md:col-span-3 bg-white border-0 shadow-sm">
                 <CardHeader className="border-b border-gray-100">
