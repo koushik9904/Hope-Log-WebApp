@@ -14,8 +14,10 @@ import { generateCombinedSuggestions } from "./openai";
 interface SuggestionResult {
   goalsCreated: number;
   tasksCreated: number;
+  habitsCreated: number;
   goalsSkipped: number;
   tasksSkipped: number;
+  habitsSkipped: number;
 }
 
 /**
@@ -30,8 +32,10 @@ export async function processSingleEntry(journalEntry: JournalEntry): Promise<Su
       return {
         goalsCreated: 0,
         tasksCreated: 0,
+        habitsCreated: 0,
         goalsSkipped: 0,
-        tasksSkipped: 0
+        tasksSkipped: 0,
+        habitsSkipped: 0
       };
     }
 
@@ -39,17 +43,20 @@ export async function processSingleEntry(journalEntry: JournalEntry): Promise<Su
     if (journalEntry.analyzed) {
       return {
         goalsCreated: 0,
-        tasksCreated: 0, 
+        tasksCreated: 0,
+        habitsCreated: 0,
         goalsSkipped: 0,
-        tasksSkipped: 0
+        tasksSkipped: 0,
+        habitsSkipped: 0
       };
     }
 
     const userId = journalEntry.userId;
     
-    // Get existing goals and tasks to avoid duplicates
+    // Get existing goals, tasks and habits to avoid duplicates
     const existingGoals = await storage.getGoalsByUserId(userId);
     const existingTasks = await storage.getTasksByUserId(userId);
+    const existingHabits = await storage.getHabitsByUserId(userId);
     
     // Format entries and tasks for the AI
     const journalEntryFormatted = {
@@ -63,14 +70,26 @@ export async function processSingleEntry(journalEntry: JournalEntry): Promise<Su
       status: task.completed ? 'completed' : 'pending'
     }));
     
+    const existingHabitsFormatted = existingHabits.map(habit => ({
+      title: habit.title,
+      frequency: habit.frequency
+    }));
+    
     // Generate combined suggestions using the new unified approach
-    const suggestions = await generateCombinedSuggestions([journalEntryFormatted], existingGoals, existingTasksFormatted);
+    const suggestions = await generateCombinedSuggestions(
+      [journalEntryFormatted], 
+      existingGoals, 
+      existingTasksFormatted,
+      existingHabitsFormatted
+    );
     
     let result: SuggestionResult = {
       goalsCreated: 0,
       tasksCreated: 0,
+      habitsCreated: 0,
       goalsSkipped: 0,
-      tasksSkipped: 0
+      tasksSkipped: 0,
+      habitsSkipped: 0
     };
     
     // Process goal suggestions
@@ -131,6 +150,34 @@ export async function processSingleEntry(journalEntry: JournalEntry): Promise<Su
       }
     }
     
+    // Process habit suggestions
+    if (suggestions.habits && suggestions.habits.length > 0) {
+      for (const suggestion of suggestions.habits) {
+        // Check if a similar habit already exists
+        const normalizedSuggestion = suggestion.title.toLowerCase().trim();
+        const similarHabitExists = existingHabits.some(
+          existingHabit => existingHabit.title.toLowerCase().trim() === normalizedSuggestion
+        );
+        
+        if (!similarHabitExists) {
+          // Create a new habit with suggested status and ai source
+          await storage.createHabit({
+            userId,
+            title: suggestion.title,
+            description: suggestion.description || "",
+            frequency: suggestion.frequency || "daily",
+            status: "suggested",
+            source: "ai",
+            aiExplanation: suggestion.explanation || "Generated from your journal entries"
+          });
+          
+          result.habitsCreated++;
+        } else {
+          result.habitsSkipped++;
+        }
+      }
+    }
+    
     // Mark the journal entry as analyzed
     await storage.updateJournalEntry(journalEntry.id, { analyzed: true });
     
@@ -157,16 +204,20 @@ export async function processAllEntriesForUser(userId: number): Promise<Suggesti
     let totalResult: SuggestionResult = {
       goalsCreated: 0,
       tasksCreated: 0,
+      habitsCreated: 0,
       goalsSkipped: 0,
-      tasksSkipped: 0
+      tasksSkipped: 0,
+      habitsSkipped: 0
     };
     
     for (const entry of journalEntries) {
       const result = await processSingleEntry(entry);
       totalResult.goalsCreated += result.goalsCreated;
       totalResult.tasksCreated += result.tasksCreated;
+      totalResult.habitsCreated += result.habitsCreated;
       totalResult.goalsSkipped += result.goalsSkipped;
       totalResult.tasksSkipped += result.tasksSkipped;
+      totalResult.habitsSkipped += result.habitsSkipped;
     }
     
     return totalResult;
@@ -188,7 +239,7 @@ export async function processAllEntries(): Promise<void> {
     for (const user of users) {
       try {
         const result = await processAllEntriesForUser(user.id);
-        console.log(`User ${user.id}: ${result.goalsCreated} goals and ${result.tasksCreated} tasks created`);
+        console.log(`User ${user.id}: ${result.goalsCreated} goals, ${result.tasksCreated} tasks, and ${result.habitsCreated} habits created`);
       } catch (error) {
         console.error(`Error processing entries for user ${user.id}:`, error);
       }

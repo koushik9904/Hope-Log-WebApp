@@ -873,6 +873,6 @@ Return a JSON object with:
     };
   } catch (error) {
     console.error("Error generating combined suggestions:", error);
-    return { goals: [], tasks: [] };
+    return { goals: [], tasks: [], habits: [] };
   }
 }
