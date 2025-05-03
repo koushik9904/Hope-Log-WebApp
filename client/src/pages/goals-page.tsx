@@ -1043,17 +1043,20 @@ export default function GoalsPage() {
                             </div>
                           )}
                           
-                          <div className="flex justify-between items-center mt-3">
-                            <div className="text-xs text-gray-500 flex items-center">
+                          <div className="mt-3">
+                            {/* Category badge */}
+                            <div className="mb-3 text-xs text-gray-500 flex items-center">
                               <Lightbulb className="h-3 w-3 inline mr-1 text-[#9AAB63]" />
                               {goal.category || "Personal"}
                             </div>
-                            <div className="flex gap-2">
+                            
+                            {/* Action buttons - now full width and properly aligned */}
+                            <div className="flex gap-2 justify-center w-full">
                               <Button 
                                 onClick={() => acceptGoalSuggestionMutation.mutate(goal.id)}
                                 variant="outline" 
                                 size="sm"
-                                className="h-7 px-2 bg-[#F5B8DB] hover:bg-[#f096c9] border-[#F5B8DB] text-white hover:text-white"
+                                className="h-7 px-3 flex-1 bg-[#F5B8DB] hover:bg-[#f096c9] border-[#F5B8DB] text-white hover:text-white text-center justify-center"
                                 disabled={acceptGoalSuggestionMutation.isPending}
                               >
                                 <ThumbsUp className="h-3 w-3 mr-1" />
@@ -1063,7 +1066,7 @@ export default function GoalsPage() {
                                 onClick={() => rejectGoalSuggestionMutation.mutate(goal.id)}
                                 variant="outline" 
                                 size="sm"
-                                className="h-7 px-2 border-gray-300 text-gray-500 hover:bg-gray-100"
+                                className="h-7 px-3 flex-1 border-gray-300 text-gray-500 hover:bg-gray-100 text-center justify-center"
                                 disabled={rejectGoalSuggestionMutation.isPending}
                               >
                                 <ThumbsDown className="h-3 w-3 mr-1" />
