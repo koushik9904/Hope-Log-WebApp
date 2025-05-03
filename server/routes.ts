@@ -253,10 +253,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const { userId, date = null, timezone = null } = req.body;
     if (req.user?.id !== userId) return res.sendStatus(403);
     
+    console.log(`⭐ POST /api/journal-entries/save-chat received for user ${userId}`);
+    
     try {
       // Get recent chat entries that aren't already part of a saved journal
+      console.log(`Fetching recent entries for user ${userId}`);
       const recentEntries = await storage.getRecentJournalEntriesByUserId(userId, 50);
       const chatEntries = recentEntries.filter(entry => !entry.isJournal);
+      
+      console.log(`Found ${chatEntries.length} chat entries to save`);
       
       if (chatEntries.length === 0) {
         return res.status(400).json({ error: "No chat entries to save" });
@@ -268,22 +273,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .map(entry => `${entry.isAiResponse ? 'Hope Log: ' : 'You: '}${entry.content}`)
         .join('\n\n');
       
+      // Use the last user message as content
+      const userMessages = chatEntries.filter(entry => !entry.isAiResponse);
+      const content = userMessages.length > 0 
+        ? userMessages[userMessages.length - 1].content 
+        : "Chat transcript";
+      
+      console.log(`Generated transcript with ${transcript.length} characters`);
+      
+      // Generate meaningful title for the chat journal entry
+      let title;
+      try {
+        title = await generateJournalTitle(transcript);
+        console.log(`Generated title for chat transcript: ${title}`);
+      } catch (titleError) {
+        console.error("Failed to generate title for chat, using default:", titleError);
+        title = "Chat Transcript";
+      }
+      
       // Generate summary and analyze sentiment with goal extraction
-      const sentiment = await analyzeSentiment(transcript);
+      let sentiment: any = { score: 0, emotions: [], themes: [], goals: [], tasks: [] };
+      try {
+        console.log(`Analyzing sentiment for chat transcript`);
+        sentiment = await analyzeSentiment(transcript);
+        console.log(`✅ Sentiment analysis complete for chat transcript`);
+      } catch (sentimentError) {
+        console.error("Error analyzing sentiment:", sentimentError);
+        // Default sentiment already set
+      }
       
       // Use provided date if available, otherwise use current time
       // The client should provide the date in the user's local timezone
-      const entryDate = date ? new Date(date) : new Date();
+      let entryDate;
+      if (date) {
+        console.log(`Using provided date: ${date}`);
+        entryDate = date; // Use directly as string
+      } else {
+        entryDate = new Date().toISOString();
+        console.log(`No date provided, using current date: ${entryDate}`);
+      }
+      
+      console.log(`Creating journal entry from chat with date: ${entryDate}`);
       
       // Create the journal entry as a permanent record (isJournal=true)
-      const journalEntry = await storage.createJournalEntry({
-        userId,
-        content: chatEntries[chatEntries.length - 1].content, // Use the last message as the content
-        date: entryDate.toISOString(),
-        isAiResponse: false,
-        isJournal: true,
-        transcript: transcript // Store the full conversation transcript
-      });
+      let journalEntry;
+      try {
+        journalEntry = await storage.createJournalEntry({
+          userId,
+          content: content,
+          title: title,
+          date: entryDate,
+          isAiResponse: false,
+          isJournal: true,
+          transcript: transcript, // Store the full conversation transcript
+          analyzed: false // Mark for processing by AI suggestion module
+        });
+        console.log(`✅ Chat journal entry created with ID: ${journalEntry.id}`);
+      } catch (createError) {
+        console.error(`❌ Error creating journal entry from chat:`, createError);
+        return res.status(500).json({ error: "Failed to create journal entry from chat" });
+      }
       
       // Update with sentiment analysis
       const updatedEntry = await storage.updateJournalEntrySentiment(
@@ -546,7 +595,15 @@ Your role is to:
     const { content, userId, transcript = null, date = null } = req.body;
     if (req.user?.id !== userId) return res.sendStatus(403);
     
+    console.log(`⭐ POST /api/journal-entries received for user ${userId} with content length ${content?.length || 0}`);
+    
     try {
+      // Validate content exists
+      if (!content || content.trim() === '') {
+        console.error("Missing content in journal entry");
+        return res.status(400).json({ error: "Content is required for journal entries" });
+      }
+
       // This endpoint now only handles direct journal entries
       // Chat messages are handled in memory and only saved when "Save Chat" is clicked
       
@@ -561,6 +618,7 @@ Your role is to:
       } else {
         // Only for fallback - construct a current date in ISO format
         entryDate = new Date().toISOString();
+        console.log(`⚠️ No date provided, using current date: ${entryDate}`);
       }
       
       // Generate a meaningful title for the journal entry
@@ -573,21 +631,38 @@ Your role is to:
         title = "Journal Entry";
       }
 
+      console.log(`Creating journal entry with title: "${title}" for user ${userId}`);
+      
       // Save as permanent journal entry
-      const journalEntry = await storage.createJournalEntry({
-        userId,
-        content,
-        date: entryDate, // Already an ISO string from client
-        title, // Add the AI-generated title
-        isAiResponse: false,
-        isJournal: true, // This is a permanent journal entry
-        transcript: transcript || content, // Use provided transcript if available, otherwise use content
-        analyzed: false // Mark for processing by the unified AI suggestion module
-      });
+      let journalEntry;
+      try {
+        journalEntry = await storage.createJournalEntry({
+          userId,
+          content,
+          date: entryDate, // Already an ISO string from client
+          title, // Add the AI-generated title
+          isAiResponse: false,
+          isJournal: true, // This is a permanent journal entry
+          transcript: transcript || content, // Use provided transcript if available, otherwise use content
+          analyzed: false // Mark for processing by the unified AI suggestion module
+        });
+        console.log(`✅ Journal entry created with ID: ${journalEntry.id}`);
+      } catch (createError) {
+        console.error(`❌ Error creating journal entry:`, createError);
+        return res.status(500).json({ error: "Failed to create journal entry" });
+      }
       
       // Get sentiment analysis
-      const sentiment = await analyzeSentiment(content);
-      await storage.updateJournalEntrySentiment(journalEntry.id, sentiment);
+      let sentiment: any = { score: 0, emotions: [], themes: [], goals: [], tasks: [] };
+      try {
+        console.log(`Getting sentiment analysis for entry ID: ${journalEntry.id}`);
+        sentiment = await analyzeSentiment(content);
+        await storage.updateJournalEntrySentiment(journalEntry.id, sentiment);
+        console.log(`✅ Updated sentiment for entry ID: ${journalEntry.id}`);
+      } catch (sentimentError) {
+        console.error(`❌ Error analyzing sentiment for entry ${journalEntry.id}:`, sentimentError);
+        // Continue with the process - sentiment analysis is not critical
+      }
       
       // Process with the unified AI suggestion module
       try {
@@ -607,32 +682,47 @@ Your role is to:
       }
       
       // Process goal progress updates if needed
-      if (sentiment.goals && sentiment.goals.length > 0) {
+      if (sentiment && sentiment.goals && sentiment.goals.length > 0) {
+        console.log(`Processing ${sentiment.goals.length} goals from sentiment analysis`);
         for (const goal of sentiment.goals) {
-          if (goal.completion !== undefined) {
-            // Find the existing goal to update
-            const existingGoals = await storage.getGoalsByUserId(userId);
-            const matchingGoal = existingGoals.find(g => 
-              g.name.toLowerCase() === goal.name.toLowerCase()
-            );
-            
-            if (matchingGoal) {
-              // Update the goal progress
-              await storage.updateGoalProgress(matchingGoal.id, goal.completion);
+          try {
+            if (goal.completion !== undefined) {
+              // Find the existing goal to update
+              const existingGoals = await storage.getGoalsByUserId(userId);
+              const matchingGoal = existingGoals.find(g => 
+                g.name.toLowerCase() === goal.name.toLowerCase()
+              );
+              
+              if (matchingGoal) {
+                // Update the goal progress
+                await storage.updateGoalProgress(matchingGoal.id, goal.completion);
+                console.log(`Updated progress for goal "${goal.name}" to ${goal.completion}%`);
+              }
             }
+          } catch (goalError) {
+            console.error(`Error processing goal "${goal.name}":`, goalError);
           }
         }
+      } else {
+        console.log(`No goals found in sentiment analysis`);
       }
       
       // Store embedding for RAG functionality
       try {
         await storeEmbedding(journalEntry.id, content);
+        console.log(`✅ Stored embedding for journal entry ${journalEntry.id}`);
       } catch (embeddingError) {
         console.error("Failed to store embedding, but continuing:", embeddingError);
       }
       
       // Return the journal entry
-      res.status(201).json([journalEntry]);
+      try {
+        console.log(`✅ Successfully created journal entry with ID: ${journalEntry.id}`);
+        res.status(201).json([journalEntry]);
+      } catch (responseError) {
+        console.error(`Error sending response:`, responseError);
+        res.status(500).json({ error: "Error sending journal entry response" });
+      }
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: "Failed to process journal entry" });
