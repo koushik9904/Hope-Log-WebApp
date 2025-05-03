@@ -687,8 +687,8 @@ Your role is to:
     }
   });
   
-  // Get AI-suggested goals and habits based on journal entries
-  // This endpoint generates new AI suggested goals and stores them in the database
+  // Get AI-suggested goals, tasks, and habits based on journal entries
+  // This endpoint generates new AI suggestions and stores them in the database
   app.get("/api/goals/:userId/generate-suggestions", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     
@@ -699,22 +699,26 @@ Your role is to:
       // Process all unanalyzed journal entries using the unified AI suggestion module
       const result = await processAllEntriesForUser(userId);
       
-      // Get the newly created suggested goals
+      // Get the newly created suggested goals and habits
       const suggestedGoals = await storage.getAISuggestedGoals(userId);
+      const suggestedHabits = await storage.getAISuggestedHabits(userId);
       
       // Return the summary of what was created
       res.json({ 
         goals: suggestedGoals,
+        habits: suggestedHabits,
         summary: {
           goalsCreated: result.goalsCreated,
           tasksCreated: result.tasksCreated,
+          habitsCreated: result.habitsCreated,
           goalsSkipped: result.goalsSkipped,
-          tasksSkipped: result.tasksSkipped
+          tasksSkipped: result.tasksSkipped,
+          habitsSkipped: result.habitsSkipped
         }
       });
     } catch (error) {
-      console.error("Error generating and storing goal suggestions:", error);
-      res.status(500).json({ error: "Failed to generate goal suggestions" });
+      console.error("Error generating and storing AI suggestions:", error);
+      res.status(500).json({ error: "Failed to generate AI suggestions" });
     }
   });
   
@@ -810,8 +814,10 @@ Your role is to:
         summary: {
           goalsCreated: result.goalsCreated,
           tasksCreated: result.tasksCreated,
+          habitsCreated: result.habitsCreated,
           goalsSkipped: result.goalsSkipped,
-          tasksSkipped: result.tasksSkipped
+          tasksSkipped: result.tasksSkipped,
+          habitsSkipped: result.habitsSkipped
         }
       });
     } catch (error) {
@@ -827,29 +833,22 @@ Your role is to:
     if (req.user?.id !== userId) return res.sendStatus(403);
     
     try {
-      // This endpoint also uses the unified AI suggestion module
-      // Process all unanalyzed journal entries which will generate both goals and tasks
+      // This endpoint uses the unified AI suggestion module
+      // Process all unanalyzed journal entries which will generate goals, tasks, and habits
       const result = await processAllEntriesForUser(userId);
       
-      // For habits, we'll consider them a subset of goals
-      // We'll use existing goals that have been AI-suggested and filter them
-      const suggestedGoals = await storage.getAISuggestedGoals(userId);
-      
-      // Filter goals that look like habits (we can enhance this later)
-      // For now, let's consider goals with certain keywords to be habits
-      const habitKeywords = ['daily', 'weekly', 'routine', 'regular', 'habit'];
-      const habitSuggestions = suggestedGoals.filter(goal => {
-        const name = goal.name.toLowerCase();
-        return habitKeywords.some(keyword => name.includes(keyword));
-      });
+      // Get AI suggested habits
+      const suggestedHabits = await storage.getAISuggestedHabits(userId);
       
       res.json({ 
-        habits: habitSuggestions,
+        habits: suggestedHabits,
         summary: {
           goalsCreated: result.goalsCreated,
           tasksCreated: result.tasksCreated,
+          habitsCreated: result.habitsCreated,
           goalsSkipped: result.goalsSkipped,
-          tasksSkipped: result.tasksSkipped
+          tasksSkipped: result.tasksSkipped,
+          habitsSkipped: result.habitsSkipped
         }
       });
     } catch (error) {
