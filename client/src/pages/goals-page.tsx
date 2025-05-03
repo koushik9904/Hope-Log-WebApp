@@ -408,7 +408,9 @@ export default function GoalsPage() {
   // Generate new suggestions mutation
   const generateSuggestionsMutation = useMutation({
     mutationFn: async () => {
+      console.log("Attempting to generate suggestions for user:", user?.id);
       const res = await apiRequest("GET", `/api/goals/${user?.id}/generate-suggestions`, {});
+      console.log("Received generate suggestions response:", res.status);
       return await res.json();
     },
     onSuccess: (data) => {
