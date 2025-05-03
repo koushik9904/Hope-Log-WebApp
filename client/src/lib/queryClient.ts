@@ -15,12 +15,19 @@ export async function apiRequest(
   console.log(`API Request: ${method} ${url}`);
   
   try {
-    const res = await fetch(url, {
+    // For GET requests, we should never include a body
+    const options: RequestInit = {
       method,
-      headers: data ? { "Content-Type": "application/json" } : {},
-      body: data ? JSON.stringify(data) : undefined,
       credentials: "include",
-    });
+    };
+    
+    // Only add Content-Type header and body for non-GET requests with data
+    if (method !== "GET" && data) {
+      options.headers = { "Content-Type": "application/json" };
+      options.body = JSON.stringify(data);
+    }
+    
+    const res = await fetch(url, options);
     
     console.log(`API Response: ${res.status} ${res.statusText} for ${method} ${url}`);
     

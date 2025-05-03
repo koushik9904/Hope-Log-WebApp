@@ -418,7 +418,8 @@ export default function GoalsPage() {
       
       try {
         console.log("Making API request to generate suggestions");
-        const res = await apiRequest("GET", `/api/goals/${user.id}/generate-suggestions`, {});
+        // Don't include body in GET requests
+        const res = await apiRequest("GET", `/api/goals/${user.id}/generate-suggestions`);
         console.log("Received generate suggestions response:", res.status);
         
         if (!res.ok) {
