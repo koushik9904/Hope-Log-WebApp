@@ -70,6 +70,7 @@ export interface IStorage {
   deleteTask(id: number): Promise<void>;
   getCompletedTasksByUserId(userId: number): Promise<Task[]>;
   getTasksByGoalId(goalId: number): Promise<Task[]>;
+  getAISuggestedTasks(userId: number): Promise<Task[]>;
   
   // Habit methods
   getHabitsByUserId(userId: number): Promise<Habit[]>;
@@ -544,6 +545,21 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(tasks.goalId, goalId),
+          isNull(tasks.deletedAt)
+        )
+      )
+      .orderBy(desc(tasks.createdAt));
+  }
+  
+  async getAISuggestedTasks(userId: number): Promise<Task[]> {
+    return await db
+      .select()
+      .from(tasks)
+      .where(
+        and(
+          eq(tasks.userId, userId),
+          eq(tasks.status, 'suggested'),
+          eq(tasks.source, 'ai'),
           isNull(tasks.deletedAt)
         )
       )

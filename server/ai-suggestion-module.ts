@@ -112,15 +112,16 @@ export async function processSingleEntry(journalEntry: JournalEntry): Promise<Su
         );
         
         if (!similarTaskExists) {
-          // Create a new task with suggested status
-          // Note: Task schema doesn't have status/source/aiExplanation fields yet
-          // We'll just create it with the appropriate fields for now
+          // Create a new task with suggested status and ai source
           await storage.createTask({
             userId,
             title: suggestion.title,
             description: suggestion.description || "",
             priority: suggestion.priority || "medium",
-            goalId: suggestion.goalId || null
+            goalId: suggestion.goalId || null,
+            status: "suggested",
+            source: "ai",
+            aiExplanation: suggestion.explanation || "Generated from your journal entries"
           });
           
           result.tasksCreated++;
