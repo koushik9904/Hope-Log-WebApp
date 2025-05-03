@@ -17,6 +17,7 @@ import session from "express-session";
 import { db, pool } from "./db";
 import { eq, and, gte, desc, sql, isNull, not } from "drizzle-orm";
 import createMemoryStore from "memorystore";
+import connectPg from "connect-pg-simple";
 
 // Interfaces for storage methods
 export interface IStorage {
@@ -113,10 +114,25 @@ export class DatabaseStorage implements IStorage {
   sessionStore: session.Store;
   
   constructor() {
-    const MemoryStore = createMemoryStore(session);
-    this.sessionStore = new MemoryStore({
-      checkPeriod: 86400000 // Prune expired entries every 24h
-    });
+    // Use PostgreSQL session store for better session persistence
+    const PostgresStore = connectPg(session);
+    
+    try {
+      console.log("Initializing PostgreSQL session store for better persistence");
+      this.sessionStore = new PostgresStore({
+        pool: pool,  // Connection pool
+        tableName: 'session',  // Session table name
+        createTableIfMissing: true,  // Auto-create the session table
+      });
+      console.log("PostgreSQL session store initialized successfully");
+    } catch (e) {
+      console.error("Failed to initialize PostgreSQL session store, falling back to memory store:", e);
+      // Fallback to memory store if database store fails
+      const MemoryStore = createMemoryStore(session);
+      this.sessionStore = new MemoryStore({
+        checkPeriod: 86400000 // Prune expired entries every 24h
+      });
+    }
     
     // Setup default prompts
     this.createDefaultPrompts();
@@ -918,11 +934,11 @@ export class DatabaseStorage implements IStorage {
       // that aren't in the schema. We'll continue to use raw SQL for these.
       try {
         // First clear existing suggestions for this user
-        await db.execute(`DELETE FROM ai_task_suggestions WHERE user_id = $1`, [data.userId]);
+        await pool.query(`DELETE FROM ai_task_suggestions WHERE user_id = $1`, [data.userId]);
         
         // Insert new suggestions
         for (const suggestion of data.suggestions) {
-          await db.execute(
+          await pool.query(
             `INSERT INTO ai_task_suggestions (user_id, name, description) VALUES ($1, $2, $3)`,
             [data.userId, suggestion.title || suggestion.name, suggestion.description || null]
           );
@@ -936,11 +952,11 @@ export class DatabaseStorage implements IStorage {
       // that aren't in the schema. We'll continue to use raw SQL for these.
       try {
         // First clear existing suggestions for this user
-        await db.execute(`DELETE FROM ai_goal_suggestions WHERE user_id = $1`, [data.userId]);
+        await pool.query(`DELETE FROM ai_goal_suggestions WHERE user_id = $1`, [data.userId]);
         
         // Insert new suggestions
         for (const suggestion of data.suggestions) {
-          await db.execute(
+          await pool.query(
             `INSERT INTO ai_goal_suggestions (user_id, name, description) VALUES ($1, $2, $3)`,
             [data.userId, suggestion.name, suggestion.description || null]
           );

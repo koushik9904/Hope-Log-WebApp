@@ -11,6 +11,15 @@ import { User as SelectUser, users as usersTable } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, gt } from "drizzle-orm";
 
+// Extend express-session with passport property
+declare module "express-session" {
+  interface SessionData {
+    passport?: {
+      user?: number;
+    };
+  }
+}
+
 declare global {
   namespace Express {
     interface User extends SelectUser {}
