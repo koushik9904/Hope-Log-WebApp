@@ -797,12 +797,24 @@ Your role is to:
   // Get AI-suggested goals, tasks, and habits based on journal entries
   // This endpoint generates new AI suggestions and stores them in the database
   app.get("/api/goals/:userId/generate-suggestions", async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
+    console.log(`⭐ GET /api/goals/:userId/generate-suggestions called for userId: ${req.params.userId}`);
+    console.log(`⭐ Is authenticated: ${req.isAuthenticated()}`);
+    
+    if (!req.isAuthenticated()) {
+      console.log(`❌ GET /api/goals/:userId/generate-suggestions failed authentication check`);
+      return res.sendStatus(401);
+    }
     
     const userId = Number(req.params.userId);
-    if (req.user?.id !== userId) return res.sendStatus(403);
+    console.log(`⭐ User ID from auth: ${req.user?.id}, requested userId: ${userId}`);
+    
+    if (req.user?.id !== userId) {
+      console.log(`❌ GET /api/goals/:userId/generate-suggestions failed user ID check`);
+      return res.sendStatus(403);
+    }
     
     try {
+      console.log(`✅ Processing unanalyzed journal entries for user ${userId}`);
       // Process a limited number of unanalyzed journal entries using the unified AI suggestion module
       // Limit to 3 entries at a time to prevent timeouts and API overload
       const result = await processAllEntriesForUser(userId, 3);
