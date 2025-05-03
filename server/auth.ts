@@ -383,21 +383,27 @@ export async function setupAuth(app: Express) {
   });
 
   app.post("/api/login", (req, res, next) => {
-    console.log("Login attempt with email:", req.body.email);
+    console.log(`🔑 LOGIN ATTEMPT: ${new Date().toISOString()}`);
+    console.log(`🔑 Login body:`, req.body);
+    console.log(`🔑 Session before login:`, {
+      id: req.sessionID,
+      cookie: req.session?.cookie,
+      passport: req.session?.passport,
+    });
     
     passport.authenticate("local", (err: Error | null, user: SelectUser | false, info: any) => {
       if (err) {
-        console.error("Login error:", err);
+        console.error("❌ Login error:", err);
         return next(err);
       }
       if (!user) {
-        console.log("Login failed - user not found or password incorrect");
+        console.log("❌ Login failed - user not found or password incorrect");
         return res.status(401).json({ message: "Authentication failed" });
       }
       
       // Check if user is verified (unless they're logging in with a social provider or admin)
       if (user.provider === 'local' && !user.isAdmin && !user.isVerified) {
-        console.log("Login attempted with unverified account:", user.id);
+        console.log("❌ Login attempted with unverified account:", user.id);
         return res.status(403).json({ 
           message: "Email verification required", 
           verificationRequired: true,
@@ -407,10 +413,15 @@ export async function setupAuth(app: Express) {
       
       req.login(user, (loginErr: Error | null) => {
         if (loginErr) {
-          console.error("Session login error:", loginErr);
+          console.error("❌ Session login error:", loginErr);
           return next(loginErr);
         }
-        console.log("Login successful for user ID:", user.id);
+        console.log(`✅ Login successful for user ID: ${user.id}`);
+        console.log(`✅ Session after login:`, {
+          id: req.sessionID,
+          cookie: req.session?.cookie,
+          passport: req.session?.passport,
+        });
         
         // Don't send the password back to the client
         const { password, ...userWithoutPassword } = user;
@@ -427,7 +438,17 @@ export async function setupAuth(app: Express) {
   });
 
   app.get("/api/user", (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
+    console.log(`⭐ GET /api/user - Session ID: ${req.session?.id || 'none'}`);
+    console.log(`⭐ GET /api/user - isAuthenticated: ${req.isAuthenticated()}`);
+    console.log(`⭐ GET /api/user - Session cookie: ${req.headers.cookie ? 'Present' : 'Missing'}`);
+    console.log(`⭐ GET /api/user - Passport: ${req.session?.passport ? JSON.stringify(req.session.passport) : 'Not in session'}`);
+    
+    if (!req.isAuthenticated()) {
+      console.log(`❌ GET /api/user failed authentication check - no authenticated session`);
+      return res.sendStatus(401);
+    }
+    
+    console.log(`✅ GET /api/user success - authenticated as user ID: ${req.user?.id}`);
     
     // Don't send password back to client
     const { password, ...userWithoutPassword } = req.user;
