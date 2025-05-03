@@ -285,7 +285,7 @@ export default function GoalsPage() {
   });
   
   // Fetch AI-suggested goals, tasks and habits
-  const { data: aiSuggestions = { goals: [], tasks: [], habits: [] }, isLoading: isSuggestionsLoading } = useQuery<{ goals: AISuggestedGoal[], tasks: AISuggestedTask[], habits: AISuggestedHabit[] }>({
+  const { data: aiSuggestions = { goals: [], tasks: [], habits: [] }, isLoading: isSuggestionsLoading, refetch: refetchSuggestions } = useQuery<{ goals: AISuggestedGoal[], tasks: AISuggestedTask[], habits: AISuggestedHabit[] }>({
     queryKey: [`/api/goals/${user?.id}/ai-suggestions`],
     enabled: !!user?.id,
     staleTime: 300000, // 5 minutes - these don't change as frequently
@@ -303,9 +303,9 @@ export default function GoalsPage() {
         description: "The suggested goal has been added to your goals.",
         variant: "default",
       });
-      // Invalidate both goals and suggestions queries
+      // Invalidate goals query and manually refetch suggestions
       queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}/ai-suggestions`] });
+      refetchSuggestions();
     },
     onError: (error) => {
       toast({
@@ -1526,13 +1526,47 @@ export default function GoalsPage() {
                                 onClick={() => {
                                   if (!user) return;
                                   
-                                  // Add task by opening the task form with pre-filled values
-                                  setNewTaskInitialData({
+                                  // Create a task directly instead of opening the form
+                                  // First create a toast to indicate we're adding the task
+                                  toast({
+                                    title: "Adding task...",
+                                    description: "Creating the suggested task",
+                                  });
+                                  
+                                  // Create the task
+                                  apiRequest("POST", "/api/tasks", {
+                                    userId: user.id,
                                     title: task.title,
                                     description: task.description,
-                                    priority: task.priority || "medium"
+                                    priority: task.priority || "medium",
+                                    status: "pending",
+                                    dueDate: null,
+                                    goalId: null
+                                  }).then(res => {
+                                    if (res.ok) {
+                                      toast({
+                                        title: "Task added successfully",
+                                        description: "The suggested task has been added to your tasks.",
+                                      });
+                                      // Invalidate tasks
+                                      queryClient.invalidateQueries({ queryKey: [`/api/tasks/${user?.id}`] });
+                                      // Remove from suggestions
+                                      refetchSuggestions();
+                                    } else {
+                                      toast({
+                                        title: "Failed to add task",
+                                        description: "There was an error adding the task.",
+                                        variant: "destructive"
+                                      });
+                                    }
+                                  }).catch(error => {
+                                    console.error("Error accepting task", error);
+                                    toast({
+                                      title: "Failed to add task",
+                                      description: "There was an error adding the task.",
+                                      variant: "destructive"
+                                    });
                                   });
-                                  setShowNewTaskDialog(true);
                                 }}
                                 variant="outline" 
                                 size="sm"
@@ -1926,6 +1960,32 @@ export default function GoalsPage() {
                           Write more in your journal to get AI-suggested habits
                         </p>
                       </div>
+                    )}
+
+                    {!isSuggestionsLoading && (
+                      <Button
+                        onClick={() => generateSuggestionsMutation.mutate()}
+                        variant="outline"
+                        size="sm"
+                        className={`text-xs relative w-full mt-4 transition-all overflow-hidden 
+                          ${generateSuggestionsMutation.isPending ? 
+                            "bg-[#f5f0e8] text-gray-600" : 
+                            "bg-gradient-to-r from-[#FFF8E8] to-[#f5f0e8] hover:bg-gradient-to-r hover:from-[#FFF8D0] hover:to-[#f5ebc0] border-[#F5D867]"
+                          }`}
+                        disabled={generateSuggestionsMutation.isPending}
+                      >
+                        {generateSuggestionsMutation.isPending ? (
+                          <>
+                            <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                            <span>Analyzing Journal...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="h-3.5 w-3.5 mr-1.5 text-[#F5D867]" />
+                            <span>Generate AI Suggestions</span>
+                          </>
+                        )}
+                      </Button>
                     )}
                   </div>
                 </CardContent>
