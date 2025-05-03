@@ -291,6 +291,39 @@ export default function GoalsPage() {
     staleTime: 300000, // 5 minutes - these don't change as frequently
   });
 
+  // Delete goal mutation
+  const deleteGoalMutation = useMutation({
+    mutationFn: async (id: number) => {
+      // Find the goal before deleting it
+      const goalToDelete = goals.find(g => g.id === id);
+      if (goalToDelete) {
+        // Add to deleted goals with timestamp
+        setDeletedGoals(prev => [...prev, {
+          ...goalToDelete,
+          deletedAt: new Date().toISOString()
+        }]);
+      }
+      
+      // Proceed with deletion from database
+      const res = await apiRequest("DELETE", `/api/goals/${id}`);
+      return id;
+    },
+    onSuccess: (id) => {
+      queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}`] });
+      toast({
+        title: "Goal deleted",
+        description: "The goal has been moved to recycle bin",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Delete failed",
+        description: "There was an error deleting the goal. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
   // Accept/reject AI goal suggestion mutations
   const acceptGoalSuggestionMutation = useMutation({
     mutationFn: async (goalId: number) => {
@@ -305,7 +338,8 @@ export default function GoalsPage() {
       });
       // Invalidate goals query and manually refetch suggestions
       queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}`] });
-      refetchSuggestions();
+      // Refetch suggestion data to keep other suggestions
+      queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}/ai-suggestions`] });
     },
     onError: (error) => {
       toast({
