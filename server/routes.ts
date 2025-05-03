@@ -248,10 +248,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Save Chat Transcript - collects all chat messages and saves them as a single journal entry
   app.post("/api/journal-entries/save-chat", async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
+    console.log(`⭐ POST /api/journal-entries/save-chat authentication check - isAuthenticated: ${req.isAuthenticated()}`);
+    if (!req.isAuthenticated()) {
+      console.log(`❌ POST /api/journal-entries/save-chat failed authentication check`);
+      return res.sendStatus(401);
+    }
     
     const { userId, date = null, timezone = null } = req.body;
-    if (req.user?.id !== userId) return res.sendStatus(403);
+    console.log(`⭐ POST /api/journal-entries/save-chat user check - req.user.id: ${req.user?.id}, userId: ${userId}`);
+    if (req.user?.id !== userId) {
+      console.log(`❌ POST /api/journal-entries/save-chat failed user ID check - req.user.id: ${req.user?.id}, userId: ${userId}`);
+      return res.sendStatus(403);
+    }
     
     console.log(`⭐ POST /api/journal-entries/save-chat received for user ${userId}`);
     
@@ -590,10 +598,18 @@ Your role is to:
   });
 
   app.post("/api/journal-entries", async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
+    console.log(`⭐ POST /api/journal-entries authentication check - isAuthenticated: ${req.isAuthenticated()}`);
+    if (!req.isAuthenticated()) {
+      console.log(`❌ POST /api/journal-entries failed authentication check`);
+      return res.sendStatus(401);
+    }
     
     const { content, userId, transcript = null, date = null } = req.body;
-    if (req.user?.id !== userId) return res.sendStatus(403);
+    console.log(`⭐ POST /api/journal-entries user check - req.user.id: ${req.user?.id}, userId: ${userId}`);
+    if (req.user?.id !== userId) {
+      console.log(`❌ POST /api/journal-entries failed user ID check - req.user.id: ${req.user?.id}, userId: ${userId}`);
+      return res.sendStatus(403);
+    }
     
     console.log(`⭐ POST /api/journal-entries received for user ${userId} with content length ${content?.length || 0}`);
     
