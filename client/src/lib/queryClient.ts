@@ -28,6 +28,12 @@ export async function apiRequest(
     return res;
   } catch (error) {
     console.error(`API Error for ${method} ${url}:`, error);
+    
+    // Enhanced error handling to differentiate between network errors and other errors
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      throw new Error(`Network error: Failed to connect to server. Please check your connection and try again.`);
+    }
+    
     throw error;
   }
 }

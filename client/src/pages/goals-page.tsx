@@ -445,16 +445,24 @@ export default function GoalsPage() {
         console.error("Generate suggestions API error:", error);
         
         // Enhanced error handling with more specific messages
-        if (error.toString().includes("OpenAI API key")) {
+        console.log("Error details:", error);
+        
+        const errorMsg = error.toString();
+        
+        if (errorMsg.includes("OpenAI API key")) {
           throw new Error("OpenAI API key is missing. Please contact support.");
-        } else if (error.toString().includes("network") || error.toString().includes("fetch")) {
-          throw new Error("Network error. Please check your internet connection and try again.");
-        } else if (error.toString().includes("timed out") || error.toString().includes("timeout")) {
+        } else if (errorMsg.includes("Network error") || errorMsg.includes("Failed to connect")) {
+          throw new Error("Unable to reach the server. Please check your internet connection and try again.");
+        } else if (errorMsg.includes("timed out") || errorMsg.includes("timeout")) {
           throw new Error("Request timed out. The server might be busy analyzing your journal entries. Please try again in a moment.");
-        } else if (error.toString().includes("no journal entries") || error.toString().includes("No journal entries")) {
+        } else if (errorMsg.includes("no journal entries") || errorMsg.includes("No journal entries")) {
           throw new Error("You need to create some journal entries first before generating suggestions.");
-        } else if (error.toString().includes("already been analyzed")) {
+        } else if (errorMsg.includes("already been analyzed")) {
           throw new Error("Your recent journal entries have already been analyzed. Try writing new entries for more suggestions.");
+        } else if (errorMsg.includes("401")) {
+          throw new Error("Your session has expired. Please refresh the page and try again.");
+        } else if (errorMsg.includes("500")) {
+          throw new Error("Server error occurred. The AI suggestion service may be temporarily unavailable. Please try again later.");
         } else if (error.message) {
           // Use the error message if available
           throw error;
@@ -1076,18 +1084,22 @@ export default function GoalsPage() {
                             onClick={() => generateSuggestionsMutation.mutate()}
                             variant="outline"
                             size="sm"
-                            className="text-xs"
+                            className={`text-xs relative transition-all overflow-hidden 
+                              ${generateSuggestionsMutation.isPending ? 
+                                "bg-[#f5f0e8] text-gray-600" : 
+                                "bg-gradient-to-r from-[#FFF8E8] to-[#f5f0e8] hover:bg-gradient-to-r hover:from-[#FFF8D0] hover:to-[#f5ebc0] border-[#F5D867]"
+                              }`}
                             disabled={generateSuggestionsMutation.isPending}
                           >
                             {generateSuggestionsMutation.isPending ? (
                               <>
-                                <div className="h-3 w-3 mr-1 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
-                                Analyzing Journal...
+                                <div className="h-3 w-3 mr-2 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
+                                <span>Analyzing Journal...</span>
                               </>
                             ) : (
                               <>
-                                <Sparkles className="h-3 w-3 mr-1 text-[#F5D867]" />
-                                Generate AI Suggestions
+                                <Sparkles className="h-3.5 w-3.5 mr-1.5 text-[#F5D867]" />
+                                <span>Generate AI Suggestions</span>
                               </>
                             )}
                           </Button>
