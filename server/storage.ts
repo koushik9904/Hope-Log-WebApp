@@ -113,6 +113,21 @@ export interface IStorage {
 export class DatabaseStorage implements IStorage {
   sessionStore: session.Store;
   
+  /**
+   * Execute a raw SQL query with parameters safely
+   * @param query SQL query string with $1, $2, etc. placeholders
+   * @param params Array of parameter values
+   * @returns Promise resolving to the query result
+   */
+  private async executeRawQuery(query: string, params: any[] = []): Promise<any> {
+    try {
+      return await pool.query(query, params);
+    } catch (error) {
+      console.error('Error executing raw query:', error);
+      throw error;
+    }
+  }
+  
   constructor() {
     // Use PostgreSQL session store for better session persistence
     const PostgresStore = connectPg(session);
