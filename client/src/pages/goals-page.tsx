@@ -514,9 +514,24 @@ export default function GoalsPage() {
     },
   });
 
-  // Use the AI suggestions directly as they are already in the required format
-  const aiSuggestedGoals = aiSuggestions.goals || [];
-  const aiSuggestedHabits = aiSuggestions.habits || [];
+  // Filter out AI suggestions that are already in the main goals list 
+  // by comparing name/title to avoid duplicates
+  const aiSuggestedGoals = (aiSuggestions.goals || []).filter(suggestion => 
+    !goals.some(goal => 
+      goal.name.toLowerCase() === suggestion.name.toLowerCase() ||
+      goal.name.toLowerCase().includes(suggestion.name.toLowerCase()) ||
+      suggestion.name.toLowerCase().includes(goal.name.toLowerCase())
+    )
+  );
+  
+  // Also filter habits that might be duplicates
+  const aiSuggestedHabits = (aiSuggestions.habits || []).filter(suggestion => 
+    !habits.some(habit => 
+      habit.title.toLowerCase() === suggestion.title.toLowerCase() ||
+      habit.title.toLowerCase().includes(suggestion.title.toLowerCase()) ||
+      suggestion.title.toLowerCase().includes(habit.title.toLowerCase())
+    )
+  );
   
   // Helper function to determine a category for a goal
   const getGoalCategory = (goalName: string): string => {
