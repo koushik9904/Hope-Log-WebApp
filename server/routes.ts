@@ -387,7 +387,7 @@ Example of good breakdown for "What are three things that went well today and wh
         aiResponse = await generateAIResponse(
           promptContent, 
           enhancedHistory, 
-          req.user.username, 
+          req.user.username || "User", 
           userId,
           true // Flag that this is a multi-part prompt
         );
@@ -424,7 +424,7 @@ Your role is to:
         aiResponse = await generateAIResponse(
           promptContent,
           specialHistory,
-          req.user.username,
+          req.user.username || "User",
           userId,
           false
         );
@@ -432,7 +432,7 @@ Your role is to:
       // Regular conversation
       else {
         // Normal conversation handling
-        aiResponse = await generateAIResponse(content, conversationHistory, req.user.username, userId);
+        aiResponse = await generateAIResponse(content, conversationHistory, req.user.username || "User", userId);
       }
       
       // Return only the AI response
