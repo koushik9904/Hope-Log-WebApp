@@ -120,8 +120,8 @@ export async function setupAuth(app: Express) {
   if (googleClientSecret) process.env.GOOGLE_CLIENT_SECRET = googleClientSecret;
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || "hopelog-secret-key",
-    resave: true, // Changed to true to ensure session is saved on each request
-    saveUninitialized: true, // Changed to true to allow session tracking before login
+    resave: false,  // Use false with MemoryStore
+    saveUninitialized: false,  // Only save when we have data
     store: storage.sessionStore,
     cookie: {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
@@ -144,6 +144,32 @@ export async function setupAuth(app: Express) {
   app.use(session(sessionSettings));
   app.use(passport.initialize());
   app.use(passport.session());
+  
+  // Add session monitoring middleware
+  app.use((req, res, next) => {
+    // Log important session info for debugging
+    if (req.session) {
+      console.log(`📝 Session ID: ${req.sessionID} - Auth: ${req.isAuthenticated() ? 'Yes' : 'No'}`);
+      
+      // Handle session passport data
+      if (req.session.passport && req.session.passport.user) {
+        const userId = req.session.passport.user;
+        console.log(`📝 Session contains user ID: ${userId}`);
+        
+        // Try to touch session expiry
+        if (req.session.cookie) {
+          req.session.cookie.maxAge = 7 * 24 * 60 * 60 * 1000; // Reset to 1 week
+        }
+        
+        // Force session save for authenticated users
+        req.session.touch();
+      }
+    } else {
+      console.log(`⚠️ No session found in request`);
+    }
+    
+    next();
+  });
 
   passport.use(
     new LocalStrategy({
@@ -335,16 +361,6 @@ export async function setupAuth(app: Express) {
       }
       
       console.log(`✅ User deserialized successfully: ${user.id} (${user.username})`);
-      // Force session save to make sure the newly deserialized user is stored
-      if (globalReq?.session) {
-        globalReq.session.save((err) => {
-          if (err) {
-            console.error('Session save error during deserialization:', err);
-          } else {
-            console.log('Session explicitly saved during deserialization');
-          }
-        });
-      }
       
       // We now have the full user object with all properties
       done(null, user);
@@ -446,9 +462,19 @@ export async function setupAuth(app: Express) {
           passport: req.session?.passport,
         });
         
-        // Don't send the password back to the client
-        const { password, ...userWithoutPassword } = user;
-        return res.status(200).json(userWithoutPassword);
+        // Explicitly save the session to ensure it persists
+        req.session.save((saveErr) => {
+          if (saveErr) {
+            console.error("❌ Error saving session after login:", saveErr);
+            return next(saveErr);
+          }
+          
+          console.log(`✅ Session explicitly saved after login for user ID: ${user.id}`);
+          
+          // Don't send the password back to the client
+          const { password, ...userWithoutPassword } = user;
+          return res.status(200).json(userWithoutPassword);
+        });
       });
     })(req, res, next);
   });
