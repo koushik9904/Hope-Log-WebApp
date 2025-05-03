@@ -15,7 +15,7 @@ import {
 } from "@shared/schema";
 import session from "express-session";
 import { db, pool } from "./db";
-import { eq, and, gte, desc, sql, isNull } from "drizzle-orm";
+import { eq, and, gte, desc, sql, isNull, not } from "drizzle-orm";
 import createMemoryStore from "memorystore";
 
 // Interfaces for storage methods
@@ -890,48 +890,64 @@ export class DatabaseStorage implements IStorage {
   }
   
   async storeAiSuggestions(data: { userId: number; type: string; suggestions: any[] }): Promise<void> {
-    let table = 'ai_goal_suggestions';
-    if (data.type === 'tasks') {
-      table = 'ai_task_suggestions';
-    } else if (data.type === 'habits') {
-      table = 'habits';
-    }
-    
-    // First clear existing suggestions for this user
+    // Handle each type with the appropriate Drizzle methods
     if (data.type === 'habits') {
-      // For habits, we only want to clear AI-suggested habits that haven't been accepted
-      await db.execute(
-        `DELETE FROM ${table} WHERE user_id = $1 AND source = 'ai' AND status = 'suggested'`,
-        [data.userId]
-      );
+      // For habits, use the habits table
+      // First, clear existing suggested habits from AI
+      await db.delete(habits)
+        .where(and(
+          eq(habits.userId, data.userId),
+          eq(habits.source, 'ai'),
+          eq(habits.status, 'suggested')
+        ));
+      
+      // Insert new habit suggestions
+      for (const suggestion of data.suggestions) {
+        await this.createHabit({
+          userId: data.userId,
+          title: suggestion.title || suggestion.name,
+          description: suggestion.description || null,
+          frequency: suggestion.frequency || 'daily',
+          status: 'suggested',
+          source: 'ai',
+          aiExplanation: suggestion.explanation || null
+        });
+      }
+    } else if (data.type === 'tasks') {
+      // For tasks suggestions, we can't use Drizzle ORM directly since these are custom tables
+      // that aren't in the schema. We'll continue to use raw SQL for these.
+      try {
+        // First clear existing suggestions for this user
+        await db.execute(`DELETE FROM ai_task_suggestions WHERE user_id = $1`, [data.userId]);
+        
+        // Insert new suggestions
+        for (const suggestion of data.suggestions) {
+          await db.execute(
+            `INSERT INTO ai_task_suggestions (user_id, name, description) VALUES ($1, $2, $3)`,
+            [data.userId, suggestion.title || suggestion.name, suggestion.description || null]
+          );
+        }
+      } catch (error) {
+        console.error('Error storing task suggestions:', error);
+        // Continue execution even if there's an error
+      }
     } else {
-      // For goals and tasks suggestions, clear all existing suggestions
-      await db.execute(`DELETE FROM ${table} WHERE user_id = $1`, [data.userId]);
-    }
-    
-    // Insert new suggestions
-    for (const suggestion of data.suggestions) {
-      if (data.type === 'habits') {
-        // For habits, we need to include all required fields
-        await db.execute(
-          `INSERT INTO ${table} (user_id, title, description, frequency, status, source, ai_explanation) 
-           VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-          [
-            data.userId, 
-            suggestion.title || suggestion.name, 
-            suggestion.description || null, 
-            suggestion.frequency || 'daily',
-            'suggested',
-            'ai',
-            suggestion.aiExplanation || null
-          ]
-        );
-      } else {
-        // For goals and tasks, use the existing pattern
-        await db.execute(
-          `INSERT INTO ${table} (user_id, name, description) VALUES ($1, $2, $3)`,
-          [data.userId, suggestion.name, suggestion.description]
-        );
+      // For goals suggestions, we can't use Drizzle ORM directly since these are custom tables
+      // that aren't in the schema. We'll continue to use raw SQL for these.
+      try {
+        // First clear existing suggestions for this user
+        await db.execute(`DELETE FROM ai_goal_suggestions WHERE user_id = $1`, [data.userId]);
+        
+        // Insert new suggestions
+        for (const suggestion of data.suggestions) {
+          await db.execute(
+            `INSERT INTO ai_goal_suggestions (user_id, name, description) VALUES ($1, $2, $3)`,
+            [data.userId, suggestion.name, suggestion.description || null]
+          );
+        }
+      } catch (error) {
+        console.error('Error storing goal suggestions:', error);
+        // Continue execution even if there's an error
       }
     }
   }
