@@ -1028,37 +1028,37 @@ export default function GoalsPage() {
                         </div>
                       ))
                     ) : (
-                      <div className="text-center p-4 text-gray-500 text-sm">
-                        <p>No goal suggestions available right now.</p>
-                        <p className="text-xs mt-1">Try writing more in your journal.</p>
-                        <div className="flex flex-col items-center gap-2">
-                          <p className="text-gray-500 text-xs mt-3">
-                            Journal regularly to get personalized suggestions
-                          </p>
-                          <Button
-                            onClick={() => generateSuggestionsMutation.mutate()}
-                            variant="outline"
-                            size="sm"
-                            className={`text-xs relative transition-all overflow-hidden 
-                              ${generateSuggestionsMutation.isPending ? 
-                                "bg-[#f5f0e8] text-gray-600" : 
-                                "bg-gradient-to-r from-[#FFF8E8] to-[#f5f0e8] hover:bg-gradient-to-r hover:from-[#FFF8D0] hover:to-[#f5ebc0] border-[#F5D867]"
-                              }`}
-                            disabled={generateSuggestionsMutation.isPending}
-                          >
-                            {generateSuggestionsMutation.isPending ? (
-                              <>
-                                <div className="h-3 w-3 mr-2 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
-                                <span>Analyzing Journal...</span>
-                              </>
-                            ) : (
-                              <>
-                                <Sparkles className="h-3.5 w-3.5 mr-1.5 text-[#F5D867]" />
-                                <span>Generate AI Suggestions</span>
-                              </>
-                            )}
-                          </Button>
+                      <div className="flex flex-col items-center justify-center p-4 text-center">
+                        <div className="bg-gray-50 rounded-full p-3 mb-3">
+                          <Lightbulb className="h-6 w-6 text-gray-300" />
                         </div>
+                        <p className="text-sm text-gray-500 mb-2">No goal suggestions yet</p>
+                        <p className="text-xs text-gray-400 mb-4">
+                          Write more in your journal to get AI-suggested goals
+                        </p>
+                        <Button
+                          onClick={() => generateSuggestionsMutation.mutate()}
+                          variant="outline"
+                          size="sm"
+                          className={`text-xs relative transition-all overflow-hidden 
+                            ${generateSuggestionsMutation.isPending ? 
+                              "bg-[#f5f0e8] text-gray-600" : 
+                              "bg-gradient-to-r from-[#FFF8E8] to-[#f5f0e8] hover:bg-gradient-to-r hover:from-[#FFF8D0] hover:to-[#f5ebc0] border-[#F5D867]"
+                            }`}
+                          disabled={generateSuggestionsMutation.isPending}
+                        >
+                          {generateSuggestionsMutation.isPending ? (
+                            <>
+                              <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                              <span>Analyzing Journal...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="h-3.5 w-3.5 mr-1.5 text-[#F5D867]" />
+                              <span>Generate AI Suggestions</span>
+                            </>
+                          )}
+                        </Button>
                       </div>
                     )}
                   </div>
@@ -1156,8 +1156,17 @@ export default function GoalsPage() {
                               to: goalDateRange.to,
                             }}
                             onSelect={(range) => {
-                              setGoalDateRange(range || { from: undefined, to: undefined });
-                              setGoalDateFilterActive(!!range?.from);
+                              // Ensure we handle the optional 'to' field properly
+                              if (range) {
+                                setGoalDateRange({ 
+                                  from: range.from, 
+                                  to: range.to || range.from 
+                                });
+                                setGoalDateFilterActive(true);
+                              } else {
+                                setGoalDateRange({ from: undefined, to: undefined });
+                                setGoalDateFilterActive(false);
+                              }
                             }}
                             numberOfMonths={2}
                           />
