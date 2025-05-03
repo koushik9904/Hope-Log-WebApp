@@ -15,7 +15,8 @@ import {
 } from "./openai";
 import {
   processSingleEntry,
-  processAllEntriesForUser
+  processAllEntriesForUser,
+  processAllEntries
 } from "./ai-suggestion-module";
 import { journalEntries } from "@shared/schema";
 import { eq } from "drizzle-orm";
