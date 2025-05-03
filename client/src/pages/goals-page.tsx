@@ -417,15 +417,45 @@ export default function GoalsPage() {
       }
       
       try {
+        console.log("Making API request to generate suggestions");
         const res = await apiRequest("GET", `/api/goals/${user.id}/generate-suggestions`, {});
         console.log("Received generate suggestions response:", res.status);
-        return await res.json();
+        
+        if (!res.ok) {
+          // Attempt to parse error response
+          const errorData = await res.json().catch(() => ({}));
+          console.error("Error response data:", errorData);
+          
+          // Provide specific error message based on response
+          if (res.status === 401) {
+            throw new Error("Authentication required. Please log in again.");
+          } else if (res.status === 403) {
+            throw new Error("You don't have permission to perform this action.");
+          } else if (errorData?.error) {
+            throw new Error(errorData.error);
+          } else {
+            throw new Error(`Server error (${res.status}). Please try again later.`);
+          }
+        }
+        
+        const data = await res.json();
+        console.log("Suggestion generation result:", data);
+        return data;
       } catch (error: any) {
         console.error("Generate suggestions API error:", error);
-        const errorMessage = error.toString().includes("OpenAI API key") 
-          ? "OpenAI API key is missing. Please contact support."
-          : "Failed to generate suggestions. Please try again later.";
-        throw new Error(errorMessage);
+        
+        // Handle specific error cases
+        if (error.toString().includes("OpenAI API key")) {
+          throw new Error("OpenAI API key is missing. Please contact support.");
+        } else if (error.toString().includes("network") || error.toString().includes("fetch")) {
+          throw new Error("Network error. Please check your internet connection and try again.");
+        } else if (error.message) {
+          // Use the error message if available
+          throw error;
+        } else {
+          // Generic fallback error
+          throw new Error("Failed to generate suggestions. Please try again later.");
+        }
       }
     },
     onSuccess: (data) => {
@@ -1050,8 +1080,8 @@ export default function GoalsPage() {
                               </>
                             ) : (
                               <>
-                                <RefreshCw className="h-3 w-3 mr-1" />
-                                Generate Suggestions
+                                <Sparkles className="h-3 w-3 mr-1 text-[#F5D867]" />
+                                Generate AI Suggestions
                               </>
                             )}
                           </Button>
