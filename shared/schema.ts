@@ -125,7 +125,9 @@ export const goals = pgTable("goals", {
   progress: integer("progress").notNull().default(0),
   unit: text("unit").notNull().default("%"),
   colorScheme: integer("color_scheme").notNull().default(1),
-  status: text("status").notNull().default("in_progress"), // 'not_started', 'in_progress', 'completed', 'cancelled'
+  status: text("status").notNull().default("in_progress"), // 'not_started', 'in_progress', 'completed', 'cancelled', 'suggested'
+  source: text("source").default("user"), // 'user', 'ai', 'system'
+  aiExplanation: text("ai_explanation"), // Optional explanation from AI for why this goal was suggested
   // For Gantt chart visualization
   dependsOn: jsonb("depends_on").$type<number[]>().default([]),
   deletedAt: timestamp("deleted_at", { mode: 'string' }),
