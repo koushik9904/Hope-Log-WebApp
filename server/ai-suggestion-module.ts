@@ -7,7 +7,7 @@ import { generateCombinedSuggestions } from "./openai";
  * Unified AI Suggestion Module
  * 
  * This module is responsible for analyzing user journals and chat entries to extract
- * both Goals and Tasks. It will automatically trigger every time a new journal
+ * Goals, Tasks, and Habits. It will automatically trigger every time a new journal
  * or chat is saved and only process entries that haven't been analyzed yet.
  */
 
