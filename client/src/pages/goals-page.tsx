@@ -1693,8 +1693,8 @@ export default function GoalsPage() {
                         <Loader2 className="h-8 w-8 animate-spin text-[#9AAB63] mb-2" />
                         <p className="text-sm text-gray-500">Loading suggestions...</p>
                       </div>
-                    ) : aiSuggestedHabits.length > 0 ? (
-                      aiSuggestedHabits.slice(0, 3).map(habit => (
+                    ) : aiSuggestions.habits.length > 0 ? (
+                      aiSuggestions.habits.slice(0, 3).map(habit => (
                         <div key={habit.id} className="bg-[#f8fff6] p-4 rounded-xl border border-[#9AAB63] border-opacity-30">
                           <h4 className="font-medium text-gray-800 text-sm mb-1">{habit.title}</h4>
                           <p className="text-xs text-gray-600 mb-3 line-clamp-2">{habit.description}</p>
