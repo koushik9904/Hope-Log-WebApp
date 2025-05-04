@@ -1399,14 +1399,11 @@ export default function GoalsPage() {
                         <Loader2 className="h-8 w-8 animate-spin text-[#B6CAEB] mb-2" />
                         <p className="text-sm text-gray-500">Loading suggestions...</p>
                       </div>
-                    ) : aiSuggestedTasks.length > 0 ? (
-                      aiSuggestedTasks.slice(0, 3).map(task => (
-                        <div key={task.id} className="bg-[#f9f8ff] p-4 rounded-xl border border-[#B6CAEB] border-opacity-30">
-                          <h4 className="font-medium text-gray-800 text-sm mb-1">{task.title}</h4>
-                          <p className="text-xs text-gray-600 mb-3">{task.description}</p>
-                          
-                          <div className="mt-3">
-                            {/* Priority badge */}
+                    ) : (
+                      <div className="text-center p-4">
+                        <p className="text-gray-500">Suggestions will appear here automatically</p>
+                      </div>
+                    )}
                             <div className="mb-3 text-xs text-gray-500 flex items-center">
                               <AlertCircle className="h-3 w-3 inline mr-1 text-[#B6CAEB]" />
                               {task.priority ? 
