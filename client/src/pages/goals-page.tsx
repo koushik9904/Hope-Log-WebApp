@@ -1394,19 +1394,15 @@ export default function GoalsPage() {
                 </CardHeader>
                 <CardContent className="pt-6">
                   <div className="space-y-4">
-                    {isSuggestionsLoading ? (
-                      <div className="flex flex-col items-center justify-center p-4">
-                        <Loader2 className="h-8 w-8 animate-spin text-[#B6CAEB] mb-2" />
-                        <p className="text-sm text-gray-500">Loading suggestions...</p>
+                    <div className="text-center p-4">
+                      <p className="text-gray-500">
+                        Suggestions will appear in the AI Suggestions panel
+                      </p>
+                      <div className="flex items-center justify-center mt-3">
+                        <AlertCircle className="h-4 w-4 mr-2 text-[#B6CAEB]" />
+                        <span className="text-xs text-gray-500">Suggestions are generated automatically</span>
                       </div>
-                    ) : (
-                      <div className="text-center p-4">
-                        <p className="text-gray-500">Suggestions will appear here automatically</p>
-                      </div>
-                    )}
-                            <div className="mb-3 text-xs text-gray-500 flex items-center">
-                              <AlertCircle className="h-3 w-3 inline mr-1 text-[#B6CAEB]" />
-                            </div>
+                    </div>
                     
                     {!isSuggestionsLoading && (
                       <Button
