@@ -19,7 +19,7 @@ import {
   processAllEntries
 } from "./ai-suggestion-module";
 import { journalEntries } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import oauthSettingsRoutes from "./routes/oauth-settings";
 import openaiSettingsRoutes from "./routes/openai-settings";
 import adminStatsRoutes from "./routes/admin-stats";
@@ -906,10 +906,52 @@ Your role is to:
     if (req.user?.id !== userId) return res.sendStatus(403);
     
     try {
-      // Use the new AI suggestion tables
+      // Check if we have suggestions, if not process some entries
       const goalSuggestions = await storage.getAiGoalsByUserId(userId);
       const taskSuggestions = await storage.getAiTasksByUserId(userId);
       const habitSuggestions = await storage.getAiHabitsByUserId(userId);
+      
+      // If there are no suggestions, process unanalyzed entries
+      if (goalSuggestions.length === 0 && taskSuggestions.length === 0 && habitSuggestions.length === 0) {
+        console.log(`No AI suggestions found for user ${userId}, checking for unanalyzed entries...`);
+        
+        // Get unanalyzed entries
+        const unanalyzedEntries = await db
+          .select()
+          .from(journalEntries)
+          .where(eq(journalEntries.userId, userId))
+          .where(eq(journalEntries.analyzed, false))
+          .orderBy({ [journalEntries.date.name]: desc })
+          .limit(3);
+        
+        if (unanalyzedEntries.length > 0) {
+          console.log(`Found ${unanalyzedEntries.length} unanalyzed entries, processing the most recent one...`);
+          
+          // Process most recent entry in the foreground
+          try {
+            await processSingleEntry(unanalyzedEntries[0]);
+            console.log(`Successfully processed entry ${unanalyzedEntries[0].id}`);
+            
+            // Get updated suggestions after processing
+            const updatedGoalSuggestions = await storage.getAiGoalsByUserId(userId);
+            const updatedTaskSuggestions = await storage.getAiTasksByUserId(userId);
+            const updatedHabitSuggestions = await storage.getAiHabitsByUserId(userId);
+            
+            console.log(`Retrieved AI suggestions after processing: ${updatedGoalSuggestions.length} goals, ${updatedTaskSuggestions.length} tasks, ${updatedHabitSuggestions.length} habits`);
+            
+            return res.json({ 
+              goals: updatedGoalSuggestions, 
+              tasks: updatedTaskSuggestions,
+              habits: updatedHabitSuggestions 
+            });
+          } catch (processError) {
+            console.error(`Error processing entry ${unanalyzedEntries[0].id}:`, processError);
+            // Fall through to return empty suggestions
+          }
+        } else {
+          console.log(`No unanalyzed entries found for user ${userId}`);
+        }
+      }
       
       console.log(`Retrieved AI suggestions for user ${userId}: ${goalSuggestions.length} goals, ${taskSuggestions.length} tasks, ${habitSuggestions.length} habits`);
       
