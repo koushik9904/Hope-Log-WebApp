@@ -278,6 +278,20 @@ export default function AISuggestions({ existingGoals, existingTasks, existingHa
       );
     }
     
+    if (suggestionsError) {
+      return (
+        <div className="flex flex-col items-center justify-center p-4 text-center">
+          <div className="bg-gray-50 rounded-full p-3 mb-3">
+            <AlertCircle className="h-6 w-6 text-gray-300" />
+          </div>
+          <p className="text-sm text-gray-500 mb-2">Unable to fetch AI suggestions</p>
+          <p className="text-xs text-gray-400 mb-4">
+            There was a problem loading suggestions. Please try again later.
+          </p>
+        </div>
+      );
+    }
+    
     if (activeTab === "goals") {
       if (aiSuggestedGoals.length === 0) {
         return (
