@@ -90,7 +90,8 @@ export default function AISuggestions({ existingGoals, existingTasks, existingHa
   
   // Fetch AI-suggested goals, tasks and habits
   const { data: aiSuggestions = { goals: [], tasks: [], habits: [] }, 
-          isLoading: isSuggestionsLoading 
+          isLoading: isSuggestionsLoading,
+          error: suggestionsError
         } = useQuery<{ 
           goals: AISuggestedGoal[], 
           tasks: AISuggestedTask[], 
@@ -99,7 +100,12 @@ export default function AISuggestions({ existingGoals, existingTasks, existingHa
     queryKey: [`/api/goals/${user?.id}/ai-suggestions`],
     enabled: !!user?.id,
     staleTime: 300000, // 5 minutes
+    refetchOnMount: true
   });
+  
+  // Log data for debugging
+  console.log("Active Tab:", activeTab);
+  console.log("AI Suggestions data:", aiSuggestions);
   
   // Accept/reject mutations
   const acceptGoalSuggestionMutation = useMutation({
