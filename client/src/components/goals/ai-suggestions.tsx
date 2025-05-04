@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -7,25 +6,20 @@ import {
   Card, 
   CardContent, 
   CardDescription, 
-  CardFooter, 
   CardHeader, 
   CardTitle 
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Clock, 
   Target, 
-  CheckCircle, 
   ThumbsUp, 
   ThumbsDown, 
   Sparkles, 
   Lightbulb, 
   ListChecks, 
-  RefreshCw, 
   Loader2 
 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 
 // Interfaces for AI suggestions
 interface AISuggestedGoal {
@@ -92,12 +86,10 @@ interface AISuggestionsProps {
 export default function AISuggestions({ existingGoals, existingTasks, existingHabits }: AISuggestionsProps) {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState<string>("goals");
   
   // Fetch AI-suggested goals, tasks and habits
   const { data: aiSuggestions = { goals: [], tasks: [], habits: [] }, 
-          isLoading: isSuggestionsLoading, 
-          refetch: refetchSuggestions 
+          isLoading: isSuggestionsLoading 
         } = useQuery<{ 
           goals: AISuggestedGoal[], 
           tasks: AISuggestedTask[], 
@@ -106,69 +98,6 @@ export default function AISuggestions({ existingGoals, existingTasks, existingHa
     queryKey: [`/api/goals/${user?.id}/ai-suggestions`],
     enabled: !!user?.id,
     staleTime: 300000, // 5 minutes
-  });
-
-  // Generate new suggestions mutation
-  const generateSuggestionsMutation = useMutation({
-    mutationFn: async () => {
-      if (!user || !user.id) {
-        throw new Error("You must be logged in to generate suggestions.");
-      }
-      
-      const res = await apiRequest("GET", `/api/goals/${user.id}/generate-suggestions`);
-      
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        
-        if (res.status === 401) {
-          throw new Error("Authentication required. Please log in again.");
-        } else if (errorData?.error) {
-          throw new Error(errorData.error);
-        } else {
-          throw new Error(`Server error (${res.status}). Please try again later.`);
-        }
-      }
-      
-      const data = await res.json();
-      return data;
-    },
-    onSuccess: (data) => {
-      if (data.message) {
-        toast({
-          title: "Suggestion Generation",
-          description: data.message,
-          variant: "default",
-        });
-        return;
-      }
-      
-      const goalCount = data.goals?.length || 0;
-      const taskCount = data.tasks?.length || 0;
-      const habitCount = data.habits?.length || 0;
-      const totalCount = goalCount + taskCount + habitCount;
-      
-      if (totalCount > 0) {
-        toast({
-          title: "New suggestions generated",
-          description: `${totalCount} new suggestions have been generated based on your journal entries.`,
-          variant: "default",
-        });
-      } else {
-        toast({
-          title: "No new suggestions",
-          description: "We couldn't generate any new suggestions at this time. Try writing more in your journal with detailed reflections.",
-          variant: "default",
-        });
-      }
-      queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}/ai-suggestions`] });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Failed to generate suggestions",
-        description: error.message || "There was an error generating suggestions.",
-        variant: "destructive",
-      });
-    },
   });
   
   // Accept/reject mutations
@@ -331,125 +260,111 @@ export default function AISuggestions({ existingGoals, existingTasks, existingHa
       suggestion.title.toLowerCase().includes(habit.title.toLowerCase())
     )
   );
-
-  return (
-    <Card className="bg-white border-0 shadow-sm">
-      <CardHeader className="pb-2">
-        <CardTitle className="font-['Montserrat_Variable'] text-lg">
-          <span>AI Suggestions</span>
-        </CardTitle>
-        <CardDescription>
-          AI suggestions based on your journal entries
-        </CardDescription>
-      </CardHeader>
-      
-      <Tabs defaultValue="goals" value={activeTab} onValueChange={setActiveTab}>
-        <div className="px-6">
-          <TabsList className="grid grid-cols-3 w-full">
-            <TabsTrigger value="goals" className="text-xs">
-              Goals
-              {aiSuggestedGoals.length > 0 && (
-                <Badge variant="secondary" className="ml-2 h-5 px-2 bg-[#F5B8DB] text-white">
-                  {aiSuggestedGoals.length}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="tasks" className="text-xs">
-              Tasks
-              {aiSuggestedTasks.length > 0 && (
-                <Badge variant="secondary" className="ml-2 h-5 px-2 bg-[#B6CAEB] text-white">
-                  {aiSuggestedTasks.length}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="habits" className="text-xs">
-              Habits
-              {aiSuggestedHabits.length > 0 && (
-                <Badge variant="secondary" className="ml-2 h-5 px-2 bg-[#9AAB63] text-white">
-                  {aiSuggestedHabits.length}
-                </Badge>
-              )}
-            </TabsTrigger>
-          </TabsList>
+  
+  // Render the suggestions based on the current page tab
+  const renderGoalSuggestions = () => {
+    if (isSuggestionsLoading) {
+      return (
+        <div className="flex items-center justify-center p-4">
+          <Loader2 className="h-8 w-8 animate-spin text-[#F5B8DB]" />
         </div>
-        
-        <CardContent className="pt-4">
-          <TabsContent value="goals">
-            <div className="space-y-4">
-              {isSuggestionsLoading ? (
-                <div className="flex items-center justify-center p-4">
-                  <Loader2 className="h-8 w-8 animate-spin text-[#F5B8DB]" />
+      );
+    }
+    
+    if (aiSuggestedGoals.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center p-4 text-center">
+          <div className="bg-gray-50 rounded-full p-3 mb-3">
+            <Lightbulb className="h-6 w-6 text-gray-300" />
+          </div>
+          <p className="text-sm text-gray-500 mb-2">No goal suggestions yet</p>
+          <p className="text-xs text-gray-400 mb-4">
+            Write more in your journal to get AI-suggested goals
+          </p>
+        </div>
+      );
+    }
+    
+    return (
+      <div className="space-y-4">
+        {aiSuggestedGoals.slice(0, 3).map(goal => (
+          <div key={goal.id} className="bg-[#fff8f9] p-4 rounded-xl border border-[#F5B8DB] border-opacity-30">
+            <h4 className="font-medium text-gray-800 text-sm mb-1">{goal.name}</h4>
+            <p className="text-xs text-gray-600 mb-3">{goal.description}</p>
+            
+            {goal.explanation && (
+              <div className="bg-[#F5F5FF] p-2 rounded-md text-xs text-gray-600 mb-3">
+                <div className="flex items-center gap-1 mb-1">
+                  <Sparkles className="h-3 w-3 text-[#B6CAEB]" />
+                  <span className="font-medium text-gray-700">Why this was suggested:</span>
                 </div>
-              ) : aiSuggestedGoals.length > 0 ? (
-                aiSuggestedGoals.slice(0, 3).map(goal => (
-                  <div key={goal.id} className="bg-[#fff8f9] p-4 rounded-xl border border-[#F5B8DB] border-opacity-30">
-                    <h4 className="font-medium text-gray-800 text-sm mb-1">{goal.name}</h4>
-                    <p className="text-xs text-gray-600 mb-3">{goal.description}</p>
-                    
-                    {goal.explanation && (
-                      <div className="bg-[#F5F5FF] p-2 rounded-md text-xs text-gray-600 mb-3">
-                        <div className="flex items-center gap-1 mb-1">
-                          <Sparkles className="h-3 w-3 text-[#B6CAEB]" />
-                          <span className="font-medium text-gray-700">Why this was suggested:</span>
-                        </div>
-                        {goal.explanation}
-                      </div>
-                    )}
-                    
-                    <div className="mt-3">
-                      {/* Category badge */}
-                      <div className="mb-3 text-xs text-gray-500 flex items-center">
-                        <Lightbulb className="h-3 w-3 inline mr-1 text-[#9AAB63]" />
-                        {goal.category || "Personal"}
-                      </div>
-                      
-                      {/* Action buttons */}
-                      <div className="flex gap-2 justify-center w-full">
-                        <Button 
-                          onClick={() => acceptGoalSuggestionMutation.mutate(goal.id)}
-                          variant="outline" 
-                          size="sm"
-                          className="h-7 px-3 flex-1 bg-[#F5B8DB] hover:bg-[#f096c9] border-[#F5B8DB] text-white hover:text-white text-center justify-center"
-                          disabled={acceptGoalSuggestionMutation.isPending}
-                        >
-                          <ThumbsUp className="h-3 w-3 mr-1" />
-                          <span className="text-xs">Accept</span>
-                        </Button>
-                        <Button 
-                          onClick={() => rejectGoalSuggestionMutation.mutate(goal.id)}
-                          variant="outline" 
-                          size="sm"
-                          className="h-7 px-3 flex-1 border-gray-300 text-gray-500 hover:bg-gray-100 text-center justify-center"
-                          disabled={rejectGoalSuggestionMutation.isPending}
-                        >
-                          <ThumbsDown className="h-3 w-3 mr-1" />
-                          <span className="text-xs">Reject</span>
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="flex flex-col items-center justify-center p-4 text-center">
-                  <div className="bg-gray-50 rounded-full p-3 mb-3">
-                    <Lightbulb className="h-6 w-6 text-gray-300" />
-                  </div>
-                  <p className="text-sm text-gray-500 mb-2">No goal suggestions yet</p>
-                  <p className="text-xs text-gray-400 mb-4">
-                    Write more in your journal to get AI-suggested goals
-                  </p>
-                </div>
-              )}
+                {goal.explanation}
+              </div>
+            )}
+            
+            <div className="mt-3">
+              {/* Category badge */}
+              <div className="mb-3 text-xs text-gray-500 flex items-center">
+                <Lightbulb className="h-3 w-3 inline mr-1 text-[#9AAB63]" />
+                {goal.category || "Personal"}
+              </div>
+              
+              {/* Action buttons */}
+              <div className="flex gap-2 justify-center w-full">
+                <Button 
+                  onClick={() => acceptGoalSuggestionMutation.mutate(goal.id)}
+                  variant="outline" 
+                  size="sm"
+                  className="h-7 px-3 flex-1 bg-[#F5B8DB] hover:bg-[#f096c9] border-[#F5B8DB] text-white hover:text-white text-center justify-center"
+                  disabled={acceptGoalSuggestionMutation.isPending}
+                >
+                  <ThumbsUp className="h-3 w-3 mr-1" />
+                  <span className="text-xs">Accept</span>
+                </Button>
+                <Button 
+                  onClick={() => rejectGoalSuggestionMutation.mutate(goal.id)}
+                  variant="outline" 
+                  size="sm"
+                  className="h-7 px-3 flex-1 border-gray-300 text-gray-500 hover:bg-gray-100 text-center justify-center"
+                  disabled={rejectGoalSuggestionMutation.isPending}
+                >
+                  <ThumbsDown className="h-3 w-3 mr-1" />
+                  <span className="text-xs">Reject</span>
+                </Button>
+              </div>
             </div>
-          </TabsContent>
-          
-          <TabsContent value="tasks">
-            <div className="space-y-4">
-              {isSuggestionsLoading ? (
-                <div className="flex items-center justify-center p-4">
-                  <Loader2 className="h-8 w-8 animate-spin text-[#B6CAEB]" />
-                </div>
-              ) : aiSuggestedTasks.length > 0 ? (
+          </div>
+        ))}
+      </div>
+    );
+  };
+  
+  const renderTaskSuggestions = () => {
+    if (isSuggestionsLoading) {
+      return (
+        <div className="flex items-center justify-center p-4">
+          <Loader2 className="h-8 w-8 animate-spin text-[#B6CAEB]" />
+        </div>
+      );
+    }
+    
+    if (aiSuggestedTasks.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center p-4 text-center">
+          <div className="bg-gray-50 rounded-full p-3 mb-3">
+            <ListChecks className="h-6 w-6 text-gray-300" />
+          </div>
+          <p className="text-sm text-gray-500 mb-2">No task suggestions yet</p>
+          <p className="text-xs text-gray-400 mb-4">
+            Write more in your journal to get AI-suggested tasks
+          </p>
+        </div>
+      );
+    }
+    
+    return (
+      <div className="space-y-4">
+        {aiSuggestedTasks.slice(0, 3).map(task => (
                 aiSuggestedTasks.slice(0, 3).map(task => (
                   <div key={task.id} className="bg-[#f5f8ff] p-4 rounded-xl border border-[#B6CAEB] border-opacity-30">
                     <h4 className="font-medium text-gray-800 text-sm mb-1">{task.title}</h4>
