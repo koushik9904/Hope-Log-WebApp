@@ -81,9 +81,10 @@ interface AISuggestionsProps {
   existingGoals: Goal[];
   existingTasks: Task[];
   existingHabits: Habit[];
+  activeTab: string;
 }
 
-export default function AISuggestions({ existingGoals, existingTasks, existingHabits }: AISuggestionsProps) {
+export default function AISuggestions({ existingGoals, existingTasks, existingHabits, activeTab }: AISuggestionsProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   
@@ -261,8 +262,8 @@ export default function AISuggestions({ existingGoals, existingTasks, existingHa
     )
   );
   
-  // Render the suggestions based on the current page tab
-  const renderGoalSuggestions = () => {
+  // Render content based on active tab
+  const renderContent = () => {
     if (isSuggestionsLoading) {
       return (
         <div className="flex items-center justify-center p-4">
@@ -271,252 +272,234 @@ export default function AISuggestions({ existingGoals, existingTasks, existingHa
       );
     }
     
-    if (aiSuggestedGoals.length === 0) {
-      return (
-        <div className="flex flex-col items-center justify-center p-4 text-center">
-          <div className="bg-gray-50 rounded-full p-3 mb-3">
-            <Lightbulb className="h-6 w-6 text-gray-300" />
+    if (activeTab === "goals") {
+      if (aiSuggestedGoals.length === 0) {
+        return (
+          <div className="flex flex-col items-center justify-center p-4 text-center">
+            <div className="bg-gray-50 rounded-full p-3 mb-3">
+              <Lightbulb className="h-6 w-6 text-gray-300" />
+            </div>
+            <p className="text-sm text-gray-500 mb-2">No goal suggestions yet</p>
+            <p className="text-xs text-gray-400 mb-4">
+              Write more in your journal to get AI-suggested goals
+            </p>
           </div>
-          <p className="text-sm text-gray-500 mb-2">No goal suggestions yet</p>
-          <p className="text-xs text-gray-400 mb-4">
-            Write more in your journal to get AI-suggested goals
-          </p>
+        );
+      }
+      
+      return (
+        <div className="space-y-4">
+          {aiSuggestedGoals.slice(0, 3).map(goal => (
+            <div key={goal.id} className="bg-[#fff8f9] p-4 rounded-xl border border-[#F5B8DB] border-opacity-30">
+              <h4 className="font-medium text-gray-800 text-sm mb-1">{goal.name}</h4>
+              <p className="text-xs text-gray-600 mb-3">{goal.description}</p>
+              
+              {goal.explanation && (
+                <div className="bg-[#F5F5FF] p-2 rounded-md text-xs text-gray-600 mb-3">
+                  <div className="flex items-center gap-1 mb-1">
+                    <Sparkles className="h-3 w-3 text-[#B6CAEB]" />
+                    <span className="font-medium text-gray-700">Why this was suggested:</span>
+                  </div>
+                  {goal.explanation}
+                </div>
+              )}
+              
+              <div className="mt-3">
+                {/* Category badge */}
+                <div className="mb-3 text-xs text-gray-500 flex items-center">
+                  <Lightbulb className="h-3 w-3 inline mr-1 text-[#9AAB63]" />
+                  {goal.category || "Personal"}
+                </div>
+                
+                {/* Action buttons */}
+                <div className="flex gap-2 justify-center w-full">
+                  <Button 
+                    onClick={() => acceptGoalSuggestionMutation.mutate(goal.id)}
+                    variant="outline" 
+                    size="sm"
+                    className="h-7 px-3 flex-1 bg-[#F5B8DB] hover:bg-[#f096c9] border-[#F5B8DB] text-white hover:text-white text-center justify-center"
+                    disabled={acceptGoalSuggestionMutation.isPending}
+                  >
+                    <ThumbsUp className="h-3 w-3 mr-1" />
+                    <span className="text-xs">Accept</span>
+                  </Button>
+                  <Button 
+                    onClick={() => rejectGoalSuggestionMutation.mutate(goal.id)}
+                    variant="outline" 
+                    size="sm"
+                    className="h-7 px-3 flex-1 border-gray-300 text-gray-500 hover:bg-gray-100 text-center justify-center"
+                    disabled={rejectGoalSuggestionMutation.isPending}
+                  >
+                    <ThumbsDown className="h-3 w-3 mr-1" />
+                    <span className="text-xs">Reject</span>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+    
+    if (activeTab === "tasks") {
+      if (aiSuggestedTasks.length === 0) {
+        return (
+          <div className="flex flex-col items-center justify-center p-4 text-center">
+            <div className="bg-gray-50 rounded-full p-3 mb-3">
+              <ListChecks className="h-6 w-6 text-gray-300" />
+            </div>
+            <p className="text-sm text-gray-500 mb-2">No task suggestions yet</p>
+            <p className="text-xs text-gray-400 mb-4">
+              Write more in your journal to get AI-suggested tasks
+            </p>
+          </div>
+        );
+      }
+      
+      return (
+        <div className="space-y-4">
+          {aiSuggestedTasks.slice(0, 3).map(task => (
+            <div key={task.id} className="bg-[#f5f8ff] p-4 rounded-xl border border-[#B6CAEB] border-opacity-30">
+              <h4 className="font-medium text-gray-800 text-sm mb-1">{task.title}</h4>
+              <p className="text-xs text-gray-600 mb-3">{task.description}</p>
+              
+              {task.explanation && (
+                <div className="bg-[#F5F5FF] p-2 rounded-md text-xs text-gray-600 mb-3">
+                  <div className="flex items-center gap-1 mb-1">
+                    <Sparkles className="h-3 w-3 text-[#B6CAEB]" />
+                    <span className="font-medium text-gray-700">Why this was suggested:</span>
+                  </div>
+                  {task.explanation}
+                </div>
+              )}
+              
+              <div className="mt-3">
+                {/* Priority badge */}
+                <div className="mb-3 text-xs text-gray-500 flex items-center">
+                  <Clock className="h-3 w-3 inline mr-1 text-[#B6CAEB]" />
+                  {task.priority || "Medium"} Priority
+                </div>
+                
+                {/* Action buttons */}
+                <div className="flex gap-2 justify-center w-full">
+                  <Button 
+                    onClick={() => acceptTaskSuggestionMutation.mutate(task.id)}
+                    variant="outline" 
+                    size="sm"
+                    className="h-7 px-3 flex-1 bg-[#B6CAEB] hover:bg-[#9bb8e4] border-[#B6CAEB] text-white hover:text-white text-center justify-center"
+                    disabled={acceptTaskSuggestionMutation.isPending}
+                  >
+                    <ThumbsUp className="h-3 w-3 mr-1" />
+                    <span className="text-xs">Accept</span>
+                  </Button>
+                  <Button 
+                    onClick={() => rejectTaskSuggestionMutation.mutate(task.id)}
+                    variant="outline" 
+                    size="sm"
+                    className="h-7 px-3 flex-1 border-gray-300 text-gray-500 hover:bg-gray-100 text-center justify-center"
+                    disabled={rejectTaskSuggestionMutation.isPending}
+                  >
+                    <ThumbsDown className="h-3 w-3 mr-1" />
+                    <span className="text-xs">Reject</span>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+    
+    if (activeTab === "habits") {
+      if (aiSuggestedHabits.length === 0) {
+        return (
+          <div className="flex flex-col items-center justify-center p-4 text-center">
+            <div className="bg-gray-50 rounded-full p-3 mb-3">
+              <Target className="h-6 w-6 text-gray-300" />
+            </div>
+            <p className="text-sm text-gray-500 mb-2">No habit suggestions yet</p>
+            <p className="text-xs text-gray-400 mb-4">
+              Write more in your journal to get AI-suggested habits
+            </p>
+          </div>
+        );
+      }
+      
+      return (
+        <div className="space-y-4">
+          {aiSuggestedHabits.slice(0, 3).map(habit => (
+            <div key={habit.id} className="bg-[#f5faee] p-4 rounded-xl border border-[#9AAB63] border-opacity-30">
+              <h4 className="font-medium text-gray-800 text-sm mb-1">{habit.title}</h4>
+              <p className="text-xs text-gray-600 mb-3">{habit.description}</p>
+              
+              {habit.explanation && (
+                <div className="bg-[#F5F5FF] p-2 rounded-md text-xs text-gray-600 mb-3">
+                  <div className="flex items-center gap-1 mb-1">
+                    <Sparkles className="h-3 w-3 text-[#B6CAEB]" />
+                    <span className="font-medium text-gray-700">Why this was suggested:</span>
+                  </div>
+                  {habit.explanation}
+                </div>
+              )}
+              
+              <div className="mt-3">
+                {/* Frequency badge */}
+                <div className="mb-3 text-xs text-gray-500 flex items-center">
+                  <Target className="h-3 w-3 inline mr-1 text-[#9AAB63]" />
+                  {habit.frequency || "Daily"} Habit
+                </div>
+                
+                {/* Action buttons */}
+                <div className="flex gap-2 justify-center w-full">
+                  <Button 
+                    onClick={() => acceptHabitSuggestionMutation.mutate(habit.id)}
+                    variant="outline" 
+                    size="sm"
+                    className="h-7 px-3 flex-1 bg-[#9AAB63] hover:bg-[#899a58] border-[#9AAB63] text-white hover:text-white text-center justify-center"
+                    disabled={acceptHabitSuggestionMutation.isPending}
+                  >
+                    <ThumbsUp className="h-3 w-3 mr-1" />
+                    <span className="text-xs">Accept</span>
+                  </Button>
+                  <Button 
+                    onClick={() => rejectHabitSuggestionMutation.mutate(habit.id)}
+                    variant="outline" 
+                    size="sm"
+                    className="h-7 px-3 flex-1 border-gray-300 text-gray-500 hover:bg-gray-100 text-center justify-center"
+                    disabled={rejectHabitSuggestionMutation.isPending}
+                  >
+                    <ThumbsDown className="h-3 w-3 mr-1" />
+                    <span className="text-xs">Reject</span>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       );
     }
     
     return (
-      <div className="space-y-4">
-        {aiSuggestedGoals.slice(0, 3).map(goal => (
-          <div key={goal.id} className="bg-[#fff8f9] p-4 rounded-xl border border-[#F5B8DB] border-opacity-30">
-            <h4 className="font-medium text-gray-800 text-sm mb-1">{goal.name}</h4>
-            <p className="text-xs text-gray-600 mb-3">{goal.description}</p>
-            
-            {goal.explanation && (
-              <div className="bg-[#F5F5FF] p-2 rounded-md text-xs text-gray-600 mb-3">
-                <div className="flex items-center gap-1 mb-1">
-                  <Sparkles className="h-3 w-3 text-[#B6CAEB]" />
-                  <span className="font-medium text-gray-700">Why this was suggested:</span>
-                </div>
-                {goal.explanation}
-              </div>
-            )}
-            
-            <div className="mt-3">
-              {/* Category badge */}
-              <div className="mb-3 text-xs text-gray-500 flex items-center">
-                <Lightbulb className="h-3 w-3 inline mr-1 text-[#9AAB63]" />
-                {goal.category || "Personal"}
-              </div>
-              
-              {/* Action buttons */}
-              <div className="flex gap-2 justify-center w-full">
-                <Button 
-                  onClick={() => acceptGoalSuggestionMutation.mutate(goal.id)}
-                  variant="outline" 
-                  size="sm"
-                  className="h-7 px-3 flex-1 bg-[#F5B8DB] hover:bg-[#f096c9] border-[#F5B8DB] text-white hover:text-white text-center justify-center"
-                  disabled={acceptGoalSuggestionMutation.isPending}
-                >
-                  <ThumbsUp className="h-3 w-3 mr-1" />
-                  <span className="text-xs">Accept</span>
-                </Button>
-                <Button 
-                  onClick={() => rejectGoalSuggestionMutation.mutate(goal.id)}
-                  variant="outline" 
-                  size="sm"
-                  className="h-7 px-3 flex-1 border-gray-300 text-gray-500 hover:bg-gray-100 text-center justify-center"
-                  disabled={rejectGoalSuggestionMutation.isPending}
-                >
-                  <ThumbsDown className="h-3 w-3 mr-1" />
-                  <span className="text-xs">Reject</span>
-                </Button>
-              </div>
-            </div>
-          </div>
-        ))}
+      <div className="flex items-center justify-center p-4 text-center text-gray-500">
+        Select a category to see suggestions
       </div>
     );
   };
-  
-  const renderTaskSuggestions = () => {
-    if (isSuggestionsLoading) {
-      return (
-        <div className="flex items-center justify-center p-4">
-          <Loader2 className="h-8 w-8 animate-spin text-[#B6CAEB]" />
-        </div>
-      );
-    }
-    
-    if (aiSuggestedTasks.length === 0) {
-      return (
-        <div className="flex flex-col items-center justify-center p-4 text-center">
-          <div className="bg-gray-50 rounded-full p-3 mb-3">
-            <ListChecks className="h-6 w-6 text-gray-300" />
-          </div>
-          <p className="text-sm text-gray-500 mb-2">No task suggestions yet</p>
-          <p className="text-xs text-gray-400 mb-4">
-            Write more in your journal to get AI-suggested tasks
-          </p>
-        </div>
-      );
-    }
-    
-    return (
-      <div className="space-y-4">
-        {aiSuggestedTasks.slice(0, 3).map(task => (
-                aiSuggestedTasks.slice(0, 3).map(task => (
-                  <div key={task.id} className="bg-[#f5f8ff] p-4 rounded-xl border border-[#B6CAEB] border-opacity-30">
-                    <h4 className="font-medium text-gray-800 text-sm mb-1">{task.title}</h4>
-                    <p className="text-xs text-gray-600 mb-3">{task.description}</p>
-                    
-                    {task.explanation && (
-                      <div className="bg-[#F5F5FF] p-2 rounded-md text-xs text-gray-600 mb-3">
-                        <div className="flex items-center gap-1 mb-1">
-                          <Sparkles className="h-3 w-3 text-[#B6CAEB]" />
-                          <span className="font-medium text-gray-700">Why this was suggested:</span>
-                        </div>
-                        {task.explanation}
-                      </div>
-                    )}
-                    
-                    <div className="mt-3">
-                      {/* Priority badge */}
-                      <div className="mb-3 text-xs text-gray-500 flex items-center">
-                        <Clock className="h-3 w-3 inline mr-1 text-[#B6CAEB]" />
-                        {task.priority || "Medium"} Priority
-                      </div>
-                      
-                      {/* Action buttons */}
-                      <div className="flex gap-2 justify-center w-full">
-                        <Button 
-                          onClick={() => acceptTaskSuggestionMutation.mutate(task.id)}
-                          variant="outline" 
-                          size="sm"
-                          className="h-7 px-3 flex-1 bg-[#B6CAEB] hover:bg-[#9bb8e4] border-[#B6CAEB] text-white hover:text-white text-center justify-center"
-                          disabled={acceptTaskSuggestionMutation.isPending}
-                        >
-                          <ThumbsUp className="h-3 w-3 mr-1" />
-                          <span className="text-xs">Accept</span>
-                        </Button>
-                        <Button 
-                          onClick={() => rejectTaskSuggestionMutation.mutate(task.id)}
-                          variant="outline" 
-                          size="sm"
-                          className="h-7 px-3 flex-1 border-gray-300 text-gray-500 hover:bg-gray-100 text-center justify-center"
-                          disabled={rejectTaskSuggestionMutation.isPending}
-                        >
-                          <ThumbsDown className="h-3 w-3 mr-1" />
-                          <span className="text-xs">Reject</span>
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="flex flex-col items-center justify-center p-4 text-center">
-                  <div className="bg-gray-50 rounded-full p-3 mb-3">
-                    <ListChecks className="h-6 w-6 text-gray-300" />
-                  </div>
-                  <p className="text-sm text-gray-500 mb-2">No task suggestions yet</p>
-                  <p className="text-xs text-gray-400 mb-4">
-                    Write more in your journal to get AI-suggested tasks
-                  </p>
-                </div>
-              )}
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="habits">
-            <div className="space-y-4">
-              {isSuggestionsLoading ? (
-                <div className="flex items-center justify-center p-4">
-                  <Loader2 className="h-8 w-8 animate-spin text-[#9AAB63]" />
-                </div>
-              ) : aiSuggestedHabits.length > 0 ? (
-                aiSuggestedHabits.slice(0, 3).map(habit => (
-                  <div key={habit.id} className="bg-[#f5faee] p-4 rounded-xl border border-[#9AAB63] border-opacity-30">
-                    <h4 className="font-medium text-gray-800 text-sm mb-1">{habit.title}</h4>
-                    <p className="text-xs text-gray-600 mb-3">{habit.description}</p>
-                    
-                    {habit.explanation && (
-                      <div className="bg-[#F5F5FF] p-2 rounded-md text-xs text-gray-600 mb-3">
-                        <div className="flex items-center gap-1 mb-1">
-                          <Sparkles className="h-3 w-3 text-[#B6CAEB]" />
-                          <span className="font-medium text-gray-700">Why this was suggested:</span>
-                        </div>
-                        {habit.explanation}
-                      </div>
-                    )}
-                    
-                    <div className="mt-3">
-                      {/* Frequency badge */}
-                      <div className="mb-3 text-xs text-gray-500 flex items-center">
-                        <Target className="h-3 w-3 inline mr-1 text-[#9AAB63]" />
-                        {habit.frequency || "Daily"} Habit
-                      </div>
-                      
-                      {/* Action buttons */}
-                      <div className="flex gap-2 justify-center w-full">
-                        <Button 
-                          onClick={() => acceptHabitSuggestionMutation.mutate(habit.id)}
-                          variant="outline" 
-                          size="sm"
-                          className="h-7 px-3 flex-1 bg-[#9AAB63] hover:bg-[#899a58] border-[#9AAB63] text-white hover:text-white text-center justify-center"
-                          disabled={acceptHabitSuggestionMutation.isPending}
-                        >
-                          <ThumbsUp className="h-3 w-3 mr-1" />
-                          <span className="text-xs">Accept</span>
-                        </Button>
-                        <Button 
-                          onClick={() => rejectHabitSuggestionMutation.mutate(habit.id)}
-                          variant="outline" 
-                          size="sm"
-                          className="h-7 px-3 flex-1 border-gray-300 text-gray-500 hover:bg-gray-100 text-center justify-center"
-                          disabled={rejectHabitSuggestionMutation.isPending}
-                        >
-                          <ThumbsDown className="h-3 w-3 mr-1" />
-                          <span className="text-xs">Reject</span>
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="flex flex-col items-center justify-center p-4 text-center">
-                  <div className="bg-gray-50 rounded-full p-3 mb-3">
-                    <Target className="h-6 w-6 text-gray-300" />
-                  </div>
-                  <p className="text-sm text-gray-500 mb-2">No habit suggestions yet</p>
-                  <p className="text-xs text-gray-400 mb-4">
-                    Write more in your journal to get AI-suggested habits
-                  </p>
-                </div>
-              )}
-            </div>
-          </TabsContent>
-        </CardContent>
-        
-        {((activeTab === "goals" && aiSuggestedGoals.length > 3) ||
-          (activeTab === "tasks" && aiSuggestedTasks.length > 3) ||
-          (activeTab === "habits" && aiSuggestedHabits.length > 3)) && (
-          <CardFooter className="flex justify-center pt-0">
-            <Button
-              variant="link"
-              size="sm"
-              className="text-xs text-gray-500"
-              onClick={() => {
-                toast({
-                  title: "Coming soon",
-                  description: "View all suggestions will be available in a future update.",
-                });
-              }}
-            >
-              View all suggestions
-            </Button>
-          </CardFooter>
-        )}
-      </Tabs>
+
+  return (
+    <Card className="bg-white border-0 shadow-sm">
+      <CardHeader className="pb-2">
+        <CardTitle className="font-['Montserrat_Variable'] text-lg">
+          <span>AI Suggestions</span>
+        </CardTitle>
+        <CardDescription>
+          AI suggestions based on your journal entries
+        </CardDescription>
+      </CardHeader>
+      
+      <CardContent className="pt-4">
+        {renderContent()}
+      </CardContent>
     </Card>
   );
 }
