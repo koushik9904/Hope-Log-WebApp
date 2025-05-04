@@ -1733,30 +1733,7 @@ export default function GoalsPage() {
                       </div>
                     )}
 
-                    {!isSuggestionsLoading && (
-                      <Button
-                        onClick={() => generateSuggestionsMutation.mutate()}
-                        variant="outline"
-                        size="sm"
-                        className={`text-xs relative w-full mt-4 transition-all overflow-hidden 
-                          ${generateSuggestionsMutation.isPending ? 
-                            "bg-[#f5f0e8] text-gray-600" : 
-                            "bg-gradient-to-r from-[#FFF8E8] to-[#f5f0e8] hover:bg-gradient-to-r hover:from-[#FFF8D0] hover:to-[#f5ebc0] border-[#F5D867]"
-                          }`}
-                        disabled={generateSuggestionsMutation.isPending}
-                      >
-                        {generateSuggestionsMutation.isPending ? (
-                          <>
-                            <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
-                            <span>Analyzing Journal...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Sparkles className="h-3.5 w-3.5 mr-1.5 text-[#F5D867]" />
-                            <span>Generate AI Suggestions</span>
-                          </>
-                        )}
-                      </Button>
+                    {/* Generate suggestions button removed - now in AISuggestions component */}
                     {/* Generate suggestions button removed - now in AISuggestions component */}
                                     : 'border-gray-300 bg-white hover:border-[#9AAB63]'
                                 }`}
