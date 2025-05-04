@@ -1734,18 +1734,21 @@ export default function GoalsPage() {
                     )}
 
                     {/* Generate suggestions button removed - now in AISuggestions component */}
-                    <div className="mt-4">
-                      {habits.map(habit => (
-                        <div key={habit.id} className="flex items-center bg-[#FFF8E8] p-3 rounded-md mb-3">
-                          <button
-                            onClick={() => toggleHabitCompletion(habit.id)}
-                            className={`w-5 h-5 rounded-full flex items-center justify-center mr-3 ${
-                              habit.completedToday 
-                                ? 'border-[#9AAB63] bg-[#9AAB63] text-white' 
-                                : 'border-gray-300 bg-white hover:border-[#9AAB63]'
-                            }`}
-                          >
-                            {habit.completedToday && <Check className="h-3 w-3" />}
+                    
+                    {habits.length > 0 ? (
+                      <div className="mt-4">
+                        {habits.map(habit => (
+                          <div key={habit.id} className="flex items-center justify-between bg-[#FFF8E8] p-3 rounded-md mb-3">
+                            <div className="flex items-center">
+                              <button
+                                onClick={() => toggleHabitCompletion(habit.id)}
+                                className={`w-5 h-5 rounded-full flex items-center justify-center mr-3 border ${
+                                  habit.completedToday 
+                                    ? 'border-[#9AAB63] bg-[#9AAB63] text-white' 
+                                    : 'border-gray-300 bg-white hover:border-[#9AAB63]'
+                                }`}
+                              >
+                                {habit.completedToday && <Check className="h-3 w-3" />}
                               </button>
                               
                               <div>
