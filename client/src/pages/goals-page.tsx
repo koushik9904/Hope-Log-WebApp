@@ -1404,31 +1404,7 @@ export default function GoalsPage() {
                       </div>
                     </div>
                     
-                    {!isSuggestionsLoading && (
-                      <Button
-                        onClick={() => generateSuggestionsMutation.mutate()}
-                        variant="outline"
-                        size="sm"
-                        className={`text-xs relative w-full mt-4 transition-all overflow-hidden 
-                          ${generateSuggestionsMutation.isPending ? 
-                            "bg-[#f5f0e8] text-gray-600" : 
-                            "bg-gradient-to-r from-[#FFF8E8] to-[#f5f0e8] hover:bg-gradient-to-r hover:from-[#FFF8D0] hover:to-[#f5ebc0] border-[#F5D867]"
-                          }`}
-                        disabled={generateSuggestionsMutation.isPending}
-                      >
-                        {generateSuggestionsMutation.isPending ? (
-                          <>
-                            <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
-                            <span>Analyzing Journal...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Sparkles className="h-3.5 w-3.5 mr-1.5 text-[#F5D867]" />
-                            <span>Generate AI Suggestions</span>
-                          </>
-                        )}
-                      </Button>
-                    )}
+                    {/* Generate suggestions button removed - now in AISuggestions component */}
                   </div>
                 </CardContent>
               </Card>
@@ -1781,31 +1757,7 @@ export default function GoalsPage() {
                           </>
                         )}
                       </Button>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-              
-              {/* Main Habits Card */}
-              <Card className="md:col-span-3 bg-white border-0 shadow-sm">
-                <CardHeader className="border-b border-gray-100">
-                  <CardTitle className="font-['Montserrat_Variable']">Your Habits</CardTitle>
-                  <CardDescription>
-                    Daily, weekly, and monthly habits to build consistency
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pt-6">
-                  {habits.length > 0 ? (
-                    <div className="space-y-4">
-                      {habits.map(habit => (
-                        <div key={habit.id} className="bg-[#FFF8E8] p-4 rounded-xl">
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-start gap-3">
-                              <button 
-                                onClick={() => toggleHabitCompletion(habit.id)}
-                                className={`mt-1 w-5 h-5 rounded border flex items-center justify-center transition-all duration-300 cursor-pointer hover:shadow-md ${
-                                  habit.completedToday 
-                                    ? 'bg-[#9AAB63] border-[#9AAB63] text-white animate-checkmark' 
+                    {/* Generate suggestions button removed - now in AISuggestions component */}
                                     : 'border-gray-300 bg-white hover:border-[#9AAB63]'
                                 }`}
                               >
