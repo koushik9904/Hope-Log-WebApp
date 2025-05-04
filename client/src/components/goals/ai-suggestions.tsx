@@ -335,27 +335,8 @@ export default function AISuggestions({ existingGoals, existingTasks, existingHa
   return (
     <Card className="bg-white border-0 shadow-sm">
       <CardHeader className="pb-2">
-        <CardTitle className="font-['Montserrat_Variable'] text-lg flex justify-between">
+        <CardTitle className="font-['Montserrat_Variable'] text-lg">
           <span>AI Suggestions</span>
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-xs h-8"
-            onClick={() => generateSuggestionsMutation.mutate()}
-            disabled={generateSuggestionsMutation.isPending || isSuggestionsLoading}
-          >
-            {generateSuggestionsMutation.isPending ? (
-              <>
-                <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
-                <span>Analyzing...</span>
-              </>
-            ) : (
-              <>
-                <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
-                <span>Generate New</span>
-              </>
-            )}
-          </Button>
         </CardTitle>
         <CardDescription>
           AI suggestions based on your journal entries
