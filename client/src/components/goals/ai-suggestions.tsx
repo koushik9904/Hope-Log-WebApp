@@ -18,7 +18,9 @@ import {
   Sparkles, 
   Lightbulb, 
   ListChecks, 
-  Loader2 
+  Loader2,
+  AlertCircle,
+  AlertTriangle
 } from 'lucide-react';
 
 // Interfaces for AI suggestions

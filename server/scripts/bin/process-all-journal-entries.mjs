@@ -1,0 +1,69 @@
+#!/usr/bin/env node
+
+/**
+ * This script runs the one-time journal processing task
+ * Usage: 
+ *   node server/scripts/bin/process-all-journal-entries.mjs
+ * 
+ * It will:
+ * 1. Mark all journal entries as unprocessed
+ * 2. Process them to generate AI suggestions
+ */
+
+import { createInterface } from 'readline';
+import { exec } from 'child_process';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+// Get the directory path of the current module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+console.log('🚀 HopeLog AI Suggestion Generator');
+console.log('================================');
+console.log('This tool will mark all journal entries as unanalyzed and then');
+console.log('process them to generate AI suggestions for goals, tasks, and habits.');
+console.log('');
+console.log('⚠️  WARNING: This should only be run once. Running it multiple times');
+console.log('will duplicate suggestions in the database.');
+console.log('');
+
+// Check if OpenAI API key is set
+if (!process.env.OPENAI_API_KEY) {
+  console.error('❌ ERROR: OPENAI_API_KEY environment variable is not set.');
+  console.error('Please set this variable and try again.');
+  process.exit(1);
+}
+
+// Ask for confirmation
+const rl = createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+
+rl.question('Are you sure you want to continue? (yes/no): ', (answer) => {
+  if (answer.toLowerCase() !== 'yes') {
+    console.log('Operation cancelled.');
+    rl.close();
+    process.exit(0);
+  }
+  
+  console.log('Starting process...');
+  rl.close();
+  
+  // Calculate the path to our script
+  const scriptPath = join(__dirname, '../process-all-journal-entries.ts');
+  
+  // Execute the processing script
+  exec(`npx tsx ${scriptPath}`, (error, stdout, stderr) => {
+    if (error) {
+      console.error('❌ Error during processing:', error);
+      console.error(stderr);
+      process.exit(1);
+    }
+    
+    console.log(stdout);
+    console.log('✅ Processing complete!');
+    process.exit(0);
+  });
+});
