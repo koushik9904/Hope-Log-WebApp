@@ -1734,30 +1734,21 @@ export default function GoalsPage() {
                     )}
 
                     {/* Generate suggestions button removed - now in AISuggestions component */}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Main Habits Card */}
-              <Card className="md:col-span-3 bg-white border-0 shadow-sm">
-                <CardHeader className="border-b border-gray-100">
-                  <CardTitle className="font-['Montserrat_Variable'] text-base">Your Habits</CardTitle>
-                </CardHeader>
-                <CardContent className="pt-6">
-                  {habits.length > 0 ? (
-                    <div className="mt-4">
-                      {habits.map(habit => (
-                        <div key={habit.id} className="flex items-center justify-between bg-[#FFF8E8] p-3 rounded-md mb-3">
-                          <div className="flex items-center">
-                            <button
-                              onClick={() => toggleHabitCompletion(habit.id)}
-                              className={`w-5 h-5 rounded-full flex items-center justify-center mr-3 border ${
-                                habit.completedToday 
-                                  ? 'border-[#9AAB63] bg-[#9AAB63] text-white' 
-                                  : 'border-gray-300 bg-white hover:border-[#9AAB63]'
-                              }`}
-                            >
-                              {habit.completedToday && <Check className="h-3 w-3" />}
+                    
+                    {habits.length > 0 ? (
+                      <div className="mt-4">
+                        {habits.map(habit => (
+                          <div key={habit.id} className="flex items-center justify-between bg-[#FFF8E8] p-3 rounded-md mb-3">
+                            <div className="flex items-center">
+                              <button
+                                onClick={() => toggleHabitCompletion(habit.id)}
+                                className={`w-5 h-5 rounded-full flex items-center justify-center mr-3 border ${
+                                  habit.completedToday 
+                                    ? 'border-[#9AAB63] bg-[#9AAB63] text-white' 
+                                    : 'border-gray-300 bg-white hover:border-[#9AAB63]'
+                                }`}
+                              >
+                                {habit.completedToday && <Check className="h-3 w-3" />}
                               </button>
                               
                               <div>
@@ -1808,8 +1799,8 @@ export default function GoalsPage() {
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
                   ) : (
                     <div className="flex flex-col items-center justify-center py-12 text-center">
                       <div className="bg-gray-50 rounded-full p-4 mb-4">
