@@ -182,7 +182,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-import AISuggestions from "@/components/goals/ai-suggestions";
+import AISuggestions from "@/components/goals/ai-suggestions-new";
 
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 
@@ -990,7 +990,8 @@ export default function GoalsPage() {
                 <AISuggestions 
                   existingGoals={goals} 
                   existingTasks={allTasks} 
-                  existingHabits={habits} 
+                  existingHabits={habits}
+                  activeTab={activeTab} 
                 />
               </div>
               <Card className="md:col-span-3 bg-white border-0 shadow-sm">

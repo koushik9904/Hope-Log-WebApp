@@ -272,7 +272,7 @@ export default function AISuggestions({ existingGoals, existingTasks, existingHa
       );
     }
     
-    if (activeTab === "Goals") {
+    if (activeTab === "goals") {
       if (aiSuggestedGoals.length === 0) {
         return (
           <div className="flex flex-col items-center justify-center p-4 text-center">
@@ -341,7 +341,7 @@ export default function AISuggestions({ existingGoals, existingTasks, existingHa
       );
     }
     
-    if (activeTab === "Tasks") {
+    if (activeTab === "tasks") {
       if (aiSuggestedTasks.length === 0) {
         return (
           <div className="flex flex-col items-center justify-center p-4 text-center">
@@ -410,7 +410,7 @@ export default function AISuggestions({ existingGoals, existingTasks, existingHa
       );
     }
     
-    if (activeTab === "Habits") {
+    if (activeTab === "habits") {
       if (aiSuggestedHabits.length === 0) {
         return (
           <div className="flex flex-col items-center justify-center p-4 text-center">
