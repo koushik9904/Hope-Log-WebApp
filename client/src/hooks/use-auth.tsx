@@ -10,7 +10,6 @@ import { useToast } from "@/hooks/use-toast";
 
 interface LoginResponse {
   message?: string;
-  verificationRequired?: boolean;
   userId?: number;
   [key: string]: any; // For other user properties
 }
@@ -32,7 +31,7 @@ type AuthContextType = {
   user: SelectUser | null;
   isLoading: boolean;
   error: Error | null;
-  isVerified: boolean; // New property to check if user is verified
+  isVerified: boolean; // Keeping for backward compatibility
   loginMutation: UseMutationResult<LoginResponse, Error, LoginData>;
   logoutMutation: UseMutationResult<void, Error, void>;
   registerMutation: UseMutationResult<LoginResponse, Error, InsertUser>;
@@ -61,24 +60,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Determine if the user is verified
   const isVerified = user?.isVerified ?? false;
 
-  // Enhanced login mutation that handles verification check
+  // Simplified login mutation without verification check
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginData) => {
       const res = await apiRequest("POST", "/api/login", credentials);
       return await res.json();
     },
     onSuccess: (response: LoginResponse) => {
-      // Check if verification is required
-      if (response.verificationRequired) {
-        toast({
-          title: "Verification required",
-          description: "Please check your email to verify your account before logging in.",
-          variant: "default",
-        });
-        return;
-      }
-      
-      // User is verified, update the user data
+      // User is automatically verified, update the user data
       if (response.id) {
         queryClient.setQueryData(["/api/user"], response);
         toast({
@@ -96,20 +85,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
-  // Enhanced registration that handles email verification flow
+  // Updated registration that automatically logs in without verification
   const registerMutation = useMutation({
     mutationFn: async (credentials: InsertUser) => {
       const res = await apiRequest("POST", "/api/register", credentials);
       return await res.json();
     },
     onSuccess: (response: LoginResponse) => {
-      if (response.verificationRequired) {
-        toast({
-          title: "Registration successful",
-          description: "Please check your email to verify your account before logging in.",
-        });
-      } else if (response.id) {
-        // User is already verified (e.g., OAuth login)
+      if (response.id) {
+        // User is automatically verified and logged in
         queryClient.setQueryData(["/api/user"], response);
         toast({
           title: "Registration successful",

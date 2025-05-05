@@ -391,23 +391,17 @@ export async function setupAuth(app: Express) {
       }
     }
     
-    // Generate verification token
-    const verificationToken = randomBytes(20).toString('hex');
+    // No need for verification token anymore
+    // But keeping the code structure for backward compatibility
     
-    // Create user with verification token
+    // Create user - now automatically verified
     const user = await storage.createUser({
       ...req.body,
       password: await hashPassword(req.body.password),
       provider: 'local',
-      isVerified: false,
-      verificationToken
+      isVerified: true, // Set users as verified by default
+      verificationToken: null // No verification token needed
     });
-    
-    // TODO: Send verification email
-    // We'll mock this for now, but in a real application, you'd send an email with a link
-    // to /api/verify-email/{token}
-    
-    console.log(`Verification link: ${process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : 'http://localhost:5000'}/api/verify-email/${verificationToken}`);
     
     // Auto-login the user after registration
     req.login(user, (err) => {
@@ -417,7 +411,7 @@ export async function setupAuth(app: Express) {
       const { password, ...userWithoutPassword } = user;
       res.status(201).json({
         ...userWithoutPassword,
-        verificationRequired: true
+        verificationRequired: false // No verification required
       });
     });
   });
@@ -441,15 +435,8 @@ export async function setupAuth(app: Express) {
         return res.status(401).json({ message: "Authentication failed" });
       }
       
-      // Check if user is verified (unless they're logging in with a social provider or admin)
-      if (user.provider === 'local' && !user.isAdmin && !user.isVerified) {
-        console.log("❌ Login attempted with unverified account:", user.id);
-        return res.status(403).json({ 
-          message: "Email verification required", 
-          verificationRequired: true,
-          userId: user.id
-        });
-      }
+      // Email verification check has been removed
+      // All users are considered verified now
       
       req.login(user, (loginErr: Error | null) => {
         if (loginErr) {
