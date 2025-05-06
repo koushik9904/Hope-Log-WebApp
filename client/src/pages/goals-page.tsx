@@ -1350,23 +1350,14 @@ export default function GoalsPage() {
                     </DialogDescription>
                   </DialogHeader>
                   <TaskForm 
-                    userId={user?.id || 0} 
-                    initialData={{
-                      id: 0,
-                      userId: user?.id || 0,
+                    userId={user?.id || 0}
+                    // Pass form values without an ID to create a new task instead of updating
+                    initialData={newTaskInitialData.title || newTaskInitialData.description || newTaskInitialData.goalId ? {
                       title: newTaskInitialData.title || "",
-                      description: newTaskInitialData.description || null,
-                      dueDate: null,
+                      description: newTaskInitialData.description || "",
                       priority: newTaskInitialData.priority || "medium",
-                      completedAt: null,
-                      goalId: newTaskInitialData.goalId || null,
-                      // Other required fields that will be set by the server
-                      createdAt: null,
-                      updatedAt: null,
-                      deletedAt: null,
-                      colorScheme: 1,
-                      completed: false
-                    }}
+                      goalId: newTaskInitialData.goalId || undefined,
+                    } : undefined}
                     onSuccess={() => {
                       // Clear the initial data after successful submission
                       setNewTaskInitialData({});
