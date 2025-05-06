@@ -20,7 +20,9 @@ import {
   ChevronRight,
   ExternalLink,
   Info,
-  CreditCard
+  CreditCard,
+  HelpCircle,
+  MessageSquare
 } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { HopeLogLogo } from "@/components/ui/hope-log-logo";
@@ -144,6 +146,12 @@ export function Sidebar() {
           label="Subscription" 
         />
         
+        <NavLink 
+          href="/support" 
+          icon={<MessageSquare className="w-full h-full" />} 
+          label="Support & Feedback" 
+        />
+        
         {/* Admin section - only visible to admins */}
         {user?.isAdmin && (
           <>
@@ -217,7 +225,7 @@ export function Sidebar() {
           <div className="rounded-xl bg-gray-800 p-4 border border-gray-700">
             <div className="flex items-center">
               <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-white font-medium">
-                {user?.username.charAt(0).toUpperCase()}
+                {user?.username ? user.username.charAt(0).toUpperCase() : 'U'}
               </div>
               <div className="ml-3">
                 <p className="text-sm font-medium text-white">{user?.username}</p>

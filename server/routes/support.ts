@@ -30,7 +30,8 @@ const upload = multer({
   fileFilter: function (req, file, cb) {
     // Accept images only
     if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
-      return cb(new Error('Only image files are allowed!'), false);
+      cb(null, false);
+      return new Error('Only image files are allowed!');
     }
     cb(null, true);
   }
@@ -101,7 +102,8 @@ router.post('/support', upload.single('attachment'), async (req, res) => {
       message: 'Support request submitted successfully',
       emailSent
     });
-  } catch (error) {
+  } catch (err) {
+    const error = err as Error;
     console.error('Error sending support request:', error);
     
     // Clean up temp file if there was an error
@@ -115,7 +117,7 @@ router.post('/support', upload.single('attachment'), async (req, res) => {
     
     return res.status(500).json({ 
       error: 'Failed to submit support request', 
-      details: error.message 
+      details: error.message || 'Unknown error occurred'
     });
   }
 });
