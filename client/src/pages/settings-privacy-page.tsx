@@ -20,6 +20,18 @@ export default function SettingsPrivacyPage() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
+        <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-6 w-6 text-amber-500 flex-shrink-0 mt-1" />
+            <div>
+              <h3 className="font-medium text-amber-700 mb-1">Coming Soon</h3>
+              <p className="text-sm text-amber-600">
+                Our Privacy Settings module is under development. The preview below shows what's coming!
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2 font-['Montserrat_Variable']">Privacy & Security</h1>
           <p className="text-gray-500 font-['Inter_Variable']">
@@ -46,7 +58,7 @@ export default function SettingsPrivacyPage() {
                     <p className="text-sm text-gray-500">Keep your journal entries private from AI analysis</p>
                   </div>
                 </div>
-                <Switch />
+                <Switch disabled={true} />
               </div>
               
               <div className="flex items-center justify-between">
@@ -59,7 +71,7 @@ export default function SettingsPrivacyPage() {
                     <p className="text-sm text-gray-500">Enable end-to-end encryption for all journal entries</p>
                   </div>
                 </div>
-                <Switch defaultChecked />
+                <Switch defaultChecked disabled={true} />
               </div>
               
               <div className="flex items-center justify-between">
@@ -72,7 +84,7 @@ export default function SettingsPrivacyPage() {
                     <p className="text-sm text-gray-500">Allow anonymous usage data to improve the app</p>
                   </div>
                 </div>
-                <Switch defaultChecked />
+                <Switch defaultChecked disabled={true} />
               </div>
             </div>
             
@@ -90,7 +102,7 @@ export default function SettingsPrivacyPage() {
                   <p className="text-sm text-gray-500 mt-1 ml-7">
                     Add an extra layer of security to your account
                   </p>
-                  <Button variant="outline" size="sm" className="mt-2 ml-7">
+                  <Button variant="outline" size="sm" className="mt-2 ml-7" disabled={true}>
                     Enable 2FA
                   </Button>
                 </div>
@@ -103,7 +115,7 @@ export default function SettingsPrivacyPage() {
                   <p className="text-sm text-gray-500 mt-1 ml-7">
                     Permanently delete your account and all data
                   </p>
-                  <Button variant="outline" size="sm" className="mt-2 ml-7 text-red-500 border-red-200 hover:bg-red-50">
+                  <Button variant="outline" size="sm" className="mt-2 ml-7 text-red-500 border-red-200 hover:bg-red-50" disabled={true}>
                     Delete Account
                   </Button>
                 </div>
