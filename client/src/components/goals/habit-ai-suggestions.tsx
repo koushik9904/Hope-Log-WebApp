@@ -152,56 +152,64 @@ export default function HabitAISuggestions({ existingHabitTitles }: HabitAISugge
     );
   }
 
+  console.log("Rendering HabitAISuggestions with:", { 
+    aiSuggestedHabits, 
+    count: aiSuggestedHabits.length 
+  });
+  
   return (
     <div className="space-y-4">
-      {aiSuggestedHabits.map(habit => (
-        <div key={habit.id} className="bg-[#f5faee] p-4 rounded-xl border border-[#9AAB63] border-opacity-30">
-          <h4 className="font-medium text-gray-800 text-sm mb-1">{habit.title}</h4>
-          <p className="text-xs text-gray-600 mb-3">{habit.description}</p>
-          
-          {habit.explanation && (
-            <div className="bg-[#F5F5FF] p-2 rounded-md text-xs text-gray-600 mb-3">
-              <div className="flex items-center gap-1 mb-1">
-                <Sparkles className="h-3 w-3 text-[#9AAB63]" />
-                <span className="font-medium text-gray-700">Why this was suggested:</span>
-              </div>
-              {habit.explanation}
-            </div>
-          )}
-          
-          <div className="mt-3">
-            {/* Frequency badge */}
-            <div className="mb-3 text-xs text-gray-500 flex items-center">
-              <Target className="h-3 w-3 inline mr-1 text-[#9AAB63]" />
-              {habit.frequency || "Daily"} Habit
-            </div>
+      {aiSuggestedHabits.map(habit => {
+        console.log("Rendering habit item:", habit);
+        return (
+          <div key={habit.id} className="bg-[#f5faee] p-4 rounded-xl border border-[#9AAB63] border-opacity-30">
+            <h4 className="font-medium text-gray-800 text-sm mb-1">{habit.title}</h4>
+            <p className="text-xs text-gray-600 mb-3">{habit.description}</p>
             
-            {/* Action buttons */}
-            <div className="flex gap-2 justify-center w-full">
-              <Button 
-                onClick={() => acceptHabitMutation.mutate(habit.id)}
-                variant="outline" 
-                size="sm"
-                className="h-7 px-3 flex-1 bg-[#9AAB63] hover:bg-[#899a58] border-[#9AAB63] text-white hover:text-white text-center justify-center"
-                disabled={acceptHabitMutation.isPending}
-              >
-                <ThumbsUp className="h-3 w-3 mr-1" />
-                <span className="text-xs">Accept</span>
-              </Button>
-              <Button 
-                onClick={() => rejectHabitMutation.mutate(habit.id)}
-                variant="outline" 
-                size="sm"
-                className="h-7 px-3 flex-1 border-gray-300 text-gray-500 hover:bg-gray-100 text-center justify-center"
-                disabled={rejectHabitMutation.isPending}
-              >
-                <ThumbsDown className="h-3 w-3 mr-1" />
-                <span className="text-xs">Reject</span>
-              </Button>
+            {habit.explanation && (
+              <div className="bg-[#F5F5FF] p-2 rounded-md text-xs text-gray-600 mb-3">
+                <div className="flex items-center gap-1 mb-1">
+                  <Sparkles className="h-3 w-3 text-[#9AAB63]" />
+                  <span className="font-medium text-gray-700">Why this was suggested:</span>
+                </div>
+                {habit.explanation}
+              </div>
+            )}
+          
+            <div className="mt-3">
+              {/* Frequency badge */}
+              <div className="mb-3 text-xs text-gray-500 flex items-center">
+                <Target className="h-3 w-3 inline mr-1 text-[#9AAB63]" />
+                {habit.frequency || "Daily"} Habit
+              </div>
+              
+              {/* Action buttons */}
+              <div className="flex gap-2 justify-center w-full">
+                <Button 
+                  onClick={() => acceptHabitMutation.mutate(habit.id)}
+                  variant="outline" 
+                  size="sm"
+                  className="h-7 px-3 flex-1 bg-[#9AAB63] hover:bg-[#899a58] border-[#9AAB63] text-white hover:text-white text-center justify-center"
+                  disabled={acceptHabitMutation.isPending}
+                >
+                  <ThumbsUp className="h-3 w-3 mr-1" />
+                  <span className="text-xs">Accept</span>
+                </Button>
+                <Button 
+                  onClick={() => rejectHabitMutation.mutate(habit.id)}
+                  variant="outline" 
+                  size="sm"
+                  className="h-7 px-3 flex-1 border-gray-300 text-gray-500 hover:bg-gray-100 text-center justify-center"
+                  disabled={rejectHabitMutation.isPending}
+                >
+                  <ThumbsDown className="h-3 w-3 mr-1" />
+                  <span className="text-xs">Reject</span>
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

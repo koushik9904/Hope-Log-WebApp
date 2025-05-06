@@ -145,22 +145,30 @@ export default function TaskAISuggestions({ existingTaskTitles }: TaskAISuggesti
     );
   }
 
+  console.log("Rendering TaskAISuggestions with:", {
+    aiSuggestedTasks,
+    count: aiSuggestedTasks.length,
+    originalTasksCount: aiSuggestions.tasks?.length
+  });
+  
   return (
     <div className="space-y-4">
-      {aiSuggestedTasks.map(task => (
-        <div key={task.id} className="bg-[#f5f8ff] p-4 rounded-xl border border-[#B6CAEB] border-opacity-30">
-          <h4 className="font-medium text-gray-800 text-sm mb-1">{task.title}</h4>
-          <p className="text-xs text-gray-600 mb-3">{task.description}</p>
-          
-          {task.explanation && (
-            <div className="bg-[#F5F5FF] p-2 rounded-md text-xs text-gray-600 mb-3">
-              <div className="flex items-center gap-1 mb-1">
-                <Sparkles className="h-3 w-3 text-[#B6CAEB]" />
-                <span className="font-medium text-gray-700">Why this was suggested:</span>
+      {aiSuggestedTasks.map(task => {
+        console.log("Rendering task item:", task);
+        return (
+          <div key={task.id} className="bg-[#f5f8ff] p-4 rounded-xl border border-[#B6CAEB] border-opacity-30">
+            <h4 className="font-medium text-gray-800 text-sm mb-1">{task.title}</h4>
+            <p className="text-xs text-gray-600 mb-3">{task.description}</p>
+            
+            {task.explanation && (
+              <div className="bg-[#F5F5FF] p-2 rounded-md text-xs text-gray-600 mb-3">
+                <div className="flex items-center gap-1 mb-1">
+                  <Sparkles className="h-3 w-3 text-[#B6CAEB]" />
+                  <span className="font-medium text-gray-700">Why this was suggested:</span>
+                </div>
+                {task.explanation}
               </div>
-              {task.explanation}
-            </div>
-          )}
+            )}
           
           <div className="mt-3">
             {/* Priority badge */}
