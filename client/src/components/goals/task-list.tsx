@@ -453,29 +453,41 @@ export default function TaskList({
     if (!dateRange?.from) return true;
     if (!task.dueDate) return false; // No due date doesn't match date filter
     
-    // Parse the ISO date string to a Date object
-    const taskDate = new Date(task.dueDate);
-    taskDate.setHours(0, 0, 0, 0); // Normalize task date to start of day
-    
-    // From date only (on or after this date)
-    if (dateRange.from && !dateRange.to) {
-      const start = new Date(dateRange.from);
-      start.setHours(0, 0, 0, 0);
-      return taskDate >= start;
-    }
-    
-    // Date range (between from and to, inclusive)
-    if (dateRange.from && dateRange.to) {
-      const start = new Date(dateRange.from);
-      start.setHours(0, 0, 0, 0);
+    try {
+      // Parse the ISO date string to a Date object, ensuring it's valid
+      const taskDate = new Date(task.dueDate);
       
-      const end = new Date(dateRange.to);
-      end.setHours(23, 59, 59, 999);
+      // Validate the date is not invalid
+      if (isNaN(taskDate.getTime())) {
+        console.warn(`Invalid date found for task ${task.id}: "${task.dueDate}"`);
+        return false;
+      }
       
-      return taskDate >= start && taskDate <= end;
+      taskDate.setHours(0, 0, 0, 0); // Normalize task date to start of day
+      
+      // From date only (on or after this date)
+      if (dateRange.from && !dateRange.to) {
+        const start = new Date(dateRange.from);
+        start.setHours(0, 0, 0, 0);
+        return taskDate >= start;
+      }
+      
+      // Date range (between from and to, inclusive)
+      if (dateRange.from && dateRange.to) {
+        const start = new Date(dateRange.from);
+        start.setHours(0, 0, 0, 0);
+        
+        const end = new Date(dateRange.to);
+        end.setHours(23, 59, 59, 999);
+        
+        return taskDate >= start && taskDate <= end;
+      }
+      
+      return false; // If no conditions match, don't include the task
+    } catch (error) {
+      console.error(`Error filtering task ${task.id} by date range:`, error);
+      return false;
     }
-    
-    return true;
   };
 
   // Apply filters to tasks
