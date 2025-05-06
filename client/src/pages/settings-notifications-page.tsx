@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertTriangle } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { PageLayout } from "@/components/layout/page-layout";
 
@@ -75,6 +75,18 @@ export default function NotificationsSettingsPage() {
 
   return (
     <PageLayout heading="Settings" subheading="Manage your account settings and preferences">
+      <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+        <div className="flex items-start gap-3">
+          <AlertTriangle className="h-6 w-6 text-amber-500 flex-shrink-0 mt-1" />
+          <div>
+            <h3 className="font-medium text-amber-700 mb-1">Coming Soon</h3>
+            <p className="text-sm text-amber-600">
+              Our Notification System is under development. The preview below shows what's coming!
+            </p>
+          </div>
+        </div>
+      </div>
+      
       <div className="space-y-6">
         <div>
           <h3 className="text-2xl font-medium">Notification Settings</h3>
@@ -104,7 +116,7 @@ export default function NotificationsSettingsPage() {
                 id="journal-reminders" 
                 checked={preferences?.journalReminders} 
                 onCheckedChange={(checked) => handleToggleChange("journalReminders", checked)}
-                disabled={isUpdating}
+                disabled={true}
               />
             </div>
             
@@ -123,7 +135,7 @@ export default function NotificationsSettingsPage() {
                 id="goal-reminders" 
                 checked={preferences?.goalReminders}
                 onCheckedChange={(checked) => handleToggleChange("goalReminders", checked)}
-                disabled={isUpdating}
+                disabled={true}
               />
             </div>
             
@@ -142,7 +154,7 @@ export default function NotificationsSettingsPage() {
                 id="weekly-digest" 
                 checked={preferences?.weeklyDigest}
                 onCheckedChange={(checked) => handleToggleChange("weeklyDigest", checked)}
-                disabled={isUpdating}
+                disabled={true}
               />
             </div>
           </CardContent>
@@ -169,7 +181,7 @@ export default function NotificationsSettingsPage() {
                 id="browser-notifications" 
                 checked={preferences?.browserNotifications}
                 onCheckedChange={(checked) => handleToggleChange("browserNotifications", checked)}
-                disabled={isUpdating}
+                disabled={true}
               />
             </div>
             
@@ -207,7 +219,7 @@ export default function NotificationsSettingsPage() {
               <Select 
                 value={preferences?.reminderTime || "09:00"} 
                 onValueChange={handleTimeChange}
-                disabled={isUpdating}
+                disabled={true}
               >
                 <SelectTrigger id="reminder-time">
                   <SelectValue placeholder="Select time" />

@@ -1,7 +1,7 @@
 import { useAuth } from "@/hooks/use-auth";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { Switch } from "@/components/ui/switch";
-import { Shield, EyeOff, Key, Ban } from "lucide-react";
+import { Shield, EyeOff, Key, Ban, AlertTriangle } from "lucide-react";
 import {
   Card,
   CardContent,
