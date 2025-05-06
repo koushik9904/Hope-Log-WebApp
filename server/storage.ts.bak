@@ -941,6 +941,8 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
   
+  }
+  
   async permanentlyDeleteHabit(id: number): Promise<void> {
     await db
       .delete(habits)
@@ -952,22 +954,6 @@ export class DatabaseStorage implements IStorage {
     const aiHabitsResult = await this.getAiHabitsByUserId(userId);
     
     // Convert AISuggestedHabit to Habit format for backward compatibility
-    return aiHabitsResult.map(aiHabit => ({
-      id: aiHabit.id,
-      userId: aiHabit.userId,
-      title: aiHabit.title,
-      description: aiHabit.description || '',
-      frequency: aiHabit.frequency || 'daily',
-      streak: 0,
-      completedToday: false,
-      lastCompletedAt: null,
-      completionHistory: {},
-      colorScheme: 1,
-      status: 'suggested',
-      source: 'ai',
-      aiExplanation: aiHabit.explanation,
-      deletedAt: null,
-      createdAt: aiHabit.createdAt,
       updatedAt: null
     }));
   }
