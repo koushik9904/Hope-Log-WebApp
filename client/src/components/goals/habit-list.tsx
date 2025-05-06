@@ -30,9 +30,10 @@ import HabitForm from './habit-form';
 
 interface HabitListProps {
   userId: number;
+  filter?: 'all' | 'active' | 'completed';
 }
 
-export default function HabitList({ userId }: HabitListProps) {
+export default function HabitList({ userId, filter = 'all' }: HabitListProps) {
   const { toast } = useToast();
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -196,7 +197,15 @@ export default function HabitList({ userId }: HabitListProps) {
     );
   }
 
-  const habits = habitsQuery.data || [];
+  const allHabits = habitsQuery.data || [];
+  
+  // Filter habits based on the filter prop
+  const habits = allHabits.filter(habit => {
+    if (filter === 'all') return true;
+    if (filter === 'active') return !habit.completedToday;
+    if (filter === 'completed') return habit.completedToday;
+    return true;
+  });
 
   return (
     <div className="space-y-4">

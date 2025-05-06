@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, ReactNode } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useQuery } from '@tanstack/react-query';
-import { Plus, Filter } from 'lucide-react';
+import { Plus, Filter, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -10,6 +10,33 @@ import HabitList from '@/components/goals/habit-list';
 import HabitForm from '@/components/goals/habit-form';
 import HabitAISuggestions from '@/components/goals/habit-ai-suggestions';
 import PageHeader from '@/components/ui/page-header';
+
+// Helper component to fetch habit titles and pass them to children
+function FetchHabitTitles({ 
+  userId, 
+  children 
+}: { 
+  userId: number, 
+  children: (habitTitles: string[]) => ReactNode 
+}) {
+  const { data: habits = [], isLoading } = useQuery<Array<{ title: string }>>({
+    queryKey: [`/api/habits/${userId}`],
+    enabled: !!userId,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-6">
+        <Loader2 className="h-6 w-6 animate-spin text-[#9AAB63]" />
+      </div>
+    );
+  }
+
+  // Extract titles from habits for deduplication
+  const habitTitles = habits.map((habit: { title: string }) => habit.title);
+  
+  return <>{children(habitTitles)}</>;
+}
 
 export default function HabitsPage() {
   const { user } = useAuth();
@@ -43,12 +70,41 @@ export default function HabitsPage() {
         </Button>
       </div>
 
-      <div className="bg-white dark:bg-gray-950 rounded-lg shadow-sm p-6 mb-8">
-        <h2 className="text-xl font-semibold mb-4">
-          {filter === 'all' ? 'All Habits' : 
-            filter === 'active' ? 'Active Habits' : 'Completed Today'}
-        </h2>
-        <HabitList userId={user.id} />
+      {/* Main content area with AI suggestions */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        {/* AI Suggestions Section */}
+        <div className="md:col-span-1">
+          <Card>
+            <CardHeader className="border-b border-gray-100 pb-3">
+              <CardTitle className="text-lg font-bold">AI Suggestions</CardTitle>
+              <CardDescription>
+                Habits based on your journal
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-4">
+              {/* Fetch existing habit titles to pass to the suggestions component */}
+              <FetchHabitTitles userId={user.id}>
+                {(habitTitles) => (
+                  <HabitAISuggestions existingHabitTitles={habitTitles} />
+                )}
+              </FetchHabitTitles>
+            </CardContent>
+          </Card>
+        </div>
+        
+        {/* Habits Section */}
+        <Card className="md:col-span-3 bg-white border-0 shadow-sm">
+          <CardHeader className="border-b border-gray-100">
+            <CardTitle className="font-['Montserrat_Variable'] text-lg font-bold">Your Habits</CardTitle>
+            <CardDescription className="text-gray-500">
+              {filter === 'all' ? 'All Habits' : 
+                filter === 'active' ? 'Active Habits' : 'Completed Today'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <HabitList userId={user.id} filter={filter} />
+          </CardContent>
+        </Card>
       </div>
 
       {/* Create Habit Dialog */}
