@@ -759,7 +759,9 @@ export default function LandingPage() {
                 </li>
               </ul>
               
-              <button className="block text-center w-full py-2.5 px-4 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors">
+              <button 
+                onClick={() => window.location.href = 'mailto:jazeel@hopelog.com?subject=Enterprise%20Plan%20Inquiry'} 
+                className="block text-center w-full py-2.5 px-4 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors">
                 Contact Sales
               </button>
             </div>

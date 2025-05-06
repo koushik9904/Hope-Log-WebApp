@@ -202,7 +202,7 @@ export default function HelpCenterPage() {
                   <MessageCircle className="mr-2 h-4 w-4" /> Ask the Community
                 </Button>
               </Link>
-              <a href="mailto:support@hopelog.com">
+              <a href="mailto:jazeel@hopelog.com">
                 <Button className="bg-[#F5B8DB] hover:bg-[#F5B8DB]/90 flex items-center">
                   <Mail className="mr-2 h-4 w-4" /> Email Support
                 </Button>
