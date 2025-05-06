@@ -1625,9 +1625,6 @@ export default function GoalsPage() {
                 </CardHeader>
                 <CardContent className="pt-6">
                 {/* Advanced Filtering UI for Tasks */}
-                <div className="mb-3">
-                  <p className="text-sm text-gray-600">Manage and track your day-to-day tasks</p>
-                </div>
                 <div className="flex flex-wrap gap-2 mb-6">
                   {/* Goal Filter Button - Styled like screenshot */}
                   <Button 
