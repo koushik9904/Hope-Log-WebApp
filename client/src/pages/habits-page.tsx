@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
+import { useQuery } from '@tanstack/react-query';
 import { Plus, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import HabitList from '@/components/goals/habit-list';
 import HabitForm from '@/components/goals/habit-form';
+import HabitAISuggestions from '@/components/goals/habit-ai-suggestions';
 import PageHeader from '@/components/ui/page-header';
 
 export default function HabitsPage() {
