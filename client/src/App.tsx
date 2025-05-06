@@ -45,6 +45,7 @@ const SettingsNotificationsPage = lazy(() => import("@/pages/settings-notificati
 const SettingsPrivacyPage = lazy(() => import("@/pages/settings-privacy-page"));
 const SettingsAppearancePage = lazy(() => import("@/pages/settings-appearance-page"));
 const SettingsDataPage = lazy(() => import("@/pages/settings-data-page"));
+const SupportPage = lazy(() => import("@/pages/support-page"));
 
 // Admin pages
 const AdminDashboardPage = lazy(() => import("@/pages/admin-dashboard-page"));
@@ -247,6 +248,14 @@ function Router() {
           component={() => (
             <Suspense fallback={<LoadingFallback />}>
               <SettingsDataPage />
+            </Suspense>
+          )} 
+        />
+        <ProtectedRoute 
+          path="/support" 
+          component={() => (
+            <Suspense fallback={<LoadingFallback />}>
+              <SupportPage />
             </Suspense>
           )} 
         />
