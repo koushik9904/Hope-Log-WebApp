@@ -1216,6 +1216,88 @@ Your role is to:
     }
   });
   
+  // Endpoint to get deleted goals for a user
+  app.get("/api/goals/:userId/deleted", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const userId = Number(req.params.userId);
+    if (req.user?.id !== userId) return res.sendStatus(403);
+    
+    try {
+      const deletedGoals = await storage.getDeletedGoalsByUserId(userId);
+      res.json(deletedGoals);
+    } catch (error) {
+      console.error("Error fetching deleted goals:", error);
+      res.status(500).json({ error: "Failed to fetch deleted goals" });
+    }
+  });
+  
+  // Endpoint to restore a deleted goal
+  app.post("/api/goals/:id/restore", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const goalId = Number(req.params.id);
+    
+    try {
+      const goal = await storage.getGoalById(goalId);
+      
+      if (!goal) {
+        return res.status(404).json({ error: "Goal not found" });
+      }
+      
+      if (goal.userId !== req.user?.id) {
+        return res.status(403).json({ error: "You don't have permission to restore this goal" });
+      }
+      
+      const restoredGoal = await storage.restoreGoal(goalId);
+      res.status(200).json(restoredGoal);
+    } catch (error) {
+      console.error("Error restoring goal:", error);
+      res.status(500).json({ error: "Failed to restore goal" });
+    }
+  });
+
+  // Endpoint to get deleted tasks for a user
+  app.get("/api/tasks/:userId/deleted", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const userId = Number(req.params.userId);
+    if (req.user?.id !== userId) return res.sendStatus(403);
+    
+    try {
+      const deletedTasks = await storage.getDeletedTasksByUserId(userId);
+      res.json(deletedTasks);
+    } catch (error) {
+      console.error("Error fetching deleted tasks:", error);
+      res.status(500).json({ error: "Failed to fetch deleted tasks" });
+    }
+  });
+  
+  // Endpoint to restore a deleted task
+  app.post("/api/tasks/:id/restore", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const taskId = Number(req.params.id);
+    
+    try {
+      const task = await storage.getTaskById(taskId);
+      
+      if (!task) {
+        return res.status(404).json({ error: "Task not found" });
+      }
+      
+      if (task.userId !== req.user?.id) {
+        return res.status(403).json({ error: "You don't have permission to restore this task" });
+      }
+      
+      const restoredTask = await storage.restoreTask(taskId);
+      res.status(200).json(restoredTask);
+    } catch (error) {
+      console.error("Error restoring task:", error);
+      res.status(500).json({ error: "Failed to restore task" });
+    }
+  });
+  
   // Endpoint to get deleted habits for a user
   app.get("/api/habits/:userId/deleted", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);

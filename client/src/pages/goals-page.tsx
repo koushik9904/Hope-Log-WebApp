@@ -496,7 +496,20 @@ export default function GoalsPage() {
   
   // Recycle bin states
   const [showRecycleBin, setShowRecycleBin] = useState(false);
-  const [deletedGoals, setDeletedGoals] = useState<DeletedGoal[]>([]);
+  
+  // Fetch deleted goals from the API
+  const { data: deletedGoalsData = [] } = useQuery<Goal[]>({
+    queryKey: [`/api/goals/${user?.id}/deleted`],
+    enabled: !!user?.id && showRecycleBin,
+    staleTime: 60000, // 1 minute
+  });
+  
+  // Fetch deleted tasks from the API
+  const { data: deletedTasksData = [] } = useQuery<Task[]>({
+    queryKey: [`/api/tasks/${user?.id}/deleted`],
+    enabled: !!user?.id && showRecycleBin,
+    staleTime: 60000, // 1 minute
+  });
   
   // Fetch deleted habits from the API
   const { data: deletedHabitsData = [] } = useQuery<Habit[]>({
@@ -505,7 +518,9 @@ export default function GoalsPage() {
     staleTime: 60000, // 1 minute
   });
   
-  // Use fetched data for deleted habits
+  // Use fetched data for deleted items
+  const deletedGoals = deletedGoalsData;
+  const deletedTasks = deletedTasksData;
   const deletedHabits = deletedHabitsData;
   
   // Helper function for clearing date filters
@@ -789,9 +804,9 @@ export default function GoalsPage() {
               className={`${showRecycleBin ? 'bg-[#f5d867] text-gray-700' : 'bg-white'} gap-2`}
             >
               <Trash2 className="h-4 w-4" /> Recycle Bin
-              {(deletedGoals.length > 0 || deletedHabits.length > 0) && (
+              {(deletedGoals.length > 0 || deletedTasks.length > 0 || deletedHabits.length > 0) && (
                 <Badge className="ml-1 bg-[#f096c9] text-white">
-                  {deletedGoals.length + deletedHabits.length}
+                  {deletedGoals.length + deletedTasks.length + deletedHabits.length}
                 </Badge>
               )}
             </Button>
@@ -811,9 +826,180 @@ export default function GoalsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-6 divide-y">
-              {deletedGoals.length === 0 && deletedHabits.length === 0 && (
+              {deletedGoals.length === 0 && deletedTasks.length === 0 && deletedHabits.length === 0 && (
                 <div className="py-8 text-center text-gray-500">
                   <p>Recycle bin is empty</p>
+                </div>
+              )}
+              
+              {/* Deleted Habits Section */}
+              {deletedHabits.length > 0 && (
+                <div className="py-4">
+                  <h3 className="font-medium mb-4">Deleted Habits</h3>
+                  <div className="space-y-3">
+                    {deletedHabits.map(habit => (
+                      <div key={habit.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                        <div>
+                          <p className="font-medium">{habit.title}</p>
+                          {habit.description && <p className="text-sm text-gray-500">{habit.description}</p>}
+                          <p className="text-xs text-gray-400 mt-1">
+                            Deleted on {new Date(habit.deletedAt!).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="bg-white"
+                          onClick={() => {
+                            // Call the restore endpoint
+                            fetch(`/api/habits/${habit.id}/restore`, {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' }
+                            })
+                            .then(res => {
+                              if (res.ok) {
+                                // Invalidate both queries
+                                queryClient.invalidateQueries({ queryKey: [`/api/habits/${user?.id}`] });
+                                queryClient.invalidateQueries({ queryKey: [`/api/habits/${user?.id}/deleted`] });
+                                toast({
+                                  title: "Habit restored",
+                                  description: "Your habit has been successfully restored",
+                                });
+                              } else {
+                                throw new Error('Failed to restore habit');
+                              }
+                            })
+                            .catch(error => {
+                              console.error('Error restoring habit:', error);
+                              toast({
+                                title: "Restore failed",
+                                description: "There was an error restoring your habit. Please try again.",
+                                variant: "destructive"
+                              });
+                            });
+                          }}
+                        >
+                          <RefreshCw className="h-4 w-4 mr-2" /> Restore
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Deleted Goals Section */}
+              {deletedGoals.length > 0 && (
+                <div className="py-4">
+                  <h3 className="font-medium mb-4">Deleted Goals</h3>
+                  <div className="space-y-3">
+                    {deletedGoals.map(goal => (
+                      <div key={goal.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                        <div>
+                          <p className="font-medium">{goal.name}</p>
+                          {goal.description && <p className="text-sm text-gray-500">{goal.description}</p>}
+                          <p className="text-xs text-gray-400 mt-1">
+                            Deleted on {new Date(goal.deletedAt!).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="bg-white"
+                          onClick={() => {
+                            // Call the restore endpoint
+                            fetch(`/api/goals/${goal.id}/restore`, {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' }
+                            })
+                            .then(res => {
+                              if (res.ok) {
+                                // Invalidate both queries
+                                queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}`] });
+                                queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}/deleted`] });
+                                toast({
+                                  title: "Goal restored",
+                                  description: "Your goal has been successfully restored",
+                                });
+                              } else {
+                                throw new Error('Failed to restore goal');
+                              }
+                            })
+                            .catch(error => {
+                              console.error('Error restoring goal:', error);
+                              toast({
+                                title: "Restore failed",
+                                description: "There was an error restoring your goal. Please try again.",
+                                variant: "destructive"
+                              });
+                            });
+                          }}
+                        >
+                          <RefreshCw className="h-4 w-4 mr-2" /> Restore
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Deleted Tasks Section */}
+              {deletedTasks.length > 0 && (
+                <div className="py-4">
+                  <h3 className="font-medium mb-4">Deleted Tasks</h3>
+                  <div className="space-y-3">
+                    {deletedTasks.map(task => (
+                      <div key={task.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                        <div>
+                          <p className="font-medium">{task.title}</p>
+                          {task.description && <p className="text-sm text-gray-500">{task.description}</p>}
+                          <div className="flex items-center mt-1 text-xs text-gray-400">
+                            <p>Deleted on {new Date(task.deletedAt!).toLocaleDateString()}</p>
+                            {task.goalId && (
+                              <p className="ml-3">
+                                <FolderKanban className="h-3 w-3 inline mr-1" />
+                                Goal: {goals.find(g => g.id === task.goalId)?.name || "Unknown"}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="bg-white"
+                          onClick={() => {
+                            // Call the restore endpoint
+                            fetch(`/api/tasks/${task.id}/restore`, {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' }
+                            })
+                            .then(res => {
+                              if (res.ok) {
+                                // Invalidate both queries
+                                queryClient.invalidateQueries({ queryKey: [`/api/tasks/${user?.id}`] });
+                                queryClient.invalidateQueries({ queryKey: [`/api/tasks/${user?.id}/deleted`] });
+                                toast({
+                                  title: "Task restored",
+                                  description: "Your task has been successfully restored",
+                                });
+                              } else {
+                                throw new Error('Failed to restore task');
+                              }
+                            })
+                            .catch(error => {
+                              console.error('Error restoring task:', error);
+                              toast({
+                                title: "Restore failed",
+                                description: "There was an error restoring your task. Please try again.",
+                                variant: "destructive"
+                              });
+                            });
+                          }}
+                        >
+                          <RefreshCw className="h-4 w-4 mr-2" /> Restore
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </CardContent>
