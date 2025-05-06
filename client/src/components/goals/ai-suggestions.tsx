@@ -112,7 +112,13 @@ export default function AISuggestions({ existingGoals, existingTasks, existingHa
   // Accept/reject mutations
   const acceptGoalSuggestionMutation = useMutation({
     mutationFn: async (goalId: number) => {
+      console.log(`Accepting AI goal with ID: ${goalId}`);
       const res = await apiRequest("POST", `/api/ai-goals/${goalId}/accept`, {});
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error("Error accepting AI goal:", errorData);
+        throw new Error(errorData.error || "Unknown error");
+      }
       return await res.json();
     },
     onSuccess: () => {
