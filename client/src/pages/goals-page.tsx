@@ -118,7 +118,8 @@ import {
   ThumbsUp,
   ThumbsDown,
   RefreshCw,
-  Folder as FolderIcon
+  Folder as FolderIcon,
+  ListTodo
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
@@ -1379,53 +1380,20 @@ export default function GoalsPage() {
                                         </DropdownMenuItem>
                                         <DropdownMenuItem
                                           onClick={() => {
-                                            // Convert this goal to a task
-                                            const taskData = {
-                                              title: goal.name,
-                                              description: goal.description,
-                                              priority: "medium",
-                                              status: "pending",
-                                              userId: user?.id,
-                                              dueDate: goal.targetDate,
-                                              goalId: null // This task isn't tied to any goal since it IS the goal
-                                            };
-                                            
-                                            // Create a new task based on this goal
-                                            const createTask = async () => {
-                                              try {
-                                                // First create the task
-                                                const res = await apiRequest("POST", "/api/tasks", taskData);
-                                                const newTask = await res.json();
-                                                
-                                                // Then delete the goal
-                                                await apiRequest("DELETE", `/api/goals/${goal.id}`);
-                                                
-                                                // Refresh both tasks and goals lists
-                                                queryClient.invalidateQueries({ queryKey: [`/api/tasks/${user?.id}`] });
-                                                queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}`] });
-                                                
-                                                toast({
-                                                  title: "Task created",
-                                                  description: "Goal has been converted to a task successfully"
-                                                });
-                                                
-                                                // Switch to tasks tab to show the new task
-                                                setActiveTab("tasks");
-                                              } catch (error) {
-                                                console.error("Error converting goal to task:", error);
-                                                toast({
-                                                  title: "Conversion failed",
-                                                  description: "There was an error converting your goal to a task",
-                                                  variant: "destructive"
-                                                });
-                                              }
-                                            };
-                                            
-                                            createTask();
+                                            convertGoalToTaskMutation.mutate(goal.id);
+                                            // Switch to tasks tab to show the new task when conversion is successful
+                                            if (!convertGoalToTaskMutation.isPending && !convertGoalToTaskMutation.isError) {
+                                              setActiveTab("tasks");
+                                            }
                                           }}
+                                          disabled={convertGoalToTaskMutation.isPending}
                                         >
                                           <ClipboardList className="h-4 w-4 mr-2" />
-                                          <span>Convert to Task</span>
+                                          <span>
+                                            {convertGoalToTaskMutation.isPending 
+                                              ? "Converting..." 
+                                              : "Convert to Task"}
+                                          </span>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem
                                           onClick={() => {
