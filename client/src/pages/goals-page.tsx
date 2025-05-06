@@ -121,7 +121,9 @@ import {
   ThumbsDown,
   RefreshCw,
   Folder as FolderIcon,
-  ListTodo
+  ListTodo,
+  ArrowUp,
+  ArrowDown
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
@@ -272,6 +274,11 @@ export default function GoalsPage() {
   });
   const [taskDateFilterActive, setTaskDateFilterActive] = useState(false);
   const [taskSelectedGoalId, setTaskSelectedGoalId] = useState<number | null>(null);
+  
+  // Habit filtering states
+  const [habitFilter, setHabitFilter] = useState<string>('all');
+  const [habitFrequencyFilter, setHabitFrequencyFilter] = useState<string | null>(null);
+  const [habitSortDirection, setHabitSortDirection] = useState<'asc' | 'desc'>('asc');
   
   // Fetch goals data
   const { data: goals = [], isLoading } = useQuery<Goal[]>({
@@ -2062,7 +2069,37 @@ export default function GoalsPage() {
                   
                   {habits.length > 0 ? (
                     <div>
-                      {habits.map(habit => (
+                      {/* Apply filters to habits */}
+                      {habits
+                        .filter(habit => {
+                          // Apply frequency filter if set
+                          if (habitFrequencyFilter && habit.frequency !== habitFrequencyFilter) {
+                            return false;
+                          }
+                          
+                          // Apply status filter
+                          if (habitFilter === 'today' && !habit.completedToday) {
+                            return false;
+                          }
+                          
+                          if (habitFilter === 'streaks' && habit.streak <= 0) {
+                            return false;
+                          }
+                          
+                          return true;
+                        })
+                        // Apply sorting
+                        .sort((a, b) => {
+                          // Sort by streak (highest first) then by title if streaks are equal
+                          const streakDiff = b.streak - a.streak;
+                          
+                          if (habitSortDirection === 'asc') {
+                            return streakDiff !== 0 ? -streakDiff : a.title.localeCompare(b.title);
+                          } else {
+                            return streakDiff !== 0 ? streakDiff : b.title.localeCompare(a.title);
+                          }
+                        })
+                        .map(habit => (
                         <div key={habit.id} className="flex items-center justify-between bg-[#FFF8E8] p-3 rounded-md mb-3">
                           <div className="flex items-center">
                             <button
