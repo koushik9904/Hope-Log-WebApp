@@ -1241,7 +1241,7 @@ export default function GoalsPage() {
               </div>
               <Card className="md:col-span-3 bg-white border-0 shadow-sm">
                 <CardHeader className="border-b border-gray-100">
-                  <CardTitle className="font-['Montserrat_Variable']">Your Goals</CardTitle>
+                  <CardTitle className="font-['Montserrat_Variable'] text-lg font-bold">Your Goals</CardTitle>
                   <CardDescription>
                     Track and achieve your personal objectives
                   </CardDescription>
@@ -1618,7 +1618,7 @@ export default function GoalsPage() {
               {/* Main Tasks Card */}
               <Card className="md:col-span-3 bg-white border-0 shadow-sm">
                 <CardHeader className="border-b border-gray-100">
-                  <CardTitle className="font-['Montserrat_Variable']">Your Tasks</CardTitle>
+                  <CardTitle className="font-['Montserrat_Variable'] text-lg font-bold">Your Tasks</CardTitle>
                   <CardDescription>
                     Manage and track your day-to-day tasks
                   </CardDescription>
@@ -1852,7 +1852,7 @@ export default function GoalsPage() {
               {/* AI Habit Suggestions */}
               <Card className="md:col-span-1 bg-white border-0 shadow-sm">
                 <CardHeader className="border-b border-gray-100">
-                  <CardTitle className="font-['Montserrat_Variable'] flex items-center gap-2 text-base">
+                  <CardTitle className="font-['Montserrat_Variable'] flex items-center gap-2 text-lg font-bold">
                     <Sparkles className="h-4 w-4 text-[#B6CAEB]" />
                     Habit Ideas
                   </CardTitle>

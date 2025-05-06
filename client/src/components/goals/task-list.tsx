@@ -581,7 +581,7 @@ export default function TaskList({
       ) : (
         <div className="space-y-8">
           {Object.entries(tasksByPriority).map(([priority, priorityTasks]) => (
-            <div key={priority} className="space-y-4">
+            <div key={priority} className="space-y-2">
               <h3 className="text-lg font-medium flex items-center gap-2 font-['Montserrat_Variable']">
                 {priority === 'High' && <AlertCircle className="h-4 w-4 text-red-500" />}
                 {priority === 'Medium' && <BarChart3 className="h-4 w-4 text-orange-500" />}
@@ -590,31 +590,36 @@ export default function TaskList({
                 {priority} Priority Tasks
               </h3>
               
-              <div className="space-y-2">
+              <div className="space-y-1">
                 {priorityTasks.map((task) => (
-                  <div key={task.id} className="flex items-center justify-between bg-[#FFF8E8] p-3 rounded-xl mb-2">
-                    <div className="flex items-center gap-3 flex-1">
+                  <div key={task.id} className="flex items-center justify-between bg-[#FFF8E8] p-3 rounded-xl">
+                    <div className="flex items-center gap-2 flex-1">
+                      {/* Simple circular checkbox */}
                       <div 
                         onClick={() => handleToggleCompletion(task)} 
                         className="cursor-pointer"
                       >
                         {task.completed ? (
-                          <div className="w-6 h-6 rounded-full bg-[#9AAB63] flex items-center justify-center text-white">
-                            <Check className="h-3.5 w-3.5" />
+                          <div className="w-5 h-5 rounded-full bg-[#9AAB63] flex items-center justify-center text-white">
+                            <Check className="h-3 w-3" />
                           </div>
                         ) : (
-                          <div className="w-6 h-6 rounded-full border border-gray-300 bg-white flex items-center justify-center">
-                          </div>
+                          <div className="w-5 h-5 rounded-full border border-gray-300 bg-white"></div>
                         )}
                       </div>
-                      <div className="flex-1">
-                        <div className={`text-sm font-medium ${task.completed ? 'line-through text-gray-500' : 'text-gray-800'}`}>
-                          {task.title}
-                        </div>
-                        
-                        {/* Display badges */}
-                        <div className="flex items-center gap-1 mt-1">
-                          <Badge variant="outline" className={`text-xs py-0 px-2 ${task.priority === 'high' ? 'bg-red-100 text-red-800' : task.priority === 'medium' ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800'}`}>
+                      
+                      {/* Task title */}
+                      <div className={`text-sm font-medium ${task.completed ? 'line-through text-gray-500' : 'text-gray-800'}`}>
+                        {task.title}
+                      </div>
+                      
+                      {/* Only show badges for goal and priority */}
+                      {(task.goalId || task.priority) && (
+                        <div className="flex items-center gap-1 ml-2">
+                          <Badge variant="outline" className={`text-xs py-0 px-2 ${
+                            task.priority === 'high' ? 'bg-red-100 text-red-800' : 
+                            task.priority === 'medium' ? 'bg-amber-100 text-amber-800' : 
+                            'bg-green-100 text-green-800'}`}>
                             {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
                           </Badge>
                           
@@ -623,35 +628,38 @@ export default function TaskList({
                               {goalsQuery.data.find((g) => g.id === task.goalId)?.name || 'Goal'}
                             </Badge>
                           )}
-                          
-                          {task.dueDate && (
-                            <span className="text-xs text-gray-500 flex items-center ml-1">
-                              <Calendar className="h-3 w-3 mr-1" />
-                              {format(new Date(task.dueDate), 'MMM d')}
-                            </span>
-                          )}
                         </div>
-                      </div>
+                      )}
                     </div>
                     
                     {/* Action buttons */}
                     <div className="flex items-center gap-1">
+                      {/* Due date display */}
+                      {task.dueDate && (
+                        <span className="text-xs text-gray-500 flex items-center mr-2">
+                          <Calendar className="h-3 w-3 mr-1" />
+                          {format(new Date(task.dueDate), 'MMM d')}
+                        </span>
+                      )}
+                      
+                      {/* Edit button */}
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        className="h-7 w-7" 
+                        className="h-6 w-6" 
                         onClick={() => handleEdit(task)}
                       >
-                        <Edit className="h-3.5 w-3.5 text-gray-500" />
+                        <Edit className="h-3 w-3 text-gray-500" />
                       </Button>
                       
+                      {/* Delete button */}
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        className="h-7 w-7" 
+                        className="h-6 w-6" 
                         onClick={() => confirmDelete(task)}
                       >
-                        <Trash className="h-3.5 w-3.5 text-gray-500" />
+                        <Trash className="h-3 w-3 text-gray-500" />
                       </Button>
                     </div>
                   </div>
