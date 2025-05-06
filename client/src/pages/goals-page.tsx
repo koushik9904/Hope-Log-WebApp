@@ -1017,8 +1017,9 @@ export default function GoalsPage() {
   };
   
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div>
+      <DashboardLayout>
+        <div className="space-y-6">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold mb-2 font-['Montserrat_Variable']">Goals & Habits</h1>
@@ -2427,31 +2428,31 @@ export default function GoalsPage() {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
-    
-    {/* Edit Goal Dialog */}
-    <Dialog open={showEditGoalDialog} onOpenChange={setShowEditGoalDialog}>
-      <DialogContent className="sm:max-w-[500px] bg-white">
+      </DashboardLayout>
+      
+      {/* Edit Goal Dialog */}
+      <Dialog open={showEditGoalDialog} onOpenChange={setShowEditGoalDialog}>
+        <DialogContent className="sm:max-w-[500px] bg-white">
         <DialogHeader>
           <DialogTitle className="font-['Montserrat_Variable']">Edit Goal</DialogTitle>
           <DialogDescription>
             Update your goal details.
           </DialogDescription>
         </DialogHeader>
-          
-          {goalToEdit && (
-            <Form {...goalForm}>
-              <form 
-                onSubmit={goalForm.handleSubmit((values) => {
-                  if (goalToEdit) {
-                    editGoalMutation.mutate({
-                      ...values,
-                      id: goalToEdit.id
-                    });
-                  }
-                })} 
-                className="space-y-6 py-4"
-              >
+        
+        {goalToEdit && (
+          <Form {...goalForm}>
+            <form 
+              onSubmit={goalForm.handleSubmit((values) => {
+                if (goalToEdit) {
+                  editGoalMutation.mutate({
+                    ...values,
+                    id: goalToEdit.id
+                  });
+                }
+              })} 
+              className="space-y-6 py-4"
+            >
               <FormField
                 control={goalForm.control}
                 name="name"
@@ -2646,5 +2647,6 @@ export default function GoalsPage() {
         )}
       </DialogContent>
     </Dialog>
+    </div>
   );
 }
