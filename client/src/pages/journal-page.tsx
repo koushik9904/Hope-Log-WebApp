@@ -340,7 +340,7 @@ export default function JournalPage() {
   // Extract unique emotions from sentiment analysis
   const emotions = new Set<string>();
   entries.forEach(entry => {
-    if (entry.sentiment?.emotions) {
+    if (entry.sentiment?.emotions && Array.isArray(entry.sentiment.emotions)) {
       entry.sentiment.emotions.forEach(emotion => emotions.add(emotion));
     }
   });
