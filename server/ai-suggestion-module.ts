@@ -196,10 +196,10 @@ export async function processSingleEntry(journalEntry: JournalEntry): Promise<Su
           
           result.habitsCreated++;
           console.log(`✅ Successfully created AI habit suggestion: ${suggestion.title} with ID ${aiHabit.id}`);
-        } catch (habitError) {
-          console.error(`Error creating AI habit "${suggestion.title}":`, habitError);
+        } catch (error: any) {
+          console.error(`Error creating AI habit "${suggestion.title}":`, error);
           // Log more details about the error
-          const errorMessage = String(habitError);
+          const errorMessage = String(error);
           if (errorMessage.includes("duplicate")) {
             console.log(`Skipping duplicate habit: ${suggestion.title}`);
           }
@@ -216,19 +216,19 @@ export async function processSingleEntry(journalEntry: JournalEntry): Promise<Su
     try {
       await storage.updateJournalEntry(journalEntry.id, { analyzed: true });
       console.log(`Successfully marked entry ${journalEntry.id} as analyzed`);
-    } catch (updateError) {
+    } catch (updateError: any) {
       console.error(`Failed to mark entry ${journalEntry.id} as analyzed:`, updateError);
     }
     
     return result;
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error processing journal entry ${journalEntry.id}:`, error);
     
     // Always try to mark as analyzed even if there was an error
     try {
       await storage.updateJournalEntry(journalEntry.id, { analyzed: true });
       console.log(`Marked entry ${journalEntry.id} as analyzed after error`);
-    } catch (updateError) {
+    } catch (updateError: any) {
       console.error(`Failed to mark entry ${journalEntry.id} as analyzed after error:`, updateError);
     }
     
@@ -285,15 +285,15 @@ export async function processAllEntriesForUser(userId: number, maxEntries: numbe
         totalResult.goalsSkipped += result.goalsSkipped;
         totalResult.tasksSkipped += result.tasksSkipped;
         totalResult.habitsSkipped += result.habitsSkipped;
-      } catch (entryError) {
-        console.error(`Error processing entry ${entry.id}, marking as analyzed to prevent future retries:`, entryError);
+      } catch (error: any) {
+        console.error(`Error processing entry ${entry.id}, marking as analyzed to prevent future retries:`, error);
         // Mark as analyzed even if it fails to prevent repeated processing attempts
         await storage.updateJournalEntry(entry.id, { analyzed: true });
       }
     }
     
     return totalResult;
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error processing entries for user ${userId}:`, error);
     throw error;
   }
@@ -313,11 +313,11 @@ export async function processAllEntries(maxEntriesPerUser: number = 5): Promise<
       try {
         const result = await processAllEntriesForUser(user.id, maxEntriesPerUser);
         console.log(`User ${user.id}: ${result.goalsCreated} goals, ${result.tasksCreated} tasks, and ${result.habitsCreated} habits created`);
-      } catch (error) {
+      } catch (error: any) {
         console.error(`Error processing entries for user ${user.id}:`, error);
       }
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error processing all entries:", error);
     throw error;
   }
