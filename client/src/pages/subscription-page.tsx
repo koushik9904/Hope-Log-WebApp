@@ -363,9 +363,9 @@ const SubscriptionPage = () => {
       
       <Tabs value={currentTab} onValueChange={setCurrentTab} className="space-y-4">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="plans">Subscription Plans</TabsTrigger>
-          <TabsTrigger value="subscription">Current Subscription</TabsTrigger>
-          <TabsTrigger value="history">Payment History</TabsTrigger>
+          <TabsTrigger value="plans" disabled={true}>Subscription Plans</TabsTrigger>
+          <TabsTrigger value="subscription" disabled={true}>Current Subscription</TabsTrigger>
+          <TabsTrigger value="history" disabled={true}>Payment History</TabsTrigger>
         </TabsList>
         
         {/* Subscription Plans Tab */}
@@ -699,6 +699,7 @@ const SubscriptionPage = () => {
                         <AlertDialogAction
                           onClick={handleCancelSubscription}
                           className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          disabled={true}
                         >
                           Yes, Cancel
                         </AlertDialogAction>
@@ -715,7 +716,7 @@ const SubscriptionPage = () => {
               <p className="text-muted-foreground mb-6 max-w-md mx-auto">
                 You're currently on the free plan. Upgrade to a premium plan to unlock additional features and higher usage limits.
               </p>
-              <Button onClick={() => setCurrentTab("plans")} variant="default">
+              <Button onClick={() => setCurrentTab("plans")} variant="default" disabled={true}>
                 View Subscription Plans
               </Button>
             </div>
@@ -805,7 +806,7 @@ const SubscriptionPage = () => {
               <p className="text-muted-foreground mb-6 max-w-md mx-auto">
                 You haven't made any payments yet. Subscribe to a plan to get started.
               </p>
-              <Button onClick={() => setCurrentTab("plans")} variant="default">
+              <Button onClick={() => setCurrentTab("plans")} variant="default" disabled={true}>
                 View Subscription Plans
               </Button>
             </div>
