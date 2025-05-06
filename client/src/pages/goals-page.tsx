@@ -1948,8 +1948,8 @@ export default function GoalsPage() {
                         </DropdownMenuSubTrigger>
                         <DropdownMenuSubContent className="bg-white">
                           <DropdownMenuItem 
-                            onClick={() => setTaskSortBy('title')}
-                            className={taskSortBy === 'title' ? "bg-[#9AAB63]/10" : ""}
+                            onClick={() => setTaskSortBy('createdAt')}
+                            className={taskSortBy === 'createdAt' ? "bg-[#9AAB63]/10" : ""}
                           >
                             Title
                           </DropdownMenuItem>
@@ -2438,20 +2438,20 @@ export default function GoalsPage() {
             Update your goal details.
           </DialogDescription>
         </DialogHeader>
-        
-        {goalToEdit && (
-          <Form {...goalForm}>
-            <form 
-              onSubmit={goalForm.handleSubmit((values) => {
-                if (goalToEdit) {
-                  editGoalMutation.mutate({
-                    ...values,
-                    id: goalToEdit.id
-                  });
-                }
-              })} 
-              className="space-y-6 py-4"
-            >
+          
+          {goalToEdit && (
+            <Form {...goalForm}>
+              <form 
+                onSubmit={goalForm.handleSubmit((values) => {
+                  if (goalToEdit) {
+                    editGoalMutation.mutate({
+                      ...values,
+                      id: goalToEdit.id
+                    });
+                  }
+                })} 
+                className="space-y-6 py-4"
+              >
               <FormField
                 control={goalForm.control}
                 name="name"
