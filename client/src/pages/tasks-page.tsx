@@ -297,11 +297,12 @@ export default function TasksPage() {
                 tasks={tasks}
                 isLoading={isTasksLoading}
                 filter={filter}
+                userId={user.id}
                 selectedGoalId={selectedGoalId}
                 sortBy={sortBy}
                 sortDirection={sortDirection}
                 isDateFilterActive={dateFilterActive}
-                isDateInRange={isDateInRange}
+                isDateInRange={dateFilterActive ? isDateInRange : undefined}
               />
             </CardContent>
           </Card>
