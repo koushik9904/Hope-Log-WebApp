@@ -127,10 +127,21 @@ export async function processSingleEntry(journalEntry: JournalEntry): Promise<Su
     
     // Process task suggestions to AI tasks table
     if (suggestions.tasks && suggestions.tasks.length > 0) {
+      console.log(`Processing ${suggestions.tasks.length} task suggestions for user ${userId}`);
+      
       for (const suggestion of suggestions.tasks) {
         try {
+          console.log(`Attempting to create AI task: "${suggestion.title}" with priority "${suggestion.priority || 'medium'}"`);
+          
+          // Skip tasks with empty titles
+          if (!suggestion.title || suggestion.title.trim() === '') {
+            console.log(`Skipping task with empty title`);
+            result.tasksSkipped++;
+            continue;
+          }
+          
           // Create in the aiTasks table instead of tasks table
-          await storage.createAiTask({
+          const aiTask = await storage.createAiTask({
             userId,
             title: suggestion.title,
             description: suggestion.description || "",
@@ -141,20 +152,40 @@ export async function processSingleEntry(journalEntry: JournalEntry): Promise<Su
           });
           
           result.tasksCreated++;
-          console.log(`Created AI task suggestion: ${suggestion.title}`);
-        } catch (taskError) {
-          console.error(`Error creating AI task "${suggestion.title}":`, taskError);
+          console.log(`✅ Successfully created AI task suggestion: ${suggestion.title} with ID ${aiTask.id}`);
+        } catch (error: any) {
+          console.error(`Error creating AI task "${suggestion.title}":`, error);
+          // Log more details about the error
+          const errorMessage = String(error);
+          if (errorMessage.includes("duplicate")) {
+            console.log(`Skipping duplicate task: ${suggestion.title}`);
+          }
           result.tasksSkipped++;
         }
       }
+      
+      console.log(`Task suggestion processing complete: ${result.tasksCreated} created, ${result.tasksSkipped} skipped`);
+    } else {
+      console.log(`No task suggestions found for user ${userId} in entry ${journalEntry.id}`);
     }
     
     // Process habit suggestions to AI habits table
     if (suggestions.habits && suggestions.habits.length > 0) {
+      console.log(`Processing ${suggestions.habits.length} habit suggestions for user ${userId}`);
+      
       for (const suggestion of suggestions.habits) {
         try {
+          console.log(`Attempting to create AI habit: "${suggestion.title}" with frequency "${suggestion.frequency || 'daily'}"`);
+          
+          // Skip habits with empty titles
+          if (!suggestion.title || suggestion.title.trim() === '') {
+            console.log(`Skipping habit with empty title`);
+            result.habitsSkipped++;
+            continue;
+          }
+          
           // Create in the aiHabits table instead of habits table
-          await storage.createAiHabit({
+          const aiHabit = await storage.createAiHabit({
             userId,
             title: suggestion.title,
             description: suggestion.description || "",
@@ -164,12 +195,21 @@ export async function processSingleEntry(journalEntry: JournalEntry): Promise<Su
           });
           
           result.habitsCreated++;
-          console.log(`Created AI habit suggestion: ${suggestion.title}`);
+          console.log(`✅ Successfully created AI habit suggestion: ${suggestion.title} with ID ${aiHabit.id}`);
         } catch (habitError) {
           console.error(`Error creating AI habit "${suggestion.title}":`, habitError);
+          // Log more details about the error
+          const errorMessage = String(habitError);
+          if (errorMessage.includes("duplicate")) {
+            console.log(`Skipping duplicate habit: ${suggestion.title}`);
+          }
           result.habitsSkipped++;
         }
       }
+      
+      console.log(`Habit suggestion processing complete: ${result.habitsCreated} created, ${result.habitsSkipped} skipped`);
+    } else {
+      console.log(`No habit suggestions found for user ${userId} in entry ${journalEntry.id}`);
     }
     
     // Mark the journal entry as analyzed
