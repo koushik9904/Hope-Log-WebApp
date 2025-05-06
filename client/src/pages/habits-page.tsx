@@ -93,7 +93,7 @@ export default function HabitsPage() {
                   // Only pass the titles for more efficient filtering
                   return (
                     <HabitAISuggestions 
-                      existingHabitTitles={habits.map(habit => habit.title)}
+                      existingHabitTitles={habits.map(habit => habit.title || '')}
                     />
                   );
                 }}

@@ -60,6 +60,9 @@ export default function TaskAISuggestions({ existingTaskTitles }: TaskAISuggesti
       // Set ALL tasks from the AI suggestions without any filtering
       setAiSuggestedTasks(aiSuggestions.tasks);
       console.log("TaskAISuggestions - Using ALL tasks:", aiSuggestions.tasks.length);
+    } else {
+      // Important: Reset state when there are no tasks
+      setAiSuggestedTasks([]);
     }
   }, [aiSuggestions]);
   
@@ -114,7 +117,10 @@ export default function TaskAISuggestions({ existingTaskTitles }: TaskAISuggesti
         return {};
       }
     },
-    onSuccess: () => {
+    onSuccess: (_, taskId) => {
+      // Remove the task from local state immediately for a better UX
+      setAiSuggestedTasks(current => current.filter(task => task.id !== taskId));
+      
       toast({
         title: "Suggestion removed",
         description: "The task suggestion has been removed.",

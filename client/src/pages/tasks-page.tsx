@@ -288,9 +288,9 @@ export default function TasksPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-4">
-                {/* Use the TaskAISuggestions component to fix missing tasks */}
+                {/* Use the TaskAISuggestions component to display AI-suggested tasks */}
                 <TaskAISuggestions 
-                  existingTaskTitles={typedTasks.map((task: TaskItem) => task.title)}
+                  existingTaskTitles={typedTasks.map((task: TaskItem) => task.title || '')}
                 />
               </CardContent>
             </Card>

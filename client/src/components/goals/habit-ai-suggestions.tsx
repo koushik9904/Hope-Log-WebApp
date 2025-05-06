@@ -58,6 +58,9 @@ export default function HabitAISuggestions({ existingHabitTitles }: HabitAISugge
       // Set ALL habits from the AI suggestions without any filtering
       setAiSuggestedHabits(aiSuggestions.habits);
       console.log("HabitAISuggestions - Using ALL habits:", aiSuggestions.habits.length);
+    } else {
+      // Important: Reset state when there are no habits
+      setAiSuggestedHabits([]);
     }
   }, [aiSuggestions]);
   
@@ -115,7 +118,10 @@ export default function HabitAISuggestions({ existingHabitTitles }: HabitAISugge
         return {};
       }
     },
-    onSuccess: () => {
+    onSuccess: (_, habitId) => {
+      // Remove the habit from local state immediately for a better UX
+      setAiSuggestedHabits(current => current.filter(habit => habit.id !== habitId));
+      
       toast({
         title: "Suggestion removed",
         description: "The habit suggestion has been removed.",
