@@ -281,7 +281,6 @@ export default function TasksPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-4">
-                {/* Use the AISuggestions component in a type-safe way */}
                 <AISuggestions 
                   existingGoals={[]} 
                   existingTasks={typedTasks} 
