@@ -1469,19 +1469,27 @@ export default function GoalsPage() {
                                         .filter(t => t.goalId === goal.id)
                                         .slice(0, 3)
                                         .map(task => (
-                                          <div key={task.id} className="flex items-center text-sm">
-                                            <div 
-                                              className={`w-3 h-3 rounded-full mr-2 ${
-                                                task.status === "completed" 
-                                                  ? "bg-[#9AAB63]" 
-                                                  : task.priority === "high" 
-                                                    ? "bg-[#F5B8DB]" 
-                                                    : "bg-gray-200"
-                                              }`}
-                                            />
-                                            <span className={`${task.status === "completed" ? "line-through text-gray-400" : ""}`}>
-                                              {task.title}
-                                            </span>
+                                          <div key={task.id} className="flex flex-col text-sm">
+                                            <div className="flex items-center">
+                                              <div 
+                                                className={`w-3 h-3 rounded-full mr-2 ${
+                                                  task.status === "completed" 
+                                                    ? "bg-[#9AAB63]" 
+                                                    : task.priority === "high" 
+                                                      ? "bg-[#F5B8DB]" 
+                                                      : "bg-gray-200"
+                                                }`}
+                                              />
+                                              <span className={`${task.status === "completed" ? "line-through text-gray-400" : ""}`}>
+                                                {task.title}
+                                              </span>
+                                            </div>
+                                            {task.status === "completed" && task.completedAt && (
+                                              <div className="text-xs text-gray-400 ml-5 mt-0.5 flex items-center">
+                                                <Clock className="h-3 w-3 mr-1" />
+                                                Completed on {new Date(task.completedAt).toLocaleDateString()}
+                                              </div>
+                                            )}
                                           </div>
                                         ))}
                                     </div>
