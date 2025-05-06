@@ -590,115 +590,71 @@ export default function TaskList({
                 {priority} Priority Tasks
               </h3>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="space-y-2">
                 {priorityTasks.map((task) => (
-                  <Card key={task.id} className={`bg-white border-0 shadow-sm ${task.completed ? 'opacity-80' : ''}`}>
-                    <CardHeader className="pb-2">
-                      <div className="flex justify-between items-start">
-                        <div className="flex items-center gap-2">
-                          <Checkbox 
-                            id={`task-${task.id}`} 
-                            checked={task.completed} 
-                            onCheckedChange={() => handleToggleCompletion(task)}
-                            className="h-5 w-5 border-2 border-[#9AAB63]"
-                          />
-                          <CardTitle className={`text-lg ${task.completed ? 'line-through text-muted-foreground' : ''}`}>
-                            {task.title}
-                          </CardTitle>
-                        </div>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="h-4 w-4"
-                              >
-                                <circle cx="12" cy="12" r="1" />
-                                <circle cx="12" cy="5" r="1" />
-                                <circle cx="12" cy="19" r="1" />
-                              </svg>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleEdit(task)}>
-                              <Edit className="mr-2 h-4 w-4" />
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleToggleCompletion(task)}>
-                              {task.completed ? (
-                                <>
-                                  <X className="mr-2 h-4 w-4" />
-                                  Mark as incomplete
-                                </>
-                              ) : (
-                                <>
-                                  <Check className="mr-2 h-4 w-4" />
-                                  Mark as complete
-                                </>
-                              )}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => openMoveDialog(task)}>
-                              <ArrowRight className="mr-2 h-4 w-4" />
-                              Move to goal
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              onClick={() => {
-                                setTaskToConvert(task);
-                                setNewGoalName(task.title);
-                                setConvertToGoalDialogOpen(true);
-                              }}
-                            >
-                              <Target className="mr-2 h-4 w-4" />
-                              Convert to goal
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              onClick={() => confirmDelete(task)}
-                              className="text-red-600 focus:text-red-600"
-                            >
-                              <Trash className="mr-2 h-4 w-4" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                  <div key={task.id} className="flex items-center justify-between bg-[#FFF8E8] p-3 rounded-xl mb-2">
+                    <div className="flex items-center gap-3 flex-1">
+                      <div 
+                        onClick={() => handleToggleCompletion(task)} 
+                        className="cursor-pointer"
+                      >
+                        {task.completed ? (
+                          <div className="w-6 h-6 rounded-full bg-[#9AAB63] flex items-center justify-center text-white">
+                            <Check className="h-3.5 w-3.5" />
+                          </div>
+                        ) : (
+                          <div className="w-6 h-6 rounded-full border border-gray-300 bg-white flex items-center justify-center">
+                          </div>
+                        )}
                       </div>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <div className="bg-[#FFF8E8] p-4 rounded-xl mb-3">
-                        {task.description && <p className="text-sm text-muted-foreground mb-2">{task.description}</p>}
-                        <div className="flex flex-wrap gap-2">
-                          <Badge variant="outline" className={getPriorityColor(task.priority)}>
-                            {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)} Priority
+                      <div className="flex-1">
+                        <div className={`text-sm font-medium ${task.completed ? 'line-through text-gray-500' : 'text-gray-800'}`}>
+                          {task.title}
+                        </div>
+                        
+                        {/* Display badges */}
+                        <div className="flex items-center gap-1 mt-1">
+                          <Badge variant="outline" className={`text-xs py-0 px-2 ${task.priority === 'high' ? 'bg-red-100 text-red-800' : task.priority === 'medium' ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800'}`}>
+                            {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
                           </Badge>
-                          {task.dueDate && (
-                            <Badge variant="outline" className="flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />
-                              {format(new Date(task.dueDate), 'MMM d, yyyy')}
-                            </Badge>
-                          )}
+                          
                           {task.goalId && goalsQuery.data && (
-                            <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">
+                            <Badge variant="outline" className="text-xs py-0 px-2 bg-blue-100 text-blue-800">
                               {goalsQuery.data.find((g) => g.id === task.goalId)?.name || 'Goal'}
                             </Badge>
                           )}
+                          
+                          {task.dueDate && (
+                            <span className="text-xs text-gray-500 flex items-center ml-1">
+                              <Calendar className="h-3 w-3 mr-1" />
+                              {format(new Date(task.dueDate), 'MMM d')}
+                            </span>
+                          )}
                         </div>
                       </div>
-                    </CardContent>
-                    <CardFooter className="pt-0">
-                      {task.completedAt && (
-                        <div className="text-xs text-muted-foreground flex items-center mt-2">
-                          <Clock className="h-3 w-3 mr-1" />
-                          Completed on {format(new Date(task.completedAt), 'MMM d, yyyy')}
-                        </div>
-                      )}
-                    </CardFooter>
-                  </Card>
+                    </div>
+                    
+                    {/* Action buttons */}
+                    <div className="flex items-center gap-1">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-7 w-7" 
+                        onClick={() => handleEdit(task)}
+                      >
+                        <Edit className="h-3.5 w-3.5 text-gray-500" />
+                      </Button>
+                      
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-7 w-7" 
+                        onClick={() => confirmDelete(task)}
+                      >
+                        <Trash className="h-3.5 w-3.5 text-gray-500" />
+                      </Button>
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
