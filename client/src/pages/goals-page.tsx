@@ -2470,10 +2470,23 @@ export default function GoalsPage() {
               <form 
                 onSubmit={goalForm.handleSubmit((values) => {
                   if (goalToEdit) {
-                    editGoalMutation.mutate({
-                      ...values,
-                      id: goalToEdit.id
-                    });
+                    console.log("Submitting goal update for:", goalToEdit.id);
+                    console.log("Form values:", values);
+                    
+                    // Ensure proper data formatting
+                    const updatedGoal = {
+                      id: goalToEdit.id,
+                      name: values.name,
+                      description: values.description || null,
+                      category: values.category || "Personal",
+                      targetDate: values.targetDate,
+                      target: Number(values.target) || 100,
+                      progress: Number(values.progress) || 0,
+                      unit: values.unit || "%"
+                    };
+                    
+                    console.log("Processed update data:", updatedGoal);
+                    editGoalMutation.mutate(updatedGoal);
                   }
                 })} 
                 className="space-y-6 py-4"
