@@ -1747,9 +1747,12 @@ export default function GoalsPage() {
                 </CardHeader>
                 <CardContent className="pt-6">
                   {user && (
-                    <TaskAISuggestions 
-                      existingTaskTitles={allTasks.map(task => task.title || '')}
-                    />
+                    <>
+                      {console.log("Debug allTasks:", allTasks)}
+                      <TaskAISuggestions 
+                        existingTaskTitles={Array.isArray(allTasks) ? allTasks.map(task => task?.title || '') : []}
+                      />
+                    </>
                   )}
                 </CardContent>
               </Card>
@@ -1998,9 +2001,12 @@ export default function GoalsPage() {
                 </CardHeader>
                 <CardContent className="pt-6">
                   {user && (
-                    <HabitAISuggestions 
-                      existingHabitTitles={habits.map(habit => habit.title || '')}
-                    />
+                    <>
+                      {console.log("Debug habits:", habits)}
+                      <HabitAISuggestions 
+                        existingHabitTitles={Array.isArray(habits) ? habits.map(habit => habit?.title || '') : []}
+                      />
+                    </>
                   )}
                 </CardContent>
               </Card>
