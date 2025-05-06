@@ -450,8 +450,11 @@ export default function TaskList({
 
   // Add date range check for tasks
   const isInDateRange = (task: Task) => {
+    // If no date range filter is active, include all tasks
     if (!dateRange?.from) return true;
-    if (!task.dueDate) return false; // No due date doesn't match date filter
+    
+    // If task has no due date, don't include in date-filtered results
+    if (!task.dueDate) return false;
     
     try {
       // Parse the ISO date string to a Date object, ensuring it's valid
@@ -463,24 +466,26 @@ export default function TaskList({
         return false;
       }
       
-      taskDate.setHours(0, 0, 0, 0); // Normalize task date to start of day
+      // Normalize times for comparison (start of day)
+      const taskDateNormalized = new Date(taskDate);
+      taskDateNormalized.setHours(0, 0, 0, 0);
+      
+      const fromDate = new Date(dateRange.from);
+      fromDate.setHours(0, 0, 0, 0);
       
       // From date only (on or after this date)
       if (dateRange.from && !dateRange.to) {
-        const start = new Date(dateRange.from);
-        start.setHours(0, 0, 0, 0);
-        return taskDate >= start;
+        console.log(`Checking date range: Task ${task.id} date ${taskDateNormalized} >= from ${fromDate}`);
+        return taskDateNormalized >= fromDate;
       }
       
       // Date range (between from and to, inclusive)
       if (dateRange.from && dateRange.to) {
-        const start = new Date(dateRange.from);
-        start.setHours(0, 0, 0, 0);
+        const toDate = new Date(dateRange.to);
+        toDate.setHours(23, 59, 59, 999); // End of the day
         
-        const end = new Date(dateRange.to);
-        end.setHours(23, 59, 59, 999);
-        
-        return taskDate >= start && taskDate <= end;
+        console.log(`Checking date range: Task ${task.id} date ${taskDateNormalized} between ${fromDate} and ${toDate}`);
+        return taskDateNormalized >= fromDate && taskDateNormalized <= toDate;
       }
       
       return false; // If no conditions match, don't include the task

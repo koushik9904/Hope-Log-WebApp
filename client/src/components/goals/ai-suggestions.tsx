@@ -105,9 +105,13 @@ export default function AISuggestions({ existingGoals, existingTasks, existingHa
     refetchOnMount: true
   });
   
-  // Log data for debugging
+  // Enhanced debugging for AI suggestions
   console.log("Active Tab:", activeTab);
   console.log("AI Suggestions data:", aiSuggestions);
+  console.log("AI Tasks (initial):", aiSuggestions.tasks?.length || 0);
+  console.log("AI Habits (initial):", aiSuggestions.habits?.length || 0);
+  console.log("Existing Tasks:", existingTasks.length);
+  console.log("Existing Habits:", existingHabits.length);
   
   // Accept/reject mutations
   const acceptGoalSuggestionMutation = useMutation({
@@ -255,12 +259,20 @@ export default function AISuggestions({ existingGoals, existingTasks, existingHa
     mutationFn: async (habitId: number) => {
       console.log(`Rejecting AI habit with ID: ${habitId}`);
       const res = await apiRequest("DELETE", `/api/ai-habits/${habitId}`, {});
+      
+      // Log response details for debugging
+      console.log(`Reject habit response status: ${res.status}`);
+      
       // For DELETE endpoints that return 204 No Content, we shouldn't try to parse JSON
       if (res.status === 204) {
+        console.log("Habit rejected successfully (204 No Content)");
         return {};
       }
+      
       try {
-        return await res.json();
+        const data = await res.json();
+        console.log("Reject habit response data:", data);
+        return data;
       } catch (e) {
         console.log("No JSON response from delete endpoint (expected for 204 status)");
         return {};
