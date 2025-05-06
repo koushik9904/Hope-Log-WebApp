@@ -299,19 +299,47 @@ export default function AISuggestions({ existingGoals, existingTasks, existingHa
     },
   });
 
-  // Filter out AI suggestions that are already in the main lists
-  const aiSuggestedGoals = (aiSuggestions.goals || []).filter(suggestion => 
-    !existingGoals.some(goal => 
-      goal.name.toLowerCase() === suggestion.name.toLowerCase() ||
-      goal.name.toLowerCase().includes(suggestion.name.toLowerCase()) ||
-      suggestion.name.toLowerCase().includes(goal.name.toLowerCase())
-    )
-  );
+  // Debug current goals being rendered
+  console.log("AI Suggested Goals received:", aiSuggestions.goals?.map(g => g.id));
+  console.log("Existing goals:", existingGoals?.map(g => g.id));
+  
+  // Filter out goals - using same approach as tasks and habits (only exact matches)
+  const aiSuggestedGoals = (aiSuggestions.goals || []).filter(suggestion => {
+    // Skip goals with empty names
+    if (!suggestion.name || suggestion.name.trim() === '') {
+      console.log("Skipping empty goal name");
+      return false;
+    }
+    
+    const normalizedSuggestionName = suggestion.name.toLowerCase().trim();
+    
+    // Only filter exact matches
+    const isDuplicate = existingGoals.some(goal => {
+      if (!goal.name) return false;
+      
+      const normalizedGoalName = goal.name.toLowerCase().trim();
+      
+      // Only filter exact matches
+      const exactMatch = normalizedGoalName === normalizedSuggestionName;
+      
+      if (exactMatch) {
+        console.log(`Filtering out goal suggestion "${suggestion.name}" - exact match with existing goal "${goal.name}"`);
+      }
+      
+      return exactMatch;
+    });
+    
+    return !isDuplicate;
+  });
   
   console.log("AI Tasks before filtering:", aiSuggestions.tasks?.length || 0);
   console.log("Existing tasks:", existingTasks.length);
   
-  // Less aggressive filtering for tasks - only filter exact matches or very close matches
+  // Debug current tasks being rendered
+  console.log("AI Suggested Tasks received:", aiSuggestions.tasks?.map(t => t.id));
+  console.log("Existing tasks:", existingTasks?.map(t => t.id));
+  
+  // Modified task filtering - less strict to show more AI suggestions
   const aiSuggestedTasks = (aiSuggestions.tasks || []).filter(suggestion => {
     // Skip tasks with empty titles
     if (!suggestion.title || suggestion.title.trim() === '') {
@@ -321,26 +349,20 @@ export default function AISuggestions({ existingGoals, existingTasks, existingHa
     
     const normalizedSuggestionTitle = suggestion.title.toLowerCase().trim();
     
-    // Check if this suggestion is already in the existing tasks
+    // Check if this suggestion is already in the existing tasks - using less strict filtering
     const isDuplicate = existingTasks.some(task => {
       if (!task.title) return false;
       
       const normalizedTaskTitle = task.title.toLowerCase().trim();
       
-      // Only filter exact matches or very close matches (one is completely contained in the other)
+      // Only filter exact matches
       const exactMatch = normalizedTaskTitle === normalizedSuggestionTitle;
-      const taskContainsSuggestion = normalizedTaskTitle.includes(normalizedSuggestionTitle) && 
-                                     normalizedSuggestionTitle.length > 5; // Only if suggestion is substantial
-      const suggestionContainsTask = normalizedSuggestionTitle.includes(normalizedTaskTitle) && 
-                                     normalizedTaskTitle.length > 5; // Only if task is substantial
       
-      const isMatch = exactMatch || taskContainsSuggestion || suggestionContainsTask;
-      
-      if (isMatch) {
-        console.log(`Filtering out task suggestion "${suggestion.title}" - matches existing task "${task.title}"`);
+      if (exactMatch) {
+        console.log(`Filtering out task suggestion "${suggestion.title}" - exact match with existing task "${task.title}"`);
       }
       
-      return isMatch;
+      return exactMatch;
     });
     
     return !isDuplicate;
@@ -348,22 +370,33 @@ export default function AISuggestions({ existingGoals, existingTasks, existingHa
   
   console.log("AI Tasks after filtering:", aiSuggestedTasks.length);
   
-  // Less aggressive filtering for habits as well
+  // Debug current habits being rendered
+  console.log("AI Suggested Habits received:", aiSuggestions.habits?.map(h => h.id));
+  console.log("Existing habits:", existingHabits?.map(h => h.id));
+  
+  // Less aggressive filtering for habits as well - using same approach as tasks
   const aiSuggestedHabits = (aiSuggestions.habits || []).filter(suggestion => {
     if (!suggestion.title || suggestion.title.trim() === '') return false;
     
     const normalizedSuggestionTitle = suggestion.title.toLowerCase().trim();
     
-    return !existingHabits.some(habit => {
+    // Only filter exact matches
+    const isDuplicate = existingHabits.some(habit => {
       if (!habit.title) return false;
       
       const normalizedHabitTitle = habit.title.toLowerCase().trim();
       
-      // Only filter exact matches or very close matches
-      return normalizedHabitTitle === normalizedSuggestionTitle || 
-             (normalizedHabitTitle.includes(normalizedSuggestionTitle) && normalizedSuggestionTitle.length > 5) ||
-             (normalizedSuggestionTitle.includes(normalizedHabitTitle) && normalizedHabitTitle.length > 5);
+      // Only filter exact matches
+      const exactMatch = normalizedHabitTitle === normalizedSuggestionTitle;
+      
+      if (exactMatch) {
+        console.log(`Filtering out habit suggestion "${suggestion.title}" - exact match with existing habit "${habit.title}"`);
+      }
+      
+      return exactMatch;
     });
+    
+    return !isDuplicate;
   });
   
   // Render content based on active tab
