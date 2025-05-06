@@ -82,11 +82,25 @@ export default function HabitsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-4">
-              {/* Fetch existing habit titles to pass to the suggestions component */}
+              {/* Use the unified AISuggestions component */}
               <FetchHabitTitles userId={user.id}>
-                {(habitTitles) => (
-                  <HabitAISuggestions existingHabitTitles={habitTitles} />
-                )}
+                {(habitTitles) => {
+                  // Create typed habits array for AISuggestions component
+                  const typedHabits = habitTitles.map((title, idx) => ({
+                    id: idx,
+                    title: title,
+                    description: ''
+                  }));
+                  
+                  return (
+                    <AISuggestions 
+                      existingGoals={[]} 
+                      existingTasks={[]} 
+                      existingHabits={typedHabits}
+                      activeTab="habits" 
+                    />
+                  );
+                }}
               </FetchHabitTitles>
             </CardContent>
           </Card>
