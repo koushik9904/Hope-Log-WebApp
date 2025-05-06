@@ -1810,17 +1810,17 @@ export default function GoalsPage() {
                   </div>
                   
                   {/* Date Range Button - Styled like screenshot */}
-                  <Button 
-                    variant={taskDateFilterActive ? "default" : "outline"} 
-                    size="sm" 
-                    className={`rounded-full ${taskDateFilterActive ? "bg-[#9AAB63] hover:bg-[#9AAB63]/90" : "bg-[#9AAB63]/10 hover:bg-[#9AAB63]/20 border-[#9AAB63]/20"} gap-1 text-sm px-4`}
-                    onClick={() => setTaskDateRangeOpen(true)}
-                  >
-                    <Calendar className="h-3.5 w-3.5 mr-1" />
-                    Date Range
-                  </Button>
-                  
                   <Popover open={taskDateRangeOpen} onOpenChange={setTaskDateRangeOpen}>
+                    <PopoverTrigger asChild>
+                      <Button 
+                        variant={taskDateFilterActive ? "default" : "outline"} 
+                        size="sm" 
+                        className={`rounded-full ${taskDateFilterActive ? "bg-[#9AAB63] hover:bg-[#9AAB63]/90" : "bg-[#9AAB63]/10 hover:bg-[#9AAB63]/20 border-[#9AAB63]/20"} gap-1 text-sm px-4`}
+                      >
+                        <Calendar className="h-3.5 w-3.5 mr-1" />
+                        Date Range
+                      </Button>
+                    </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
                       <div className="p-3 border-b">
                         <h3 className="font-medium text-sm">Select Date Range</h3>
@@ -1884,17 +1884,34 @@ export default function GoalsPage() {
                   sortDirection={taskSortDirection}
                   isDateFilterActive={taskDateFilterActive}
                   isDateInRange={(dueDate) => {
-                    if (!taskDateRange.from) return true;
+                    // If no date range is selected or task has no due date, include it
+                    if (!taskDateRange.from || !dueDate) return true;
                     
-                    const dateToCheck = new Date(dueDate);
-                    const fromDate = new Date(taskDateRange.from);
-                    const toDate = taskDateRange.to ? new Date(taskDateRange.to) : fromDate;
-                    
-                    // Set times to beginning/end of day for accurate comparison
-                    fromDate.setHours(0, 0, 0, 0);
-                    toDate.setHours(23, 59, 59, 999);
-                    
-                    return dateToCheck >= fromDate && dateToCheck <= toDate;
+                    try {
+                      // Only try to parse if dueDate is a string
+                      if (typeof dueDate === 'string') {
+                        const dateToCheck = new Date(dueDate);
+                        const fromDate = new Date(taskDateRange.from);
+                        const toDate = taskDateRange.to ? new Date(taskDateRange.to) : fromDate;
+                        
+                        // Set times to beginning/end of day for accurate comparison
+                        fromDate.setHours(0, 0, 0, 0);
+                        toDate.setHours(23, 59, 59, 999);
+                        
+                        // Ensure we have valid dates
+                        if (isNaN(dateToCheck.getTime()) || isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) {
+                          return true;
+                        }
+                        
+                        return dateToCheck >= fromDate && dateToCheck <= toDate;
+                      }
+                      
+                      // If dueDate is not a string, include the task (this shouldn't happen normally)
+                      return true;
+                    } catch (err) {
+                      console.error("Error in date range check:", err);
+                      return true;
+                    }
                   }}
                   setActiveTab={setActiveTab}
                 />}
