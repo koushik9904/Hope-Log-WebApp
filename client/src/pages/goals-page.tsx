@@ -1351,13 +1351,7 @@ export default function GoalsPage() {
                   </DialogHeader>
                   <TaskForm 
                     userId={user?.id || 0}
-                    // Pass form values without an ID to create a new task instead of updating
-                    initialData={newTaskInitialData.title || newTaskInitialData.description || newTaskInitialData.goalId ? {
-                      title: newTaskInitialData.title || "",
-                      description: newTaskInitialData.description || "",
-                      priority: newTaskInitialData.priority || "medium",
-                      goalId: newTaskInitialData.goalId || undefined,
-                    } : undefined}
+                    initialData={undefined}
                     onSuccess={() => {
                       // Clear the initial data after successful submission
                       setNewTaskInitialData({});
