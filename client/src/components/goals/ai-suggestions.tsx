@@ -641,10 +641,10 @@ export default function AISuggestions({ existingGoals, existingTasks, existingHa
     <Card className="bg-white border-0 shadow-sm">
       <CardHeader className="pb-2">
         <CardTitle className="font-['Montserrat_Variable'] text-lg">
-          <span>AI Suggestions</span>
+          <span>Goals Ideas</span>
         </CardTitle>
         <CardDescription>
-          AI suggestions based on your journal entries
+          AI-suggested goals based on your journal entries
         </CardDescription>
       </CardHeader>
       
