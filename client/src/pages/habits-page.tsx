@@ -11,15 +11,22 @@ import HabitForm from '@/components/goals/habit-form';
 import AISuggestions from '@/components/goals/ai-suggestions';
 import PageHeader from '@/components/ui/page-header';
 
+// Interface matching the AISuggestions component's expected format
+interface HabitForAI {
+  id: number;
+  title: string;
+  description: string | null;
+}
+
 // Helper component to fetch habit titles and pass them to children
 function FetchHabitTitles({ 
   userId, 
   children 
 }: { 
   userId: number, 
-  children: (habits: Array<{ id: number, title: string, description: string | null }>) => ReactNode 
+  children: (habits: HabitForAI[]) => ReactNode 
 }) {
-  const { data: habits = [], isLoading } = useQuery<Array<{ id: number, title: string, description: string | null }>>({
+  const { data: habits = [], isLoading } = useQuery<HabitForAI[]>({
     queryKey: [`/api/habits/${userId}`],
     enabled: !!userId,
   });
@@ -81,19 +88,13 @@ export default function HabitsPage() {
             <CardContent className="pt-4">
               {/* Use the unified AISuggestions component */}
               <FetchHabitTitles userId={user.id}>
-                {(habitTitles) => {
-                  // Create typed habits array for AISuggestions component
-                  const typedHabits = habitTitles.map((title, idx) => ({
-                    id: idx,
-                    title: title,
-                    description: ''
-                  }));
-                  
+                {(habits) => {
+                  // Use the actual habits data with correct IDs
                   return (
                     <AISuggestions 
                       existingGoals={[]} 
                       existingTasks={[]} 
-                      existingHabits={typedHabits}
+                      existingHabits={habits}
                       activeTab="habits" 
                     />
                   );
