@@ -280,16 +280,23 @@ export default function TaskList({
       
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       // Use the correct query key format to match other queries in the application
-      queryClient.invalidateQueries({ queryKey: [`/api/tasks/${userId}`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/tasks/${userId}/deleted`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/goals/${userId}`] });
+      await queryClient.invalidateQueries({ queryKey: [`/api/tasks/${userId}`] });
+      await queryClient.invalidateQueries({ queryKey: [`/api/tasks/${userId}/deleted`] });
+      await queryClient.invalidateQueries({ queryKey: [`/api/goals/${userId}`] });
+      
+      // Also refetch all tasks when using the array key format
+      await queryClient.invalidateQueries({ queryKey: ['/api/tasks', userId] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/goals', userId] });
       
       if (selectedGoalId) {
         // For tasks in a specific goal
-        queryClient.invalidateQueries({ queryKey: ['/api/tasks/goal', selectedGoalId] });
+        await queryClient.invalidateQueries({ queryKey: ['/api/tasks/goal', selectedGoalId] });
       }
+      
+      // Force refetch the tasksQuery data immediately 
+      tasksQuery.refetch();
       
       toast({
         title: 'Task converted',

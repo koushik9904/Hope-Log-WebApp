@@ -309,10 +309,21 @@ export default function GoalsPage() {
       }
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       // Use the correct query key format to match other queries in the file
-      queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/tasks/${user?.id}`] });
+      await queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}`] });
+      await queryClient.invalidateQueries({ queryKey: [`/api/tasks/${user?.id}`] });
+      
+      // Also invalidate using array format for compatibility
+      await queryClient.invalidateQueries({ queryKey: ['/api/goals', user?.id] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/tasks', user?.id] });
+      
+      // Force refetch to update the UI
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: [`/api/goals/${user?.id}`] }),
+        queryClient.refetchQueries({ queryKey: [`/api/tasks/${user?.id}`] })
+      ]);
+      
       toast({
         title: "Goal converted",
         description: "Goal has been converted to a task successfully.",
