@@ -4,6 +4,11 @@ import nodemailer from 'nodemailer';
 import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
+import { fileURLToPath } from 'url';
+
+// Get the directory path for the current module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const router = Router();
 
@@ -27,11 +32,11 @@ const upload = multer({
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB limit
   },
-  fileFilter: function (req, file, cb) {
+  fileFilter: function (req, file, cb: any) {
     // Accept images only
     if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
-      cb(null, false);
-      return new Error('Only image files are allowed!');
+      const error = new Error('Only image files are allowed!');
+      return cb(error, false);
     }
     cb(null, true);
   }
@@ -99,7 +104,9 @@ router.post('/api/support', upload.single('attachment'), async (req, res) => {
     // Return success response
     return res.status(200).json({ 
       success: true, 
-      message: 'Support request submitted successfully',
+      message: emailSent 
+        ? 'Support request submitted and email sent successfully' 
+        : 'Support request saved successfully, but email could not be sent (email credentials not set)',
       emailSent
     });
   } catch (err) {

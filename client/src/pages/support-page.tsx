@@ -57,10 +57,10 @@ export default function SupportPage() {
       }
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({
         title: "Support request submitted",
-        description: "We'll get back to you as soon as possible.",
+        description: data.message || "We'll get back to you as soon as possible.",
         variant: "default",
       });
       setFormData({
