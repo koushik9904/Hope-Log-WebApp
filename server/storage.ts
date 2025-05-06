@@ -475,6 +475,26 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
   
+  async updateGoal(id: number, updateData: Partial<Goal>): Promise<Goal> {
+    console.log(`Updating goal ${id} with:`, updateData);
+    
+    // Remove id from updateData to avoid primary key issues
+    const { id: _, ...safeUpdateData } = updateData;
+    
+    const result = await db
+      .update(goals)
+      .set(safeUpdateData)
+      .where(eq(goals.id, id))
+      .returning();
+      
+    if (result.length === 0) {
+      throw new Error(`Goal with id ${id} not found`);
+    }
+    
+    console.log(`Goal ${id} updated successfully`);
+    return result[0];
+  }
+  
   async deleteGoal(id: number): Promise<void> {
     await db
       .update(goals)
