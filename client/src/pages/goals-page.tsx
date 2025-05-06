@@ -10,7 +10,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format, addDays, subDays } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+// Calendar icon is already imported in the main import block
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 // This will be used to store initial data for task form
@@ -101,7 +101,7 @@ import {
   Lightbulb,
   Filter,
   CalendarDays,
-  Calendar as CalendarIcon,
+  Calendar,
   ArrowUpDown,
   SortAsc,
   SortDesc,
@@ -285,7 +285,7 @@ export default function GoalsPage() {
   
   // Task filtering states
   const [taskFilter, setTaskFilter] = useState<string>('all');
-  const [taskSortBy, setTaskSortBy] = useState<'dueDate' | 'priority' | 'title' | 'createdAt'>('dueDate');
+  const [taskSortBy, setTaskSortBy] = useState<'dueDate' | 'priority' | 'createdAt'>('dueDate');
   const [taskSortDirection, setTaskSortDirection] = useState<'asc' | 'desc'>('asc');
   const [taskDateRangeOpen, setTaskDateRangeOpen] = useState(false);
   const [taskDateRange, setTaskDateRange] = useState<{
@@ -1881,7 +1881,7 @@ export default function GoalsPage() {
                         size="sm" 
                         className={`rounded-full ${taskDateFilterActive ? "bg-[#9AAB63] hover:bg-[#9AAB63]/90" : "bg-[#9AAB63]/10 hover:bg-[#9AAB63]/20 border-[#9AAB63]/20"} gap-1 text-sm px-4`}
                       >
-                        <Calendar className="h-3.5 w-3.5 mr-1" />
+                        <CalendarDays className="h-3.5 w-3.5 mr-1" />
                         Date Range
                       </Button>
                     </PopoverTrigger>
@@ -2535,7 +2535,7 @@ export default function GoalsPage() {
                               ) : (
                                 <span>Pick a date</span>
                               )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                              <Calendar className="ml-auto h-4 w-4 opacity-50" />
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
