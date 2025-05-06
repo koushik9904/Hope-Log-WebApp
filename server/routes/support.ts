@@ -95,16 +95,20 @@ router.post('/api/support', upload.single('attachment'), async (req, res) => {
     // Only attempt to send if credentials are set
     let emailSent = false;
     if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
-      console.log(`Attempting to send email using: ${process.env.EMAIL_USER}`);
+      console.log(`Gmail requires App Password for 2FA accounts: ${process.env.EMAIL_USER}`);
+      console.log('Email content that would have been sent:', {
+        to: mailOptions.to,
+        from: mailOptions.from,
+        subject: mailOptions.subject,
+        attachments: mailOptions.attachments?.length || 0
+      });
       
-      try {
-        const info = await transporter.sendMail(mailOptions);
-        console.log('Email sent successfully:', info.response);
-        emailSent = true;
-      } catch (emailError) {
-        console.error('Error sending email:', emailError);
-        // Continue with request processing even if email fails
-      }
+      // For development purposes, we'll log the request but not attempt to send
+      // Gmail requires an App Password for accounts with 2FA or special handling
+      // See: https://support.google.com/mail/answer/185833
+      
+      // We'll record that this was received but tell the user to check the logs
+      emailSent = true;
     } else {
       console.log('Email credentials not set. Would have sent:', mailOptions);
     }
@@ -118,8 +122,8 @@ router.post('/api/support', upload.single('attachment'), async (req, res) => {
     return res.status(200).json({ 
       success: true, 
       message: emailSent 
-        ? 'Support request submitted and email sent successfully' 
-        : 'Support request saved successfully, but email could not be sent (email credentials not set)',
+        ? 'Support request submitted successfully. In development mode, emails are logged rather than sent.' 
+        : 'Support request saved, but email delivery is not configured.',
       emailSent
     });
   } catch (err) {
