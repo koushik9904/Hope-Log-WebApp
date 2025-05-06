@@ -10,6 +10,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format, addDays, subDays } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 // This will be used to store initial data for task form
 
 // Extended Goal type with the new fields
@@ -98,7 +101,6 @@ import {
   Lightbulb,
   Filter,
   CalendarDays,
-  Calendar,
   ArrowUpDown,
   SortAsc,
   SortDesc,
@@ -252,6 +254,20 @@ export default function GoalsPage() {
   
   // The AI suggestion data is defined at the top of the file
   
+  // Initialize the form for goal editing with default values
+  const goalForm = useForm<GoalFormValues>({
+    resolver: zodResolver(goalSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+      category: "Personal",
+      targetDate: null,
+      target: 100,
+      progress: 0,
+      unit: "%"
+    }
+  });
+  
   // State for goals tab filtering
   const [goalFilter, setGoalFilter] = useState<string>("all");
   const [goalCategoryFilter, setGoalCategoryFilter] = useState<string | null>(null);
@@ -353,6 +369,30 @@ export default function GoalsPage() {
         variant: "destructive",
       });
     },
+  });
+
+  // Edit goal mutation
+  const editGoalMutation = useMutation({
+    mutationFn: async (goal: GoalFormValues & { id: number }) => {
+      const res = await apiRequest("PUT", `/api/goals/${goal.id}`, goal);
+      return await res.json();
+    },
+    onSuccess: () => {
+      setShowEditGoalDialog(false);
+      queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}`] });
+      toast({
+        title: "Goal updated",
+        description: "Your goal has been successfully updated"
+      });
+    },
+    onError: (error) => {
+      console.error("Error updating goal:", error);
+      toast({
+        title: "Update failed",
+        description: "There was an error updating your goal. Please try again.",
+        variant: "destructive"
+      });
+    }
   });
 
   const deleteGoalMutation = useMutation({
@@ -1552,8 +1592,8 @@ export default function GoalsPage() {
                                       <DropdownMenuContent className="bg-white">
                                         <DropdownMenuItem
                                           onClick={() => {
-                                            // setGoalToEdit(goal);
-                                            // setShowEditGoalDialog(true);
+                                            setGoalToEdit(goal);
+                                            setShowEditGoalDialog(true);
                                           }}
                                         >
                                           <Edit className="h-4 w-4 mr-2" />
