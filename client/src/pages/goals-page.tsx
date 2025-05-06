@@ -1551,7 +1551,7 @@ export default function GoalsPage() {
             <div className="flex justify-end mb-6">
               <Dialog open={showNewTaskDialog} onOpenChange={setShowNewTaskDialog}>
                 <DialogTrigger asChild>
-                  <Button className="bg-[#9AAB63] hover:bg-[#8a9a58] text-white"
+                  <Button className="bg-[#9AAB63] hover:bg-[#8a9a58] text-white rounded-full"
                     onClick={() => {
                       // Clear any existing task data when manually clicking the button
                       setNewTaskInitialData({});
@@ -1623,149 +1623,116 @@ export default function GoalsPage() {
                 </CardHeader>
                 <CardContent className="pt-6">
                 {/* Advanced Filtering UI for Tasks */}
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-                  <div className="flex flex-wrap gap-2">
-                    {/* Goal Filter Dropdown */}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="sm" className="gap-1">
-                          <Filter className="h-4 w-4" />
-                          {taskSelectedGoalId === null 
-                            ? "Filter by Goal" 
-                            : taskSelectedGoalId === 0 
-                              ? "Tasks without Goal" 
-                              : `Goal: ${goals.find(g => g.id === taskSelectedGoalId)?.name?.substring(0, 15) || "Selected"}`}
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuLabel>Select a Goal</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => setTaskSelectedGoalId(null)}>
-                          All Tasks
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setTaskSelectedGoalId(0)}>
-                          Tasks without goal
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        {goals.map((goal) => (
-                          <DropdownMenuItem key={goal.id} onClick={() => setTaskSelectedGoalId(goal.id)}>
-                            {goal.name}
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-
-                    {/* Status Filter Tabs */}
-                    <Tabs defaultValue={taskFilter} onValueChange={(value) => setTaskFilter(value)}>
-                      <TabsList className="h-9">
-                        <TabsTrigger value="all">All</TabsTrigger>
-                        <TabsTrigger value="pending">Pending</TabsTrigger>
-                        <TabsTrigger value="completed">Completed</TabsTrigger>
-                      </TabsList>
-                    </Tabs>
-                    
-                    {/* Date Range Filter */}
-                    <Popover open={taskDateRangeOpen} onOpenChange={setTaskDateRangeOpen}>
-                      <PopoverTrigger asChild>
-                        <Button 
-                          variant={taskDateFilterActive ? "default" : "outline"} 
-                          size="sm" 
-                          className={`gap-1 ${taskDateFilterActive ? "bg-[#9AAB63] hover:bg-[#8a9a58]" : ""}`}
-                        >
-                          <CalendarDays className="h-4 w-4" />
-                          {taskDateFilterActive 
-                            ? `${format(taskDateRange.from!, 'MMM d')}${taskDateRange.to ? ` - ${format(taskDateRange.to, 'MMM d')}` : ''}` 
-                            : "Date Range"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <div className="p-3 border-b">
-                          <h3 className="font-medium text-sm">Select Date Range</h3>
-                          <p className="text-xs text-muted-foreground mt-1">Filter tasks by due date</p>
-                        </div>
-                        <CalendarComponent
-                          initialFocus
-                          mode="range"
-                          selected={{
-                            from: taskDateRange.from,
-                            to: taskDateRange.to
-                          }}
-                          onSelect={(range) => {
-                            if (range) {
-                              setTaskDateRange({
-                                from: range.from,
-                                to: range.to || range.from
-                              });
-                              setTaskDateFilterActive(!!range.from);
-                            } else {
-                              setTaskDateRange({ from: undefined, to: undefined });
-                              setTaskDateFilterActive(false);
-                            }
-                          }}
-                          numberOfMonths={1}
-                          disabled={{ before: subDays(new Date(), 365), after: addDays(new Date(), 365) }}
-                        />
-                        {taskDateFilterActive && (
-                          <div className="p-3 border-t flex justify-end">
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={clearTaskDateFilter}
-                            >
-                              Clear
-                            </Button>
-                          </div>
-                        )}
-                      </PopoverContent>
-                    </Popover>
-                    
-                    {/* Sort Options */}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="sm" className="gap-1">
-                          {taskSortDirection === 'asc' ? <SortAsc className="h-4 w-4" /> : <SortDesc className="h-4 w-4" />}
-                          Sort
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuLabel>Sort Tasks</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        
-                        <DropdownMenuGroup>
-                          <DropdownMenuRadioGroup value={taskSortBy} onValueChange={(value) => setTaskSortBy(value as any)}>
-                            <DropdownMenuRadioItem value="dueDate">
-                              <CalendarDays className="h-4 w-4 mr-2" />
-                              Due Date
-                            </DropdownMenuRadioItem>
-                            <DropdownMenuRadioItem value="priority">
-                              <AlertCircle className="h-4 w-4 mr-2" />
-                              Priority
-                            </DropdownMenuRadioItem>
-                            <DropdownMenuRadioItem value="createdAt">
-                              <Clock className="h-4 w-4 mr-2" />
-                              Date Created
-                            </DropdownMenuRadioItem>
-                          </DropdownMenuRadioGroup>
-                        </DropdownMenuGroup>
-                        
-                        <DropdownMenuSeparator />
-                        
-                        <DropdownMenuItem onClick={() => setTaskSortDirection(taskSortDirection === 'asc' ? 'desc' : 'asc')}>
-                          {taskSortDirection === 'asc' ? (
-                            <>
-                              <SortAsc className="h-4 w-4 mr-2" />
-                              Ascending
-                            </>
-                          ) : (
-                            <>
-                              <SortDesc className="h-4 w-4 mr-2" />
-                              Descending
-                            </>
-                          )}
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                <div className="mb-3">
+                  <p className="text-sm text-gray-600">Manage and track your day-to-day tasks</p>
+                </div>
+                <div className="flex flex-wrap gap-2 mb-6">
+                  {/* Goal Filter Button - Styled like screenshot */}
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="rounded-full bg-[#9AAB63]/10 text-sm px-4 border-[#9AAB63]/20 text-gray-700 gap-1"
+                    onClick={() => {
+                      // You can implement dropdown logic here
+                    }}
+                  >
+                    <Filter className="h-3.5 w-3.5 mr-1" />
+                    Filter by Goal
+                  </Button>
+                  
+                  {/* Status Filter Pills - Unified style matching screenshot */}
+                  <div className="flex items-center gap-1">
+                    <Button 
+                      variant={taskFilter === "all" ? "default" : "outline"} 
+                      size="sm" 
+                      className={`rounded-full ${taskFilter === "all" ? "bg-[#9AAB63] hover:bg-[#9AAB63]/90" : "bg-[#9AAB63]/10 hover:bg-[#9AAB63]/20 border-[#9AAB63]/20"}`}
+                      onClick={() => setTaskFilter("all")}
+                    >
+                      All
+                    </Button>
+                    <Button 
+                      variant={taskFilter === "pending" ? "default" : "outline"} 
+                      size="sm" 
+                      className={`rounded-full ${taskFilter === "pending" ? "bg-[#9AAB63] hover:bg-[#9AAB63]/90" : "bg-[#9AAB63]/10 hover:bg-[#9AAB63]/20 border-[#9AAB63]/20"}`}
+                      onClick={() => setTaskFilter("pending")}
+                    >
+                      Pending
+                    </Button>
+                    <Button 
+                      variant={taskFilter === "completed" ? "default" : "outline"} 
+                      size="sm" 
+                      className={`rounded-full ${taskFilter === "completed" ? "bg-[#9AAB63] hover:bg-[#9AAB63]/90" : "bg-[#9AAB63]/10 hover:bg-[#9AAB63]/20 border-[#9AAB63]/20"}`}
+                      onClick={() => setTaskFilter("completed")}
+                    >
+                      Completed
+                    </Button>
                   </div>
+                  
+                  {/* Date Range Button - Styled like screenshot */}
+                  <Button 
+                    variant={taskDateFilterActive ? "default" : "outline"} 
+                    size="sm" 
+                    className={`rounded-full ${taskDateFilterActive ? "bg-[#9AAB63] hover:bg-[#9AAB63]/90" : "bg-[#9AAB63]/10 hover:bg-[#9AAB63]/20 border-[#9AAB63]/20"} gap-1 text-sm px-4`}
+                    onClick={() => setTaskDateRangeOpen(true)}
+                  >
+                    <Calendar className="h-3.5 w-3.5 mr-1" />
+                    Date Range
+                  </Button>
+                  
+                  <Popover open={taskDateRangeOpen} onOpenChange={setTaskDateRangeOpen}>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <div className="p-3 border-b">
+                        <h3 className="font-medium text-sm">Select Date Range</h3>
+                        <p className="text-xs text-muted-foreground mt-1">Filter tasks by due date</p>
+                      </div>
+                      <CalendarComponent
+                        initialFocus
+                        mode="range"
+                        selected={{
+                          from: taskDateRange.from,
+                          to: taskDateRange.to
+                        }}
+                        onSelect={(range) => {
+                          if (range) {
+                            setTaskDateRange({
+                              from: range.from,
+                              to: range.to || range.from
+                            });
+                            setTaskDateFilterActive(!!range.from);
+                          } else {
+                            setTaskDateRange({ from: undefined, to: undefined });
+                            setTaskDateFilterActive(false);
+                          }
+                        }}
+                        numberOfMonths={1}
+                        disabled={{ before: subDays(new Date(), 365), after: addDays(new Date(), 365) }}
+                      />
+                      {taskDateFilterActive && (
+                        <div className="p-3 border-t flex justify-end">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={clearTaskDateFilter}
+                          >
+                            Clear
+                          </Button>
+                        </div>
+                      )}
+                    </PopoverContent>
+                  </Popover>
+                  
+                  {/* Sort Button - Styled like screenshot */}
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="rounded-full bg-[#9AAB63]/10 text-sm px-4 border-[#9AAB63]/20 text-gray-700 gap-1 ml-auto"
+                    onClick={() => {
+                      // You can implement your sort dropdown here
+                    }}
+                  >
+                    <ArrowUpDown className="h-3.5 w-3.5 mr-1" />
+                    Sort
+                  </Button>
                 </div>
                 
                 {user && <TaskList 
@@ -1788,7 +1755,7 @@ export default function GoalsPage() {
               <Dialog open={showNewHabitDialog} onOpenChange={setShowNewHabitDialog}>
                 <DialogTrigger asChild>
                   <Button 
-                    className="bg-[#B6CAEB] hover:bg-[#95b9e5] text-white"
+                    className="bg-[#B6CAEB] hover:bg-[#95b9e5] text-white rounded-full"
                     onClick={() => {
                       // Clear any previous habit data when clicking Add Habit button directly
                       setNewHabit({
