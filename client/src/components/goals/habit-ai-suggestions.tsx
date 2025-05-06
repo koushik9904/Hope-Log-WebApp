@@ -6,6 +6,18 @@ import { Loader2, Lightbulb, AlertCircle, ThumbsUp, ThumbsDown, Target, Sparkles
 import { Button } from '@/components/ui/button';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 
+// Interface for AI habit suggestions
+interface AISuggestedHabit {
+  id: number;
+  title: string;
+  description: string | null;
+  frequency?: string;
+  journalEntryId?: number;
+  explanation?: string;
+  createdAt: string;
+  userId: number;
+}
+
 interface HabitAISuggestionsProps {
   existingHabitTitles: string[];
 }
@@ -13,9 +25,9 @@ interface HabitAISuggestionsProps {
 export default function HabitAISuggestions({ existingHabitTitles }: HabitAISuggestionsProps) {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [aiSuggestedHabits, setAiSuggestedHabits] = useState<any[]>([]);
+  const [aiSuggestedHabits, setAiSuggestedHabits] = useState<AISuggestedHabit[]>([]);
 
-  // Fetch AI-suggested habits from the same endpoint used by AI Suggestions component
+  // Fetch AI-suggested habits
   const { 
     data: aiSuggestions = { goals: [], tasks: [], habits: [] },
     isLoading: isLoadingSuggestions,
@@ -23,12 +35,19 @@ export default function HabitAISuggestions({ existingHabitTitles }: HabitAISugge
   } = useQuery<{ 
     goals: any[], 
     tasks: any[], 
-    habits: any[] 
+    habits: AISuggestedHabit[] 
   }>({
     queryKey: [`/api/goals/${user?.id}/ai-suggestions`],
     enabled: !!user?.id,
     staleTime: 300000, // 5 minutes
+    refetchOnMount: true
   });
+  
+  // Enhanced debugging for AI suggestions
+  console.log("AI Suggestions API endpoint:", `/api/goals/${user?.id}/ai-suggestions`);
+  console.log("AI Suggestions data:", aiSuggestions);
+  console.log("AI Habits (initial):", aiSuggestions.habits?.length || 0);
+  console.log("Existing Habit Titles:", existingHabitTitles?.length || 0);
   
   // Process AI suggestions whenever they change
   useEffect(() => {
@@ -36,23 +55,56 @@ export default function HabitAISuggestions({ existingHabitTitles }: HabitAISugge
     console.log("HabitAISuggestions - AI habits length:", aiSuggestions.habits?.length || 0);
     
     if (aiSuggestions?.habits?.length > 0) {
-      // Set all habits directly without filtering to ensure they're displayed
-      // This is a temporary fix to ensure we see the habits
-      setAiSuggestedHabits(aiSuggestions.habits);
-      console.log("HabitAISuggestions - Using all habits:", aiSuggestions.habits.length);
+      // Filter habits that don't already exist
+      const filteredHabits = aiSuggestions.habits.filter(habit => {
+        // Skip habits with empty titles
+        if (!habit.title || habit.title.trim() === '') {
+          console.log("Skipping empty habit title");
+          return false;
+        }
+        
+        const normalizedSuggestionTitle = habit.title.toLowerCase().trim();
+        
+        // Check if this suggestion is already in the existing habits - using less strict filtering
+        const isDuplicate = existingHabitTitles.some(existingTitle => {
+          if (!existingTitle) return false;
+          
+          const normalizedHabitTitle = existingTitle.toLowerCase().trim();
+          
+          // Only filter exact matches
+          const exactMatch = normalizedHabitTitle === normalizedSuggestionTitle;
+          
+          if (exactMatch) {
+            console.log(`Filtering out habit suggestion "${habit.title}" - exact match with existing habit "${existingTitle}"`);
+          }
+          
+          return exactMatch;
+        });
+        
+        return !isDuplicate;
+      });
+      
+      console.log("HabitAISuggestions - Filtered habits:", filteredHabits.length);
+      setAiSuggestedHabits(filteredHabits);
     }
-  }, [aiSuggestions]);
+  }, [aiSuggestions, existingHabitTitles]);
   
   // Accept habit mutation
   const acceptHabitMutation = useMutation({
     mutationFn: async (habitId: number) => {
+      console.log(`Accepting AI habit with ID: ${habitId}`);
       const res = await apiRequest("POST", `/api/ai-habits/${habitId}/accept`, {});
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error("Error accepting AI habit:", errorData);
+        throw new Error(errorData.error || "Unknown error");
+      }
       return await res.json();
     },
     onSuccess: () => {
       toast({
-        title: "Habit added",
-        description: "Habit has been added to your list",
+        title: "Habit added successfully",
+        description: "The suggested habit has been added to your habits.",
         variant: "default",
       });
       queryClient.invalidateQueries({ queryKey: [`/api/habits/${user?.id}`] });
@@ -61,7 +113,7 @@ export default function HabitAISuggestions({ existingHabitTitles }: HabitAISugge
     onError: (error) => {
       toast({
         title: "Failed to add habit",
-        description: "There was an error adding the habit",
+        description: "There was an error adding the suggested habit.",
         variant: "destructive",
       });
     },
@@ -72,6 +124,9 @@ export default function HabitAISuggestions({ existingHabitTitles }: HabitAISugge
     mutationFn: async (habitId: number) => {
       console.log(`Rejecting AI habit with ID: ${habitId}`);
       const res = await apiRequest("DELETE", `/api/ai-habits/${habitId}`, {});
+      
+      // Log response details for debugging
+      console.log(`Reject habit response status: ${res.status}`);
       
       // For DELETE endpoints that return 204 No Content, we shouldn't try to parse JSON
       if (res.status === 204) {
@@ -90,8 +145,8 @@ export default function HabitAISuggestions({ existingHabitTitles }: HabitAISugge
     },
     onSuccess: () => {
       toast({
-        title: "Habit rejected",
-        description: "Habit suggestion has been removed",
+        title: "Suggestion removed",
+        description: "The habit suggestion has been removed.",
         variant: "default",
       });
       queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}/ai-suggestions`] });
@@ -99,8 +154,8 @@ export default function HabitAISuggestions({ existingHabitTitles }: HabitAISugge
     onError: (error) => {
       console.error("Error rejecting habit suggestion:", error);
       toast({
-        title: "Failed to reject habit",
-        description: "There was an error removing the habit suggestion",
+        title: "Failed to remove suggestion",
+        description: "There was an error removing the habit suggestion.",
         variant: "destructive",
       });
     },
@@ -132,7 +187,7 @@ export default function HabitAISuggestions({ existingHabitTitles }: HabitAISugge
     return (
       <div className="flex flex-col items-center justify-center p-6 text-center">
         <div className="bg-gray-50 rounded-full p-3 mb-3">
-          <Lightbulb className="h-6 w-6 text-gray-300" />
+          <Target className="h-6 w-6 text-gray-300" />
         </div>
         <p className="text-sm text-gray-500 mb-2">No habit suggestions yet</p>
         <p className="text-xs text-gray-400 mb-4">
@@ -149,7 +204,7 @@ export default function HabitAISuggestions({ existingHabitTitles }: HabitAISugge
   
   return (
     <div className="space-y-4">
-      {aiSuggestedHabits.map(habit => {
+      {aiSuggestedHabits.slice(0, 3).map(habit => {
         console.log("Rendering habit item:", habit);
         return (
           <div key={habit.id} className="bg-[#f5faee] p-4 rounded-xl border border-[#9AAB63] border-opacity-30">
