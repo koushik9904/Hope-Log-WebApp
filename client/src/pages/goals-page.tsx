@@ -1028,9 +1028,9 @@ export default function GoalsPage() {
   
   return (
     <DashboardLayout>
-        <div className="space-y-6">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div>
+      <div className="space-y-6">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div>
               <h1 className="text-3xl font-bold mb-2 font-['Montserrat_Variable']">Goals & Habits</h1>
               <p className="text-gray-500 font-['Inter_Variable']">
                 Track your progress and build positive habits
@@ -2437,7 +2437,6 @@ export default function GoalsPage() {
           </TabsContent>
         </Tabs>
       </div>
-      </DashboardLayout>
       
       {/* Edit Goal Dialog */}
       <Dialog open={showEditGoalDialog} onOpenChange={setShowEditGoalDialog}>
@@ -2462,7 +2461,7 @@ export default function GoalsPage() {
                 })} 
                 className="space-y-6 py-4"
               >
-              <FormField
+                <FormField
                 control={goalForm.control}
                 name="name"
                 render={({ field }) => (
@@ -2656,5 +2655,6 @@ export default function GoalsPage() {
         )}
       </DialogContent>
     </Dialog>
+    </DashboardLayout>
   );
 }
