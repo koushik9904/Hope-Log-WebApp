@@ -271,24 +271,14 @@ export default function TaskList({
       description: string;
       userId: number;
     }) => {
-      // First create the goal
-      const createRes = await apiRequest('POST', '/api/goals', {
-        name: goalName,
-        description,
-        userId,
-        target: 100,
-        progress: 0,
-        category: "Personal"
-      });
+      // Use the new conversion endpoint
+      const response = await apiRequest('POST', `/api/tasks/${taskId}/convert-to-goal`);
       
-      if (!createRes.ok) {
-        throw new Error('Failed to create goal');
+      if (!response.ok) {
+        throw new Error('Failed to convert task to goal');
       }
       
-      // Then delete the original task
-      await apiRequest('DELETE', `/api/tasks/${taskId}`);
-      
-      return createRes.json();
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/tasks', userId] });
@@ -792,9 +782,9 @@ export default function TaskList({
                 if (newGoalName && taskToConvert) {
                   convertTaskToGoalMutation.mutate({
                     taskId: taskToConvert.id,
-                    goalName: newGoalName,
-                    description: taskToConvert.description || "",
-                    userId: userId
+                    goalName: newGoalName, // Not used by API but kept for type compatibility
+                    description: taskToConvert.description || "", // Not used by API but kept for type compatibility
+                    userId: userId // Not used by API but kept for type compatibility
                   });
                 }
               }}
