@@ -281,12 +281,9 @@ export default function TasksPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-4">
-                {/* Use the AISuggestions component in a type-safe way */}
-                <AISuggestions 
-                  existingGoals={[]} 
-                  existingTasks={typedTasks} 
-                  existingHabits={[]}
-                  activeTab="tasks" 
+                {/* Use the TaskAISuggestions component to fix missing tasks */}
+                <TaskAISuggestions 
+                  existingTaskTitles={typedTasks.map(task => task.title)}
                 />
               </CardContent>
             </Card>
