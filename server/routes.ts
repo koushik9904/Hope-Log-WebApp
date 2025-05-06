@@ -28,15 +28,17 @@ import paypalSettingsRoutes from "./routes/paypal-settings";
 import { setupHabitRoutes } from "./routes/habits";
 import { setupTaskRoutes } from "./routes/tasks";
 import { registerAvatarRoutes } from "./routes/avatar";
+import supportRoutes from "./routes/support";
 import { User } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes
   await setupAuth(app);
   
-  // Setup task and habit routes
+  // Setup task, habit and support routes
   setupTaskRoutes(app);
   setupHabitRoutes(app);
+  app.use(supportRoutes);
 
   // User API
   app.get("/api/users/:id", async (req, res) => {
