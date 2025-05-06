@@ -472,8 +472,31 @@ export class DatabaseStorage implements IStorage {
   
   async deleteGoal(id: number): Promise<void> {
     await db
-      .delete(goals)
+      .update(goals)
+      .set({ deletedAt: new Date() })
       .where(eq(goals.id, id));
+  }
+  
+  async getDeletedGoalsByUserId(userId: number): Promise<Goal[]> {
+    return await db
+      .select()
+      .from(goals)
+      .where(
+        and(
+          eq(goals.userId, userId),
+          sql`${goals.deletedAt} IS NOT NULL`
+        )
+      )
+      .orderBy(desc(goals.id));
+  }
+  
+  async restoreGoal(id: number): Promise<Goal> {
+    const result = await db
+      .update(goals)
+      .set({ deletedAt: null })
+      .where(eq(goals.id, id))
+      .returning();
+    return result[0];
   }
   
   async getAISuggestedGoals(userId: number): Promise<Goal[]> {
