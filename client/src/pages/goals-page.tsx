@@ -578,11 +578,30 @@ export default function GoalsPage() {
   // Apply filters to goals
   let filteredGoals = [...goals];
   
-  // Apply status filter
+  // Apply status filter with improved handling for edge cases
   if (goalFilter === 'in-progress') {
-    filteredGoals = filteredGoals.filter(goal => goal.progress > 0 && goal.progress < goal.target);
+    filteredGoals = filteredGoals.filter(goal => {
+      // Handle potential NaN or undefined values
+      const progress = isNaN(goal.progress) ? 0 : goal.progress;
+      const target = isNaN(goal.target) ? 100 : goal.target;
+      // A goal is in-progress if it has some progress but isn't completed
+      return progress > 0 && progress < target;
+    });
   } else if (goalFilter === 'completed') {
-    filteredGoals = filteredGoals.filter(goal => goal.progress >= goal.target);
+    filteredGoals = filteredGoals.filter(goal => {
+      // Handle potential NaN or undefined values
+      const progress = isNaN(goal.progress) ? 0 : goal.progress;
+      const target = isNaN(goal.target) ? 100 : goal.target;
+      // A goal is completed if progress matches or exceeds target
+      return progress >= target;
+    });
+  } else if (goalFilter === 'not-started') {
+    filteredGoals = filteredGoals.filter(goal => {
+      // Handle potential NaN or undefined values
+      const progress = isNaN(goal.progress) ? 0 : goal.progress;
+      // A goal is not started if it has zero progress
+      return progress === 0;
+    });
   }
   
   // Apply category filter if selected
@@ -590,66 +609,108 @@ export default function GoalsPage() {
     filteredGoals = filteredGoals.filter(goal => goal.category === goalCategoryFilter);
   }
 
-  // Apply date filter if active
+  // Apply date filter if active with better error handling
   if (goalDateFilterActive && goalDateRange.from) {
     filteredGoals = filteredGoals.filter(goal => {
       if (!goal.targetDate) return false;
       
-      // Parse the ISO date string to a Date object and normalize to start of day
-      const targetDate = new Date(goal.targetDate);
-      targetDate.setHours(0, 0, 0, 0);
-      
-      // From date only (on or after this date)
-      if (goalDateRange.from && !goalDateRange.to) {
-        const start = new Date(goalDateRange.from);
-        start.setHours(0, 0, 0, 0);
-        return targetDate >= start;
-      }
-      
-      // Date range (between from and to, inclusive)
-      if (goalDateRange.from && goalDateRange.to) {
-        const start = new Date(goalDateRange.from);
-        start.setHours(0, 0, 0, 0);
+      try {
+        // Parse the ISO date string to a Date object, ensuring it's valid
+        const targetDate = new Date(goal.targetDate);
         
-        const end = new Date(goalDateRange.to);
-        end.setHours(23, 59, 59, 999);
+        // Check if the date is valid
+        if (isNaN(targetDate.getTime())) {
+          console.warn(`Invalid target date found for goal ${goal.id}: "${goal.targetDate}"`);
+          return false;
+        }
         
-        return targetDate >= start && targetDate <= end;
+        targetDate.setHours(0, 0, 0, 0); // Normalize to start of day
+        
+        // From date only (on or after this date)
+        if (goalDateRange.from && !goalDateRange.to) {
+          const start = new Date(goalDateRange.from);
+          start.setHours(0, 0, 0, 0);
+          return targetDate >= start;
+        }
+        
+        // Date range (between from and to, inclusive)
+        if (goalDateRange.from && goalDateRange.to) {
+          const start = new Date(goalDateRange.from);
+          start.setHours(0, 0, 0, 0);
+          
+          const end = new Date(goalDateRange.to);
+          end.setHours(23, 59, 59, 999);
+          
+          return targetDate >= start && targetDate <= end;
+        }
+        
+        return false;
+      } catch (error) {
+        console.error(`Error filtering goal ${goal.id} by date range:`, error);
+        return false;
       }
-      
-      return false;
     });
   }
   
   // Apply sorting
   filteredGoals = [...filteredGoals].sort((a, b) => {
-    if (goalSortBy === 'targetDate') {
-      if (!a.targetDate && !b.targetDate) return 0;
-      if (!a.targetDate) return goalSortDirection === 'asc' ? 1 : -1;
-      if (!b.targetDate) return goalSortDirection === 'asc' ? -1 : 1;
+    try {
+      if (goalSortBy === 'targetDate') {
+        // Handle null/undefined values
+        if (!a.targetDate && !b.targetDate) return 0;
+        if (!a.targetDate) return goalSortDirection === 'asc' ? 1 : -1;
+        if (!b.targetDate) return goalSortDirection === 'asc' ? -1 : 1;
+        
+        // Parse dates and check for validity
+        const dateA = new Date(a.targetDate);
+        const dateB = new Date(b.targetDate);
+        
+        if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
+        if (isNaN(dateA.getTime())) return goalSortDirection === 'asc' ? 1 : -1;
+        if (isNaN(dateB.getTime())) return goalSortDirection === 'asc' ? -1 : 1;
+        
+        return goalSortDirection === 'asc'
+          ? dateA.getTime() - dateB.getTime()
+          : dateB.getTime() - dateA.getTime();
+      }
       
-      return goalSortDirection === 'asc'
-        ? new Date(a.targetDate).getTime() - new Date(b.targetDate).getTime()
-        : new Date(b.targetDate).getTime() - new Date(a.targetDate).getTime();
-    }
-    
-    if (goalSortBy === 'progress') {
-      return goalSortDirection === 'asc'
-        ? a.progress - b.progress
-        : b.progress - a.progress;
-    }
-    
-    if (goalSortBy === 'createdAt') {
-      if (!a.createdAt && !b.createdAt) return 0;
-      if (!a.createdAt) return goalSortDirection === 'asc' ? 1 : -1;
-      if (!b.createdAt) return goalSortDirection === 'asc' ? -1 : 1;
+      if (goalSortBy === 'progress') {
+        // Handle potential NaN values
+        const progressA = isNaN(a.progress) ? 0 : a.progress;
+        const progressB = isNaN(b.progress) ? 0 : b.progress;
+        
+        return goalSortDirection === 'asc'
+          ? progressA - progressB
+          : progressB - progressA;
+      }
       
+      if (goalSortBy === 'createdAt') {
+        // Handle null/undefined values
+        if (!a.createdAt && !b.createdAt) return 0;
+        if (!a.createdAt) return goalSortDirection === 'asc' ? 1 : -1;
+        if (!b.createdAt) return goalSortDirection === 'asc' ? -1 : 1;
+        
+        // Parse dates and check for validity
+        const dateA = new Date(a.createdAt);
+        const dateB = new Date(b.createdAt);
+        
+        if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
+        if (isNaN(dateA.getTime())) return goalSortDirection === 'asc' ? 1 : -1;
+        if (isNaN(dateB.getTime())) return goalSortDirection === 'asc' ? -1 : 1;
+        
+        return goalSortDirection === 'asc'
+          ? dateA.getTime() - dateB.getTime()
+          : dateB.getTime() - dateA.getTime();
+      }
+      
+      // Default: sort by name
       return goalSortDirection === 'asc'
-        ? new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-        : new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        ? a.name.localeCompare(b.name)
+        : b.name.localeCompare(a.name);
+    } catch (error) {
+      console.error("Error sorting goals:", error);
+      return 0;
     }
-    
-    return 0;
   });
   
   // Group filtered goals by category (for display purposes)

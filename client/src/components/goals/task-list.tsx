@@ -505,49 +505,79 @@ export default function TaskList({
     filteredTasks = filteredTasks.filter(isInDateRange);
   }
   
-  // Apply sorting
+  // Apply sorting - improved with error handling and validation
   filteredTasks = [...filteredTasks].sort((a, b) => {
-    // Handle null values in sorting
-    if (sortBy === 'dueDate') {
-      if (!a.dueDate && !b.dueDate) return 0;
-      if (!a.dueDate) return sortDirection === 'asc' ? 1 : -1;
-      if (!b.dueDate) return sortDirection === 'asc' ? -1 : 1;
+    try {
+      // Handle null values in sorting
+      if (sortBy === 'dueDate') {
+        // Handle missing due dates
+        if (!a.dueDate && !b.dueDate) return 0;
+        if (!a.dueDate) return sortDirection === 'asc' ? 1 : -1;
+        if (!b.dueDate) return sortDirection === 'asc' ? -1 : 1;
+        
+        // Parse dates safely
+        const dateA = new Date(a.dueDate);
+        const dateB = new Date(b.dueDate);
+        
+        // Check for invalid dates
+        if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
+        if (isNaN(dateA.getTime())) return sortDirection === 'asc' ? 1 : -1;
+        if (isNaN(dateB.getTime())) return sortDirection === 'asc' ? -1 : 1;
+        
+        return sortDirection === 'asc'
+          ? dateA.getTime() - dateB.getTime()
+          : dateB.getTime() - dateA.getTime();
+      }
       
+      if (sortBy === 'priority') {
+        // Convert priority to numeric value for sorting with safe fallbacks
+        const priorityValue = (priority: string) => {
+          if (!priority) return 0;
+          
+          switch(priority.toLowerCase()) {
+            case 'high': return 3;
+            case 'medium': return 2;
+            case 'low': return 1;
+            default: return 0;
+          }
+        };
+        
+        const aValue = priorityValue(a.priority);
+        const bValue = priorityValue(b.priority);
+        
+        return sortDirection === 'asc'
+          ? aValue - bValue
+          : bValue - aValue;
+      }
+      
+      if (sortBy === 'createdAt') {
+        // Handle missing creation dates
+        if (!a.createdAt && !b.createdAt) return 0;
+        if (!a.createdAt) return sortDirection === 'asc' ? 1 : -1;
+        if (!b.createdAt) return sortDirection === 'asc' ? -1 : 1;
+        
+        // Parse dates safely
+        const dateA = new Date(a.createdAt);
+        const dateB = new Date(b.createdAt);
+        
+        // Check for invalid dates
+        if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
+        if (isNaN(dateA.getTime())) return sortDirection === 'asc' ? 1 : -1;
+        if (isNaN(dateB.getTime())) return sortDirection === 'asc' ? -1 : 1;
+        
+        return sortDirection === 'asc'
+          ? dateA.getTime() - dateB.getTime()
+          : dateB.getTime() - dateA.getTime();
+      }
+      
+      // Default sort by title as a fallback
       return sortDirection === 'asc'
-        ? new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
-        : new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime();
+        ? a.title.localeCompare(b.title)
+        : b.title.localeCompare(a.title);
+    } catch (error) {
+      console.error("Error sorting tasks:", error);
+      return 0;
     }
-    
-    if (sortBy === 'priority') {
-      // Convert priority to numeric value for sorting
-      const priorityValue = (priority: string) => {
-        switch(priority?.toLowerCase()) {
-          case 'high': return 3;
-          case 'medium': return 2;
-          case 'low': return 1;
-          default: return 0;
-        }
-      };
-      
-      const aValue = priorityValue(a.priority);
-      const bValue = priorityValue(b.priority);
-      
-      return sortDirection === 'asc'
-        ? aValue - bValue
-        : bValue - aValue;
-    }
-    
-    if (sortBy === 'createdAt') {
-      if (!a.createdAt && !b.createdAt) return 0;
-      if (!a.createdAt) return sortDirection === 'asc' ? 1 : -1;
-      if (!b.createdAt) return sortDirection === 'asc' ? -1 : 1;
-      
-      return sortDirection === 'asc'
-        ? new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-        : new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    }
-    
-    return 0;
   });
   
   // Group tasks by priority (equivalent to grouping goals by category)
