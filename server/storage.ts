@@ -482,6 +482,28 @@ export class DatabaseStorage implements IStorage {
       .where(eq(goals.id, id));
   }
   
+  async getDeletedGoalsByUserId(userId: number): Promise<Goal[]> {
+    return await db
+      .select()
+      .from(goals)
+      .where(
+        and(
+          eq(goals.userId, userId),
+          sql`${goals.deletedAt} IS NOT NULL`
+        )
+      )
+      .orderBy(desc(goals.id));
+  }
+  
+  async restoreGoal(id: number): Promise<Goal> {
+    const result = await db
+      .update(goals)
+      .set({ deletedAt: null })
+      .where(eq(goals.id, id))
+      .returning();
+    return result[0];
+  }
+  
   async getAISuggestedGoals(userId: number): Promise<Goal[]> {
     // Legacy method - redirects to getAiGoalsByUserId and converts format
     const aiGoalsResult = await this.getAiGoalsByUserId(userId);
@@ -685,6 +707,28 @@ export class DatabaseStorage implements IStorage {
       .where(eq(tasks.id, id));
   }
   
+  async getDeletedTasksByUserId(userId: number): Promise<Task[]> {
+    return await db
+      .select()
+      .from(tasks)
+      .where(
+        and(
+          eq(tasks.userId, userId),
+          sql`${tasks.deletedAt} IS NOT NULL`
+        )
+      )
+      .orderBy(desc(tasks.id));
+  }
+  
+  async restoreTask(id: number): Promise<Task> {
+    const result = await db
+      .update(tasks)
+      .set({ deletedAt: null })
+      .where(eq(tasks.id, id))
+      .returning();
+    return result[0];
+  }
+  
   async getCompletedTasksByUserId(userId: number): Promise<Task[]> {
     return await db
       .select()
@@ -833,6 +877,58 @@ export class DatabaseStorage implements IStorage {
     return newTask;
   }
   
+  // Conversion functions between tasks and goals
+  async convertTaskToGoal(taskId: number): Promise<Goal> {
+    // Get the task
+    const task = await this.getTaskById(taskId);
+    if (!task) {
+      throw new Error(`Task with id ${taskId} not found`);
+    }
+    
+    // Create a new goal based on the task
+    const newGoal = await this.createGoal({
+      userId: task.userId,
+      name: task.title,
+      description: task.description || '',
+      category: 'Other',
+      status: 'in_progress',
+      target: 100,
+      progress: 0,
+      unit: '%',
+      source: task.source || 'user',
+      aiExplanation: task.aiExplanation
+    });
+    
+    // Mark the original task as deleted
+    await this.deleteTask(taskId);
+    
+    return newGoal;
+  }
+  
+  async convertGoalToTask(goalId: number): Promise<Task> {
+    // Get the goal
+    const goal = await this.getGoalById(goalId);
+    if (!goal) {
+      throw new Error(`Goal with id ${goalId} not found`);
+    }
+    
+    // Create a new task based on the goal
+    const newTask = await this.createTask({
+      userId: goal.userId,
+      title: goal.name,
+      description: goal.description || '',
+      priority: 'medium',
+      status: 'pending',
+      source: goal.source || 'user',
+      aiExplanation: goal.aiExplanation
+    });
+    
+    // Mark the original goal as deleted
+    await this.deleteGoal(goalId);
+    
+    return newTask;
+  }
+  
   // Habit methods
   async getHabitsByUserId(userId: number): Promise<Habit[]> {
     return await db
@@ -919,24 +1015,11 @@ export class DatabaseStorage implements IStorage {
       .orderBy(habits.id);
   }
   
-  async getDeletedTasksByUserId(userId: number): Promise<Task[]> {
-    return await db
-      .select()
-      .from(tasks)
-      .where(
-        and(
-          eq(tasks.userId, userId),
-          sql`${tasks.deletedAt} IS NOT NULL`
-        )
-      )
-      .orderBy(desc(tasks.id));
-  }
-  
-  async restoreTask(id: number): Promise<Task> {
+  async restoreHabit(id: number): Promise<Habit> {
     const result = await db
-      .update(tasks)
+      .update(habits)
       .set({ deletedAt: null })
-      .where(eq(tasks.id, id))
+      .where(eq(habits.id, id))
       .returning();
     return result[0];
   }
