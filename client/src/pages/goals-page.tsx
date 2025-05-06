@@ -578,6 +578,13 @@ export default function GoalsPage() {
   // Apply filters to goals
   let filteredGoals = [...goals];
   
+  // Apply status filter
+  if (goalFilter === 'in-progress') {
+    filteredGoals = filteredGoals.filter(goal => goal.progress > 0 && goal.progress < goal.target);
+  } else if (goalFilter === 'completed') {
+    filteredGoals = filteredGoals.filter(goal => goal.progress >= goal.target);
+  }
+  
   // Apply category filter if selected
   if (goalCategoryFilter !== null) {
     filteredGoals = filteredGoals.filter(goal => goal.category === goalCategoryFilter);
