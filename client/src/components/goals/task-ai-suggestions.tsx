@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest, queryClient } from '@/lib/queryClient';
+import { Loader2, Lightbulb, AlertCircle, ThumbsUp, ThumbsDown, Clock, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Lightbulb, Check, X, Sparkles, AlertCircle, Loader2 } from 'lucide-react';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 
 interface TaskAISuggestionsProps {
   existingTaskTitles: string[];
@@ -57,21 +57,23 @@ export default function TaskAISuggestions({ existingTaskTitles }: TaskAISuggesti
   // Add task mutation
   const addTaskMutation = useMutation({
     mutationFn: async (task: any) => {
-      return await apiRequest("POST", `/api/ai-tasks/${task.id}/accept`, {});
+      const res = await apiRequest("POST", `/api/ai-tasks/${task.id}/accept`, {});
+      return await res.json();
     },
     onSuccess: () => {
       toast({
-        title: "Task added successfully",
-        description: "The suggested task has been added to your tasks.",
+        title: "Task added",
+        description: "Task has been added to your list",
         variant: "default",
       });
+      // Invalidate queries to refresh the tasks list and AI suggestions
       queryClient.invalidateQueries({ queryKey: [`/api/tasks/${user?.id}`] });
       queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}/ai-suggestions`] });
     },
     onError: (error) => {
       toast({
         title: "Failed to add task",
-        description: "There was an error adding the suggested task.",
+        description: "There was an error adding the task",
         variant: "destructive",
       });
     },
@@ -80,32 +82,28 @@ export default function TaskAISuggestions({ existingTaskTitles }: TaskAISuggesti
   // Reject task mutation
   const rejectTaskMutation = useMutation({
     mutationFn: async (taskId: number) => {
-      console.log(`Rejecting AI task with ID: ${taskId}`);
       const res = await apiRequest("DELETE", `/api/ai-tasks/${taskId}`, {});
+      
       // For DELETE endpoints that return 204 No Content, we shouldn't try to parse JSON
       if (res.status === 204) {
         return {};
       }
-      try {
-        return await res.json();
-      } catch (e) {
-        console.log("No JSON response from delete endpoint (expected for 204 status)");
-        return {};
-      }
+      
+      return await res.json();
     },
     onSuccess: () => {
       toast({
-        title: "Suggestion removed",
-        description: "The task suggestion has been removed.",
+        title: "Task rejected",
+        description: "Task suggestion has been removed",
         variant: "default",
       });
+      // Refresh AI suggestions after rejection
       queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}/ai-suggestions`] });
     },
     onError: (error) => {
-      console.error("Error rejecting task suggestion:", error);
       toast({
-        title: "Failed to remove suggestion",
-        description: "There was an error removing the task suggestion.",
+        title: "Failed to reject task",
+        description: "There was an error removing the task suggestion",
         variant: "destructive",
       });
     },
@@ -167,9 +165,8 @@ export default function TaskAISuggestions({ existingTaskTitles }: TaskAISuggesti
           <div className="mt-3">
             {/* Priority badge */}
             <div className="mb-3 text-xs text-gray-500 flex items-center">
-              <Badge variant="outline" className="text-xs font-normal">
-                {task.priority || "Medium"} Priority
-              </Badge>
+              <Clock className="h-3 w-3 inline mr-1 text-[#B6CAEB]" />
+              {task.priority || "Medium"} Priority
             </div>
             
             {/* Action buttons */}
@@ -181,7 +178,7 @@ export default function TaskAISuggestions({ existingTaskTitles }: TaskAISuggesti
                 className="h-7 px-3 flex-1 bg-[#B6CAEB] hover:bg-[#9bb8e4] border-[#B6CAEB] text-white hover:text-white text-center justify-center"
                 disabled={addTaskMutation.isPending}
               >
-                <Check className="h-3 w-3 mr-1" />
+                <ThumbsUp className="h-3 w-3 mr-1" />
                 <span className="text-xs">Accept</span>
               </Button>
               <Button 
@@ -191,7 +188,7 @@ export default function TaskAISuggestions({ existingTaskTitles }: TaskAISuggesti
                 className="h-7 px-3 flex-1 border-gray-300 text-gray-500 hover:bg-gray-100 text-center justify-center"
                 disabled={rejectTaskMutation.isPending}
               >
-                <X className="h-3 w-3 mr-1" />
+                <ThumbsDown className="h-3 w-3 mr-1" />
                 <span className="text-xs">Reject</span>
               </Button>
             </div>

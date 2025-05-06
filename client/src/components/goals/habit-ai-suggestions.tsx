@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest, queryClient } from '@/lib/queryClient';
+import { Loader2, Lightbulb, AlertCircle, ThumbsUp, ThumbsDown, Target, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ThumbsUp, ThumbsDown, Sparkles, AlertCircle, Loader2, Target } from 'lucide-react';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 
 interface HabitAISuggestionsProps {
   existingHabitTitles: string[];
@@ -15,7 +15,7 @@ export default function HabitAISuggestions({ existingHabitTitles }: HabitAISugge
   const { toast } = useToast();
   const [aiSuggestedHabits, setAiSuggestedHabits] = useState<any[]>([]);
 
-  // Fetch AI-suggested habits directly from the same endpoint used by AI Suggestions component
+  // Fetch AI-suggested habits from the same endpoint used by AI Suggestions component
   const { 
     data: aiSuggestions = { goals: [], tasks: [], habits: [] },
     isLoading: isLoadingSuggestions,
@@ -32,51 +32,37 @@ export default function HabitAISuggestions({ existingHabitTitles }: HabitAISugge
   
   // Process AI suggestions whenever they change
   useEffect(() => {
-    console.log("HabitAISuggestions - API endpoint:", `/api/goals/${user?.id}/ai-suggestions`);
     console.log("HabitAISuggestions - AI suggestions:", aiSuggestions);
     console.log("HabitAISuggestions - AI habits length:", aiSuggestions.habits?.length || 0);
-    console.log("HabitAISuggestions - Existing habit titles:", existingHabitTitles);
     
     if (aiSuggestions?.habits?.length > 0) {
       // Filter habits that don't already exist
       const filteredHabits = aiSuggestions.habits.filter(habit => {
-        if (!habit.title || habit.title.trim() === '') {
-          console.log("HabitAISuggestions - Skipping habit with empty title");
-          return false;
-        }
+        if (!habit.title || habit.title.trim() === '') return false;
         
         const normalizedSuggestionTitle = habit.title.toLowerCase().trim();
         
-        const isDuplicate = existingHabitTitles.some(existingTitle => {
-          if (!existingTitle) return false;
+        return !existingHabitTitles.some(existingTitle => {
           const normalizedExistingTitle = existingTitle.toLowerCase().trim();
           return normalizedExistingTitle === normalizedSuggestionTitle;
         });
-        
-        if (isDuplicate) {
-          console.log(`HabitAISuggestions - Skipping duplicate habit: ${habit.title}`);
-        }
-        
-        return !isDuplicate;
       });
       
       console.log("HabitAISuggestions - Filtered habits:", filteredHabits.length);
       setAiSuggestedHabits(filteredHabits);
-    } else {
-      console.log("HabitAISuggestions - No habits in AI suggestions");
-      setAiSuggestedHabits([]);
     }
-  }, [aiSuggestions, existingHabitTitles, user?.id]);
+  }, [aiSuggestions, existingHabitTitles]);
   
   // Accept habit mutation
-  const acceptHabitSuggestionMutation = useMutation({
-    mutationFn: async (habit: any) => {
-      return await apiRequest("POST", `/api/ai-habits/${habit.id}/accept`, {});
+  const acceptHabitMutation = useMutation({
+    mutationFn: async (habitId: number) => {
+      const res = await apiRequest("POST", `/api/ai-habits/${habitId}/accept`, {});
+      return await res.json();
     },
     onSuccess: () => {
       toast({
-        title: "Habit added successfully",
-        description: "The suggested habit has been added to your habits.",
+        title: "Habit added",
+        description: "Habit has been added to your list",
         variant: "default",
       });
       queryClient.invalidateQueries({ queryKey: [`/api/habits/${user?.id}`] });
@@ -85,20 +71,17 @@ export default function HabitAISuggestions({ existingHabitTitles }: HabitAISugge
     onError: (error) => {
       toast({
         title: "Failed to add habit",
-        description: "There was an error adding the suggested habit.",
+        description: "There was an error adding the habit",
         variant: "destructive",
       });
     },
   });
   
   // Reject habit mutation
-  const rejectHabitSuggestionMutation = useMutation({
+  const rejectHabitMutation = useMutation({
     mutationFn: async (habitId: number) => {
       console.log(`Rejecting AI habit with ID: ${habitId}`);
       const res = await apiRequest("DELETE", `/api/ai-habits/${habitId}`, {});
-      
-      // Log response details for debugging
-      console.log(`Reject habit response status: ${res.status}`);
       
       // For DELETE endpoints that return 204 No Content, we shouldn't try to parse JSON
       if (res.status === 204) {
@@ -117,8 +100,8 @@ export default function HabitAISuggestions({ existingHabitTitles }: HabitAISugge
     },
     onSuccess: () => {
       toast({
-        title: "Suggestion removed",
-        description: "The habit suggestion has been removed.",
+        title: "Habit rejected",
+        description: "Habit suggestion has been removed",
         variant: "default",
       });
       queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}/ai-suggestions`] });
@@ -126,8 +109,8 @@ export default function HabitAISuggestions({ existingHabitTitles }: HabitAISugge
     onError: (error) => {
       console.error("Error rejecting habit suggestion:", error);
       toast({
-        title: "Failed to remove suggestion",
-        description: "There was an error removing the habit suggestion.",
+        title: "Failed to reject habit",
+        description: "There was an error removing the habit suggestion",
         variant: "destructive",
       });
     },
@@ -159,7 +142,7 @@ export default function HabitAISuggestions({ existingHabitTitles }: HabitAISugge
     return (
       <div className="flex flex-col items-center justify-center p-6 text-center">
         <div className="bg-gray-50 rounded-full p-3 mb-3">
-          <Target className="h-6 w-6 text-gray-300" />
+          <Lightbulb className="h-6 w-6 text-gray-300" />
         </div>
         <p className="text-sm text-gray-500 mb-2">No habit suggestions yet</p>
         <p className="text-xs text-gray-400 mb-4">
@@ -179,7 +162,7 @@ export default function HabitAISuggestions({ existingHabitTitles }: HabitAISugge
           {habit.explanation && (
             <div className="bg-[#F5F5FF] p-2 rounded-md text-xs text-gray-600 mb-3">
               <div className="flex items-center gap-1 mb-1">
-                <Sparkles className="h-3 w-3 text-[#B6CAEB]" />
+                <Sparkles className="h-3 w-3 text-[#9AAB63]" />
                 <span className="font-medium text-gray-700">Why this was suggested:</span>
               </div>
               {habit.explanation}
@@ -196,21 +179,21 @@ export default function HabitAISuggestions({ existingHabitTitles }: HabitAISugge
             {/* Action buttons */}
             <div className="flex gap-2 justify-center w-full">
               <Button 
-                onClick={() => acceptHabitSuggestionMutation.mutate(habit)}
+                onClick={() => acceptHabitMutation.mutate(habit.id)}
                 variant="outline" 
                 size="sm"
                 className="h-7 px-3 flex-1 bg-[#9AAB63] hover:bg-[#899a58] border-[#9AAB63] text-white hover:text-white text-center justify-center"
-                disabled={acceptHabitSuggestionMutation.isPending}
+                disabled={acceptHabitMutation.isPending}
               >
                 <ThumbsUp className="h-3 w-3 mr-1" />
                 <span className="text-xs">Accept</span>
               </Button>
               <Button 
-                onClick={() => rejectHabitSuggestionMutation.mutate(habit.id)}
+                onClick={() => rejectHabitMutation.mutate(habit.id)}
                 variant="outline" 
                 size="sm"
                 className="h-7 px-3 flex-1 border-gray-300 text-gray-500 hover:bg-gray-100 text-center justify-center"
-                disabled={rejectHabitSuggestionMutation.isPending}
+                disabled={rejectHabitMutation.isPending}
               >
                 <ThumbsDown className="h-3 w-3 mr-1" />
                 <span className="text-xs">Reject</span>

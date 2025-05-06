@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import HabitList from '@/components/goals/habit-list';
 import HabitForm from '@/components/goals/habit-form';
 import AISuggestions from '@/components/goals/ai-suggestions';
+import HabitAISuggestions from '@/components/goals/habit-ai-suggestions';
 import PageHeader from '@/components/ui/page-header';
 
 // Interface matching the AISuggestions component's expected format
@@ -86,16 +87,13 @@ export default function HabitsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-4">
-              {/* Use the unified AISuggestions component */}
+              {/* Use the specialized HabitAISuggestions component with both buttons */}
               <FetchHabitTitles userId={user.id}>
                 {(habits) => {
-                  // Use the actual habits data with correct IDs
+                  // Only pass the titles for more efficient filtering
                   return (
-                    <AISuggestions 
-                      existingGoals={[]} 
-                      existingTasks={[]} 
-                      existingHabits={habits}
-                      activeTab="habits" 
+                    <HabitAISuggestions 
+                      existingHabitTitles={habits.map(habit => habit.title)}
                     />
                   );
                 }}

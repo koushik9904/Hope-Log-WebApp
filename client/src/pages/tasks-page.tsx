@@ -9,6 +9,7 @@ import { Goal } from '@shared/schema';
 import TaskList from '@/components/goals/task-list';
 import TaskForm from '@/components/goals/task-form';
 import AISuggestions from '@/components/goals/ai-suggestions';
+import TaskAISuggestions from '@/components/goals/task-ai-suggestions';
 import PageHeader from '@/components/ui/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { apiRequest, queryClient } from '@/lib/queryClient';
@@ -99,12 +100,18 @@ export default function TasksPage() {
     return <div>Loading...</div>;
   }
   
+  interface TaskItem {
+    id: number;
+    title: string;
+    description?: string | null;
+  }
+
   // Get task data for AI suggestions component
   const typedTasks = tasks.map((task: any) => ({
     id: task.id,
     title: task.title,
     description: task.description,
-  }));
+  } as TaskItem));
 
   return (
     <DashboardLayout>
@@ -283,7 +290,7 @@ export default function TasksPage() {
               <CardContent className="pt-4">
                 {/* Use the TaskAISuggestions component to fix missing tasks */}
                 <TaskAISuggestions 
-                  existingTaskTitles={typedTasks.map(task => task.title)}
+                  existingTaskTitles={typedTasks.map((task: TaskItem) => task.title)}
                 />
               </CardContent>
             </Card>
