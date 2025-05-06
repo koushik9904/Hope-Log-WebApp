@@ -86,6 +86,7 @@ interface Task {
   status: string;
   completedAt: string | null;
   goalId: number | null;
+  deletedAt?: string; // For deleted tasks in the recycle bin
 }
 
 import { 
@@ -116,7 +117,8 @@ import {
   Loader2,
   ThumbsUp,
   ThumbsDown,
-  RefreshCw
+  RefreshCw,
+  Folder as FolderIcon
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
@@ -945,10 +947,10 @@ export default function GoalsPage() {
                           <p className="font-medium">{task.title}</p>
                           {task.description && <p className="text-sm text-gray-500">{task.description}</p>}
                           <div className="flex items-center mt-1 text-xs text-gray-400">
-                            <p>Deleted on {new Date(task.deletedAt!).toLocaleDateString()}</p>
+                            <p>Deleted on {new Date(task.deletedAt as string).toLocaleDateString()}</p>
                             {task.goalId && (
                               <p className="ml-3">
-                                <FolderKanban className="h-3 w-3 inline mr-1" />
+                                <FolderIcon className="h-3 w-3 inline mr-1" />
                                 Goal: {goals.find(g => g.id === task.goalId)?.name || "Unknown"}
                               </p>
                             )}
