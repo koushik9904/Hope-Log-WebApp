@@ -17,9 +17,9 @@ function FetchHabitTitles({
   children 
 }: { 
   userId: number, 
-  children: (habitTitles: string[]) => ReactNode 
+  children: (habits: Array<{ id: number, title: string, description: string | null }>) => ReactNode 
 }) {
-  const { data: habits = [], isLoading } = useQuery<Array<{ title: string }>>({
+  const { data: habits = [], isLoading } = useQuery<Array<{ id: number, title: string, description: string | null }>>({
     queryKey: [`/api/habits/${userId}`],
     enabled: !!userId,
   });
@@ -31,11 +31,8 @@ function FetchHabitTitles({
       </div>
     );
   }
-
-  // Extract titles from habits for deduplication
-  const habitTitles = habits.map((habit: { title: string }) => habit.title);
   
-  return <>{children(habitTitles)}</>;
+  return <>{children(habits)}</>;
 }
 
 export default function HabitsPage() {
