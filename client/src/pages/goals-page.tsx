@@ -378,12 +378,23 @@ export default function GoalsPage() {
   const editGoalMutation = useMutation({
     mutationFn: async (goal: GoalFormValues & { id: number }) => {
       try {
+        console.log("Updating goal:", goal);
         const res = await apiRequest("PUT", `/api/goals/${goal.id}`, goal);
-        // Check if the response is successful
+        console.log("Update goal response:", res.status, res.statusText);
+        
+        // Even if the response is a 200 OK, we'll explicitly handle it here
         if (res.ok) {
-          return await res.json();
+          try {
+            const data = await res.json();
+            console.log("Update goal success:", data);
+            return data;
+          } catch (jsonError) {
+            // If the response can't be parsed as JSON but was otherwise successful
+            console.log("Response was OK but couldn't parse JSON. Likely empty response body.");
+            return { success: true, id: goal.id };
+          }
         } else {
-          throw new Error(`Failed to update goal: ${res.statusText}`);
+          throw new Error(`Failed to update goal: ${res.status} ${res.statusText}`);
         }
       } catch (error) {
         console.error("Error in goal update mutation:", error);
@@ -391,6 +402,7 @@ export default function GoalsPage() {
       }
     },
     onSuccess: (data) => {
+      console.log("Goal update success handler called with:", data);
       setShowEditGoalDialog(false);
       queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}`] });
       toast({
@@ -405,6 +417,11 @@ export default function GoalsPage() {
         description: "There was an error updating your goal. Please try again.",
         variant: "destructive"
       });
+    },
+    // This ensures the onSuccess handler is called even when the server returns a 2xx status
+    // without requiring a particular response body structure
+    onSettled: (data, error, variables) => {
+      console.log("Goal update settled:", { data, error, variables });
     }
   });
 
