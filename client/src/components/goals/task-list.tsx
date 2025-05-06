@@ -42,6 +42,7 @@ interface TaskListProps {
     from: Date | undefined;
     to: Date | undefined;
   };
+  setActiveTab?: (tab: string) => void; // Optional function to switch tabs in parent component
 }
 
 export default function TaskList({ 
@@ -50,7 +51,8 @@ export default function TaskList({
   statusFilter = 'all',
   sortBy = 'dueDate',
   sortDirection = 'asc',
-  dateRange
+  dateRange,
+  setActiveTab
 }: TaskListProps) {
   const { toast } = useToast();
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -296,7 +298,12 @@ export default function TaskList({
       }
       
       // Force refetch the tasksQuery data immediately 
-      tasksQuery.refetch();
+      await tasksQuery.refetch();
+      
+      // Switch to the goals tab if setActiveTab is provided
+      if (setActiveTab) {
+        setActiveTab('goals');
+      }
       
       toast({
         title: 'Task converted',
