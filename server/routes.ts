@@ -1523,6 +1523,8 @@ Your role is to:
       if (!goal) return res.status(404).json({ error: "Goal not found" });
       if (goal.userId !== req.user?.id) return res.sendStatus(403);
       
+      console.log("Goal update request body:", req.body);
+      
       // Handle both full goal updates and progress-only updates
       if (req.body.hasOwnProperty('progress') && Object.keys(req.body).length === 1) {
         // This is a progress-only update
@@ -1530,19 +1532,39 @@ Your role is to:
         const updatedGoal = await storage.updateGoalProgress(goalId, progress);
         return res.json(updatedGoal);
       } else {
-        // This is a full goal update
-        // First, create a new goal with the updated data
-        const updatedData = {
-          ...req.body,
-          userId: req.user.id
+        // Instead of deleting and recreating, we need to properly update the existing goal
+        // Extract fields from the request body with proper data typing
+        const { name, description, category, targetDate, target, progress, unit } = req.body;
+        
+        // Create an update object with only the fields that are present
+        const updateData: any = { };
+        if (name !== undefined) updateData.name = name;
+        if (description !== undefined) updateData.description = description;
+        if (category !== undefined) updateData.category = category;
+        if (targetDate !== undefined) updateData.targetDate = targetDate;
+        if (target !== undefined) updateData.target = Number(target);
+        if (progress !== undefined) updateData.progress = Number(progress);
+        if (unit !== undefined) updateData.unit = unit;
+        
+        console.log("Processed update data:", updateData);
+        
+        // Update the goal directly in the database
+        // First update the goal object
+        const updatedGoal = {
+          ...goal,
+          ...updateData
         };
         
-        // Delete old goal
+        // Then update in the database by deleting and recreating
+        // This is our current implementation, since we don't have a direct update method
         await storage.deleteGoal(goalId);
+        const savedGoal = await storage.createGoal({
+          ...updatedGoal,
+          id: goalId, // Make sure to preserve the original ID
+          userId: req.user.id
+        });
         
-        // Create new goal with updated data
-        const updatedGoal = await storage.createGoal(updatedData);
-        return res.json(updatedGoal);
+        return res.json(savedGoal);
       }
     } catch (error) {
       console.error("Goal update error:", error);
