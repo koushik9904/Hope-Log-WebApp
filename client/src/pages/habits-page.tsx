@@ -75,15 +75,15 @@ export default function HabitsPage() {
         </Button>
       </div>
 
-      {/* Main content area with AI suggestions */}
+      {/* Main content area with habit ideas and habit list */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        {/* AI Suggestions Section */}
+        {/* Habits Ideas Section */}
         <div className="md:col-span-1">
           <Card>
             <CardHeader className="border-b border-gray-100 pb-3">
-              <CardTitle className="text-lg font-bold">AI Suggestions</CardTitle>
+              <CardTitle className="text-lg font-bold">Habits Ideas</CardTitle>
               <CardDescription>
-                Habits based on your journal
+                AI-suggested habits based on your journal entries
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-4">
