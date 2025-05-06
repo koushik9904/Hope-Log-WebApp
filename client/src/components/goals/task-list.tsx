@@ -451,31 +451,22 @@ export default function TaskList({
     );
   }
 
-  // Use the provided isDateInRange function or our internal one
+  // Filter tasks by date range using provided function or default handling
   const checkDateInRange = (task: Task) => {
-    // If external date filter function provided, use it
-    if (isDateInRange) {
-      return isDateInRange(task.dueDate);
-    }
-    
-    // Otherwise fall back to our internal implementation
-    // If no date range filter is active, include all tasks
+    // If no date filter is active, include all tasks
     if (!isDateFilterActive) return true;
     
-    // If task has no due date, don't include in date-filtered results
+    // If task has no due date, exclude it from date-filtered results
     if (!task.dueDate) return false;
     
     try {
-      // Parse the ISO date string to a Date object, ensuring it's valid
-      const taskDate = new Date(task.dueDate);
-      
-      // Validate the date is not invalid
-      if (isNaN(taskDate.getTime())) {
-        console.warn(`Invalid date found for task ${task.id}: "${task.dueDate}"`);
-        return false;
+      // If external date filter function provided, use it
+      if (isDateInRange) {
+        return isDateInRange(task.dueDate);
       }
       
-      return true; // Default to true if no external filter function provided
+      // If we reach here, include the task (fallback if isDateInRange not provided)
+      return true;
     } catch (error) {
       console.error(`Error filtering task ${task.id} by date range:`, error);
       return false;
