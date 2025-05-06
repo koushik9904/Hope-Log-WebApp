@@ -1017,250 +1017,249 @@ export default function GoalsPage() {
   };
   
   return (
-    <div>
-      <DashboardLayout>
+    <DashboardLayout>
         <div className="space-y-6">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold mb-2 font-['Montserrat_Variable']">Goals & Habits</h1>
-            <p className="text-gray-500 font-['Inter_Variable']">
-              Track your progress and build positive habits
-            </p>
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold mb-2 font-['Montserrat_Variable']">Goals & Habits</h1>
+              <p className="text-gray-500 font-['Inter_Variable']">
+                Track your progress and build positive habits
+              </p>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowRecycleBin(!showRecycleBin)}
+                className={`${showRecycleBin ? 'bg-[#f5d867] text-gray-700' : 'bg-white'} gap-2`}
+              >
+                <Trash2 className="h-4 w-4" /> Recycle Bin
+                {(deletedGoals.length > 0 || deletedTasks.length > 0 || deletedHabits.length > 0) && (
+                  <Badge className="ml-1 bg-[#f096c9] text-white">
+                    {deletedGoals.length + deletedTasks.length + deletedHabits.length}
+                  </Badge>
+                )}
+              </Button>
+            </div>
           </div>
           
-          <div className="flex items-center gap-3">
-            <Button 
-              variant="outline" 
-              onClick={() => setShowRecycleBin(!showRecycleBin)}
-              className={`${showRecycleBin ? 'bg-[#f5d867] text-gray-700' : 'bg-white'} gap-2`}
-            >
-              <Trash2 className="h-4 w-4" /> Recycle Bin
-              {(deletedGoals.length > 0 || deletedTasks.length > 0 || deletedHabits.length > 0) && (
-                <Badge className="ml-1 bg-[#f096c9] text-white">
-                  {deletedGoals.length + deletedTasks.length + deletedHabits.length}
-                </Badge>
-              )}
-            </Button>
-          </div>
-        </div>
-        
-        {/* Recycle Bin */}
-        {showRecycleBin && (
-          <Card className="bg-white border-0 shadow-sm mb-6">
-            <CardHeader className="border-b border-gray-100">
-              <CardTitle className="font-['Montserrat_Variable'] flex items-center gap-2">
-                <Trash2 className="h-5 w-5 text-gray-700" />
-                Recycle Bin
-              </CardTitle>
-              <CardDescription>
-                Items deleted within the last {isPremiumUser ? '30' : '7'} days can be restored
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-6 divide-y">
-              {deletedGoals.length === 0 && deletedTasks.length === 0 && deletedHabits.length === 0 && (
-                <div className="py-8 text-center text-gray-500">
-                  <p>Recycle bin is empty</p>
-                </div>
-              )}
-              
-              {/* Deleted Habits Section */}
-              {deletedHabits.length > 0 && (
-                <div className="py-4">
-                  <h3 className="font-medium mb-4">Deleted Habits</h3>
-                  <div className="space-y-3">
-                    {deletedHabits.map(habit => (
-                      <div key={habit.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-                        <div>
-                          <p className="font-medium">{habit.title}</p>
-                          {habit.description && <p className="text-sm text-gray-500">{habit.description}</p>}
-                          <p className="text-xs text-gray-400 mt-1">
-                            Deleted on {new Date(habit.deletedAt!).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="bg-white"
-                          onClick={() => {
-                            // Call the restore endpoint
-                            fetch(`/api/habits/${habit.id}/restore`, {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' }
-                            })
-                            .then(res => {
-                              if (res.ok) {
-                                // Invalidate both queries
-                                queryClient.invalidateQueries({ queryKey: [`/api/habits/${user?.id}`] });
-                                queryClient.invalidateQueries({ queryKey: [`/api/habits/${user?.id}/deleted`] });
-                                toast({
-                                  title: "Habit restored",
-                                  description: "Your habit has been successfully restored",
-                                });
-                              } else {
-                                throw new Error('Failed to restore habit');
-                              }
-                            })
-                            .catch(error => {
-                              console.error('Error restoring habit:', error);
-                              toast({
-                                title: "Restore failed",
-                                description: "There was an error restoring your habit. Please try again.",
-                                variant: "destructive"
-                              });
-                            });
-                          }}
-                        >
-                          <RefreshCw className="h-4 w-4 mr-2" /> Restore
-                        </Button>
-                      </div>
-                    ))}
+          {/* Recycle Bin */}
+          {showRecycleBin && (
+            <Card className="bg-white border-0 shadow-sm mb-6">
+              <CardHeader className="border-b border-gray-100">
+                <CardTitle className="font-['Montserrat_Variable'] flex items-center gap-2">
+                  <Trash2 className="h-5 w-5 text-gray-700" />
+                  Recycle Bin
+                </CardTitle>
+                <CardDescription>
+                  Items deleted within the last {isPremiumUser ? '30' : '7'} days can be restored
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6 divide-y">
+                {deletedGoals.length === 0 && deletedTasks.length === 0 && deletedHabits.length === 0 && (
+                  <div className="py-8 text-center text-gray-500">
+                    <p>Recycle bin is empty</p>
                   </div>
-                </div>
-              )}
-              
-              {/* Deleted Goals Section */}
-              {deletedGoals.length > 0 && (
-                <div className="py-4">
-                  <h3 className="font-medium mb-4">Deleted Goals</h3>
-                  <div className="space-y-3">
-                    {deletedGoals.map(goal => (
-                      <div key={goal.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-                        <div>
-                          <p className="font-medium">{goal.name}</p>
-                          {goal.description && <p className="text-sm text-gray-500">{goal.description}</p>}
-                          <p className="text-xs text-gray-400 mt-1">
-                            Deleted on {new Date(goal.deletedAt!).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="bg-white"
-                          onClick={() => {
-                            // Call the restore endpoint
-                            fetch(`/api/goals/${goal.id}/restore`, {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' }
-                            })
-                            .then(res => {
-                              if (res.ok) {
-                                // Invalidate both queries
-                                queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}`] });
-                                queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}/deleted`] });
-                                toast({
-                                  title: "Goal restored",
-                                  description: "Your goal has been successfully restored",
-                                });
-                              } else {
-                                throw new Error('Failed to restore goal');
-                              }
-                            })
-                            .catch(error => {
-                              console.error('Error restoring goal:', error);
-                              toast({
-                                title: "Restore failed",
-                                description: "There was an error restoring your goal. Please try again.",
-                                variant: "destructive"
-                              });
-                            });
-                          }}
-                        >
-                          <RefreshCw className="h-4 w-4 mr-2" /> Restore
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              {/* Deleted Tasks Section */}
-              {deletedTasks.length > 0 && (
-                <div className="py-4">
-                  <h3 className="font-medium mb-4">Deleted Tasks</h3>
-                  <div className="space-y-3">
-                    {deletedTasks.map(task => (
-                      <div key={task.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-                        <div>
-                          <p className="font-medium">{task.title}</p>
-                          {task.description && <p className="text-sm text-gray-500">{task.description}</p>}
-                          <div className="flex items-center mt-1 text-xs text-gray-400">
-                            <p>Deleted on {new Date(task.deletedAt as string).toLocaleDateString()}</p>
-                            {task.goalId && (
-                              <p className="ml-3">
-                                <FolderIcon className="h-3 w-3 inline mr-1" />
-                                Goal: {goals.find(g => g.id === task.goalId)?.name || "Unknown"}
-                              </p>
-                            )}
+                )}
+                
+                {/* Deleted Habits Section */}
+                {deletedHabits.length > 0 && (
+                  <div className="py-4">
+                    <h3 className="font-medium mb-4">Deleted Habits</h3>
+                    <div className="space-y-3">
+                      {deletedHabits.map(habit => (
+                        <div key={habit.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                          <div>
+                            <p className="font-medium">{habit.title}</p>
+                            {habit.description && <p className="text-sm text-gray-500">{habit.description}</p>}
+                            <p className="text-xs text-gray-400 mt-1">
+                              Deleted on {new Date(habit.deletedAt!).toLocaleDateString()}
+                            </p>
                           </div>
-                        </div>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="bg-white"
-                          onClick={() => {
-                            // Call the restore endpoint
-                            fetch(`/api/tasks/${task.id}/restore`, {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' }
-                            })
-                            .then(res => {
-                              if (res.ok) {
-                                // Invalidate both queries
-                                queryClient.invalidateQueries({ queryKey: [`/api/tasks/${user?.id}`] });
-                                queryClient.invalidateQueries({ queryKey: [`/api/tasks/${user?.id}/deleted`] });
-                                // Switch to the tasks tab
-                                setActiveTab("tasks");
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="bg-white"
+                            onClick={() => {
+                              // Call the restore endpoint
+                              fetch(`/api/habits/${habit.id}/restore`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' }
+                              })
+                              .then(res => {
+                                if (res.ok) {
+                                  // Invalidate both queries
+                                  queryClient.invalidateQueries({ queryKey: [`/api/habits/${user?.id}`] });
+                                  queryClient.invalidateQueries({ queryKey: [`/api/habits/${user?.id}/deleted`] });
+                                  toast({
+                                    title: "Habit restored",
+                                    description: "Your habit has been successfully restored",
+                                  });
+                                } else {
+                                  throw new Error('Failed to restore habit');
+                                }
+                              })
+                              .catch(error => {
+                                console.error('Error restoring habit:', error);
                                 toast({
-                                  title: "Task restored",
-                                  description: "Your task has been successfully restored",
+                                  title: "Restore failed",
+                                  description: "There was an error restoring your habit. Please try again.",
+                                  variant: "destructive"
                                 });
-                              } else {
-                                throw new Error('Failed to restore task');
-                              }
-                            })
-                            .catch(error => {
-                              console.error('Error restoring task:', error);
-                              toast({
-                                title: "Restore failed",
-                                description: "There was an error restoring your task. Please try again.",
-                                variant: "destructive"
                               });
-                            });
-                          }}
-                        >
-                          <RefreshCw className="h-4 w-4 mr-2" /> Restore
-                        </Button>
-                      </div>
-                    ))}
+                            }}
+                          >
+                            <RefreshCw className="h-4 w-4 mr-2" /> Restore
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-        
-        {/* Main Content Tabs */}
-        <Tabs defaultValue="goals" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="bg-[#F5B8DB]/20 border-none rounded-full w-full justify-start mb-6">
-            <TabsTrigger 
-              value="goals" 
-              className={`rounded-full ${activeTab === "goals" ? "bg-[#F5B8DB] text-white" : "bg-transparent text-gray-600"}`}
-            >
-              Goals
-            </TabsTrigger>
-            <TabsTrigger 
-              value="tasks" 
-              className={`rounded-full ${activeTab === "tasks" ? "bg-[#F5B8DB] text-white" : "bg-transparent text-gray-600"}`}
-            >
-              Tasks
-            </TabsTrigger>
-            <TabsTrigger 
-              value="habits" 
-              className={`rounded-full ${activeTab === "habits" ? "bg-[#F5B8DB] text-white" : "bg-transparent text-gray-600"}`}
-            >
-              Habits
-            </TabsTrigger>
-          </TabsList>
+                )}
+                
+                {/* Deleted Goals Section */}
+                {deletedGoals.length > 0 && (
+                  <div className="py-4">
+                    <h3 className="font-medium mb-4">Deleted Goals</h3>
+                    <div className="space-y-3">
+                      {deletedGoals.map(goal => (
+                        <div key={goal.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                          <div>
+                            <p className="font-medium">{goal.name}</p>
+                            {goal.description && <p className="text-sm text-gray-500">{goal.description}</p>}
+                            <p className="text-xs text-gray-400 mt-1">
+                              Deleted on {new Date(goal.deletedAt!).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="bg-white"
+                            onClick={() => {
+                              // Call the restore endpoint
+                              fetch(`/api/goals/${goal.id}/restore`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' }
+                              })
+                              .then(res => {
+                                if (res.ok) {
+                                  // Invalidate both queries
+                                  queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}`] });
+                                  queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}/deleted`] });
+                                  toast({
+                                    title: "Goal restored",
+                                    description: "Your goal has been successfully restored",
+                                  });
+                                } else {
+                                  throw new Error('Failed to restore goal');
+                                }
+                              })
+                              .catch(error => {
+                                console.error('Error restoring goal:', error);
+                                toast({
+                                  title: "Restore failed",
+                                  description: "There was an error restoring your goal. Please try again.",
+                                  variant: "destructive"
+                                });
+                              });
+                            }}
+                          >
+                            <RefreshCw className="h-4 w-4 mr-2" /> Restore
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Deleted Tasks Section */}
+                {deletedTasks.length > 0 && (
+                  <div className="py-4">
+                    <h3 className="font-medium mb-4">Deleted Tasks</h3>
+                    <div className="space-y-3">
+                      {deletedTasks.map(task => (
+                        <div key={task.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                          <div>
+                            <p className="font-medium">{task.title}</p>
+                            {task.description && <p className="text-sm text-gray-500">{task.description}</p>}
+                            <div className="flex items-center mt-1 text-xs text-gray-400">
+                              <p>Deleted on {new Date(task.deletedAt as string).toLocaleDateString()}</p>
+                              {task.goalId && (
+                                <p className="ml-3">
+                                  <FolderIcon className="h-3 w-3 inline mr-1" />
+                                  Goal: {goals.find(g => g.id === task.goalId)?.name || "Unknown"}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="bg-white"
+                            onClick={() => {
+                              // Call the restore endpoint
+                              fetch(`/api/tasks/${task.id}/restore`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' }
+                              })
+                              .then(res => {
+                                if (res.ok) {
+                                  // Invalidate both queries
+                                  queryClient.invalidateQueries({ queryKey: [`/api/tasks/${user?.id}`] });
+                                  queryClient.invalidateQueries({ queryKey: [`/api/tasks/${user?.id}/deleted`] });
+                                  // Switch to the tasks tab
+                                  setActiveTab("tasks");
+                                  toast({
+                                    title: "Task restored",
+                                    description: "Your task has been successfully restored",
+                                  });
+                                } else {
+                                  throw new Error('Failed to restore task');
+                                }
+                              })
+                              .catch(error => {
+                                console.error('Error restoring task:', error);
+                                toast({
+                                  title: "Restore failed",
+                                  description: "There was an error restoring your task. Please try again.",
+                                  variant: "destructive"
+                                });
+                              });
+                            }}
+                          >
+                            <RefreshCw className="h-4 w-4 mr-2" /> Restore
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+          
+          {/* Main Content Tabs */}
+          <Tabs defaultValue="goals" value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="bg-[#F5B8DB]/20 border-none rounded-full w-full justify-start mb-6">
+              <TabsTrigger 
+                value="goals" 
+                className={`rounded-full ${activeTab === "goals" ? "bg-[#F5B8DB] text-white" : "bg-transparent text-gray-600"}`}
+              >
+                Goals
+              </TabsTrigger>
+              <TabsTrigger 
+                value="tasks" 
+                className={`rounded-full ${activeTab === "tasks" ? "bg-[#F5B8DB] text-white" : "bg-transparent text-gray-600"}`}
+              >
+                Tasks
+              </TabsTrigger>
+              <TabsTrigger 
+                value="habits" 
+                className={`rounded-full ${activeTab === "habits" ? "bg-[#F5B8DB] text-white" : "bg-transparent text-gray-600"}`}
+              >
+                Habits
+              </TabsTrigger>
+            </TabsList>
           
           {/* Goal Dialog */}
           <Dialog 
@@ -2433,26 +2432,26 @@ export default function GoalsPage() {
       {/* Edit Goal Dialog */}
       <Dialog open={showEditGoalDialog} onOpenChange={setShowEditGoalDialog}>
         <DialogContent className="sm:max-w-[500px] bg-white">
-        <DialogHeader>
-          <DialogTitle className="font-['Montserrat_Variable']">Edit Goal</DialogTitle>
-          <DialogDescription>
-            Update your goal details.
-          </DialogDescription>
-        </DialogHeader>
-        
-        {goalToEdit && (
-          <Form {...goalForm}>
-            <form 
-              onSubmit={goalForm.handleSubmit((values) => {
-                if (goalToEdit) {
-                  editGoalMutation.mutate({
-                    ...values,
-                    id: goalToEdit.id
-                  });
-                }
-              })} 
-              className="space-y-6 py-4"
-            >
+          <DialogHeader>
+            <DialogTitle className="font-['Montserrat_Variable']">Edit Goal</DialogTitle>
+            <DialogDescription>
+              Update your goal details.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {goalToEdit && (
+            <Form {...goalForm}>
+              <form 
+                onSubmit={goalForm.handleSubmit((values) => {
+                  if (goalToEdit) {
+                    editGoalMutation.mutate({
+                      ...values,
+                      id: goalToEdit.id
+                    });
+                  }
+                })} 
+                className="space-y-6 py-4"
+              >
               <FormField
                 control={goalForm.control}
                 name="name"
@@ -2647,6 +2646,5 @@ export default function GoalsPage() {
         )}
       </DialogContent>
     </Dialog>
-    </div>
   );
 }
