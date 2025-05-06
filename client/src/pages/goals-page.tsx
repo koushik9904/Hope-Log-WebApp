@@ -1815,7 +1815,7 @@ export default function GoalsPage() {
                 <CardHeader className="border-b border-gray-100">
                   <CardTitle className="font-['Montserrat_Variable'] flex items-center gap-2 text-base">
                     <Sparkles className="h-4 w-4 text-[#B6CAEB]" />
-                    Task Ideas
+                    Tasks Ideas
                   </CardTitle>
                   <CardDescription className="text-xs">
                     AI-suggested tasks based on your journal entries
