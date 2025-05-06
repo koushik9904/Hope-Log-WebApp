@@ -1,20 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/use-auth';
-import { Plus, Filter, Lightbulb, Check, X, AlertCircle, SortAsc, SortDesc, Calendar, CalendarCheck, CalendarDays, Clock } from 'lucide-react';
+import { Plus, Filter, SortAsc, SortDesc, CalendarDays } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Goal, insertTaskSchema } from '@shared/schema';
+import { Goal } from '@shared/schema';
 import TaskList from '@/components/goals/task-list';
 import TaskForm from '@/components/goals/task-form';
+import TaskAISuggestions from '@/components/goals/task-ai-suggestions';
 import PageHeader from '@/components/ui/page-header';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
 import { format, addDays, subDays, startOfDay, endOfDay, isWithinInterval } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
@@ -26,58 +24,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuCheckboxItem,
   DropdownMenuGroup,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
 } from '@/components/ui/dropdown-menu';
-
-// Example AI-suggested tasks
-const AI_SUGGESTED_TASKS = [
-  {
-    id: "ai-task-1",
-    title: "Schedule a 30-minute walk",
-    description: "Take a short walk outdoors to clear your mind and improve mood",
-    priority: "medium",
-    source: "Journal entries mention feeling better after being outside"
-  },
-  {
-    id: "ai-task-2",
-    title: "Call a friend you haven't spoken to recently",
-    description: "Reconnect with someone important in your life",
-    priority: "low",
-    source: "Based on mentions of missing social connections"
-  },
-  {
-    id: "ai-task-3",
-    title: "Create a to-do list for tomorrow",
-    description: "Plan your day ahead to reduce morning stress",
-    priority: "medium",
-    source: "Journal entries indicate feeling overwhelmed by daily responsibilities"
-  },
-  {
-    id: "ai-task-4",
-    title: "Drink a glass of water when you wake up",
-    description: "Start your day with hydration",
-    priority: "high",
-    source: "Health recommendation based on your wellness goals"
-  }
-];
-
-// Task schema for quick task creation
-const quickTaskSchema = z.object({
-  title: z.string().min(2, "Title must be at least 2 characters"),
-  description: z.string().max(500, {
-    message: "Description must not be longer than 500 characters."
-  }).optional(),
-  priority: z.string().default("medium"),
-  userId: z.number()
-});
-
-type QuickTaskValues = z.infer<typeof quickTaskSchema>;
 
 export default function TasksPage() {
   const { user } = useAuth();
@@ -97,44 +45,16 @@ export default function TasksPage() {
   });
   const [dateFilterActive, setDateFilterActive] = useState(false);
   
-  // Fetch AI-suggested tasks directly from the same endpoint used by AISuggestions component
-  const { 
-    data: aiSuggestions = { goals: [], tasks: [], habits: [] },
-    isLoading: isLoadingSuggestions 
-  } = useQuery<{ 
-    goals: any[], 
-    tasks: any[], 
-    habits: any[] 
-  }>({
-    queryKey: [`/api/goals/${user?.id}/ai-suggestions`],
+  // Fetch tasks
+  const { data: tasks = [], isLoading: isTasksLoading } = useQuery({
+    queryKey: ['/api/tasks', user?.id],
     enabled: !!user?.id,
-    staleTime: 300000, // 5 minutes
+    queryFn: async () => {
+      const res = await fetch(`/api/tasks/${user?.id}`);
+      if (!res.ok) throw new Error('Failed to fetch tasks');
+      return res.json();
+    },
   });
-  
-  const [aiSuggestedTasks, setAiSuggestedTasks] = useState<any[]>([]);
-  const [aiSuggestedGoals, setAiSuggestedGoals] = useState<{
-    id: string;
-    name: string;
-    description: string;
-    relatedTasks: string[];
-  }[]>([]);
-  
-  // Process AI suggestions whenever they change
-  useEffect(() => {
-    console.log("AI tasks data in tasks-page:", aiSuggestions?.tasks);
-    if (aiSuggestions?.tasks?.length > 0) {
-      const processedTasks = aiSuggestions.tasks.map((task, index) => ({
-        id: task.id || `ai-task-${index}`,
-        title: task.title,
-        description: task.description,
-        priority: task.priority || "medium",
-        explanation: task.explanation || "Based on your journal entries"
-      }));
-      
-      console.log("Processed AI tasks:", processedTasks);
-      setAiSuggestedTasks(processedTasks);
-    }
-  }, [aiSuggestions]);
 
   // Fetch goals for filter dropdown
   const { data: goals = [] } = useQuery<Goal[]>({
@@ -146,44 +66,6 @@ export default function TasksPage() {
       return res.json();
     },
   });
-
-  // Update AI suggested tasks and goals when data is loaded
-  useEffect(() => {
-    if (aiSuggestions?.tasks || aiSuggestions?.goalSuggestions) {
-      const tasks = aiSuggestions.tasks || [];
-      const goals = aiSuggestions.goalSuggestions || [];
-
-      const taskItems = tasks.map((item: TaskSuggestion, index: number) => ({
-          id: `ai-task-${index}`,
-          title: item.name,
-          description: item.description,
-          priority: determinePriority(item.name),
-          source: "Based on your journal entries"
-      }));
-
-      const goalItems = goals.map((item: GoalSuggestion, index: number) => ({
-        id: `ai-goal-${index}`,
-        name: item.name,
-        description: item.description,
-        relatedTasks: item.relatedTasks
-      }));
-
-
-      setAiSuggestedTasks(taskItems);
-      setAiSuggestedGoals(goalItems);
-    }
-  }, [aiSuggestions]);
-
-
-  // Helper function to determine priority
-  const determinePriority = (taskName: string): string => {
-    const name = taskName.toLowerCase();
-    if (name.includes('urgent') || name.includes('important') || name.includes('today') || name.includes('immediately'))
-      return 'high';
-    if (name.includes('when you can') || name.includes('consider') || name.includes('maybe'))
-      return 'low';
-    return 'medium'; // Default
-  };
 
   // Helper function for clearing date filters
   const clearDateFilter = () => {
@@ -213,120 +95,12 @@ export default function TasksPage() {
     return true;
   };
 
-  // Add suggested task mutation
-  const addTaskMutation = useMutation({
-    mutationFn: async (task: QuickTaskValues) => {
-      const response = await apiRequest('POST', '/api/tasks', task);
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/tasks', user?.id] });
-      toast({
-        title: 'Task added',
-        description: 'The suggested task has been added to your tasks.',
-      });
-    },
-    onError: (error) => {
-      console.error('Failed to add task:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to add the task. Please try again.',
-        variant: 'destructive',
-      });
-    },
-  });
-
-  // Add suggested goal mutation
-  const addGoalMutation = useMutation({
-    mutationFn: async ({ name, description, userId, relatedTasks }: {
-      name: string;
-      description: string;
-      userId: number;
-      relatedTasks: string[];
-    }) => {
-      // First create the goal
-      const createGoalRes = await apiRequest('POST', '/api/goals', {
-        name,
-        description,
-        userId,
-        target: 100,
-        progress: 0,
-        category: "Personal"
-      });
-
-      if (!createGoalRes.ok) {
-        throw new Error('Failed to create goal');
-      }
-
-      const goal = await createGoalRes.json();
-
-      // Then create any related tasks as part of this goal
-      if (relatedTasks && relatedTasks.length > 0) {
-        // Create tasks in sequence
-        for (const taskName of relatedTasks) {
-          await apiRequest('POST', '/api/tasks', {
-            title: taskName,
-            description: `Task for goal: ${name}`,
-            priority: 'medium',
-            userId: userId,
-            goalId: goal.id
-          });
-        }
-      }
-
-      return goal;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/goals', user?.id] });
-      queryClient.invalidateQueries({ queryKey: ['/api/tasks', user?.id] });
-      toast({
-        title: 'Goal created',
-        description: 'The suggested goal has been added with its related tasks.',
-      });
-    },
-    onError: (error) => {
-      console.error('Failed to add goal:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to add the goal. Please try again.',
-        variant: 'destructive',
-      });
-    },
-  });
-
-  // Add a suggested task to user's tasks
-  const addSuggestedTask = (task: (typeof AI_SUGGESTED_TASKS)[0]) => {
-    if (!user) return;
-
-    addTaskMutation.mutate({
-      title: task.title,
-      description: task.description,
-      priority: task.priority,
-      userId: user.id
-    });
-
-    // Remove from suggestions
-    setAiSuggestedTasks(prev => prev.filter(t => t.id !== task.id));
-  };
-
-  // Add a suggested goal with related tasks
-  const addSuggestedGoal = (goal: typeof aiSuggestedGoals[0]) => {
-    if (!user) return;
-
-    addGoalMutation.mutate({
-      name: goal.name,
-      description: goal.description,
-      userId: user.id,
-      relatedTasks: goal.relatedTasks
-    });
-
-    // Remove from suggestions
-    setAiSuggestedGoals(prev => prev.filter(g => g.id !== goal.id));
-  };
-
   if (!user) {
     return <div>Loading...</div>;
   }
+  
+  // Get the existing task titles for filtering AI suggestions
+  const existingTaskTitles = tasks.map(task => task.title);
 
   return (
     <DashboardLayout>
@@ -446,24 +220,28 @@ export default function TasksPage() {
                 <DropdownMenuSeparator />
 
                 <DropdownMenuGroup>
-                  <DropdownMenuRadioGroup value={sortBy} onValueChange={(value) => setSortBy(value as any)}>
-                    <DropdownMenuRadioItem value="dueDate">
-                      <Calendar className="h-4 w-4 mr-2" />
-                      Due Date
-                    </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="priority">
-                      <AlertCircle className="h-4 w-4 mr-2" />
-                      Priority
-                    </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="createdAt">
-                      <Clock className="h-4 w-4 mr-2" />
-                      Date Created
-                    </DropdownMenuRadioItem>
-                  </DropdownMenuRadioGroup>
+                  <DropdownMenuItem 
+                    onClick={() => setSortBy('dueDate')}
+                    className={sortBy === 'dueDate' ? 'bg-accent' : ''}
+                  >
+                    By Due Date
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => setSortBy('priority')}
+                    className={sortBy === 'priority' ? 'bg-accent' : ''}
+                  >
+                    By Priority
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => setSortBy('createdAt')}
+                    className={sortBy === 'createdAt' ? 'bg-accent' : ''}
+                  >
+                    By Creation Date
+                  </DropdownMenuItem>
                 </DropdownMenuGroup>
-
+                
                 <DropdownMenuSeparator />
-
+                
                 <DropdownMenuItem onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}>
                   {sortDirection === 'asc' ? (
                     <>
@@ -487,169 +265,65 @@ export default function TasksPage() {
           </Button>
         </div>
 
-        {/* AI-suggested section with tabs for tasks and goals */}
-        {(aiSuggestedTasks.length > 0 || aiSuggestedGoals.length > 0) && (
-          <Card className="bg-white border-0 shadow-sm mb-8">
+        {/* Main content area with AI suggestions */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          {/* AI Suggestions Section */}
+          <div className="md:col-span-1">
+            <Card>
+              <CardHeader className="border-b border-gray-100 pb-3">
+                <CardTitle className="text-lg font-bold">AI Suggestions</CardTitle>
+                <CardDescription>
+                  Tasks based on your journal
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-4">
+                <TaskAISuggestions existingTaskTitles={existingTaskTitles} />
+              </CardContent>
+            </Card>
+          </div>
+          
+          {/* Tasks Section */}
+          <Card className="md:col-span-3 bg-white border-0 shadow-sm">
             <CardHeader className="border-b border-gray-100">
-              <CardTitle className="font-['Montserrat_Variable'] flex items-center gap-2">
-                <AlertCircle className="h-5 w-5 text-[#B6CAEB]" />
-                AI Suggestions
-              </CardTitle>
-              <CardDescription>
-                Personalized suggestions based on your journal entries and wellness patterns
+              <CardTitle className="font-['Montserrat_Variable'] text-lg font-bold">Your Tasks</CardTitle>
+              <CardDescription className="text-gray-500">
+                Tasks filtered by: {filter === 'all' ? 'All' : filter === 'completed' ? 'Completed' : 'Pending'}
+                {selectedGoalId !== null && ` • Goal: ${selectedGoalId === 0 ? 'None' : goals.find(g => g.id === selectedGoalId)?.name || 'Selected'}`}
+                {dateFilterActive && ` • Date: ${format(dateRange.from!, 'MMM d')}${dateRange.to ? ` - ${format(dateRange.to, 'MMM d')}` : ''}`}
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-6">
-              <Tabs defaultValue="tasks" className="w-full">
-                <TabsList className="mb-6">
-                  <TabsTrigger value="tasks" className="relative">
-                    Tasks 
-                    {aiSuggestedTasks.length > 0 && (
-                      <span className="ml-2 bg-[#9AAB63] text-white text-xs px-2 py-0.5 rounded-full">
-                        {aiSuggestedTasks.length}
-                      </span>
-                    )}
-                  </TabsTrigger>
-                  <TabsTrigger value="goals" className="relative">
-                    Goals
-                    {aiSuggestedGoals.length > 0 && (
-                      <span className="ml-2 bg-[#F5B8DB] text-white text-xs px-2 py-0.5 rounded-full">
-                        {aiSuggestedGoals.length}
-                      </span>
-                    )}
-                  </TabsTrigger>
-                </TabsList>
-
-                {/* Task suggestions tab */}
-                <TabsContent value="tasks">
-                  {aiSuggestedTasks.length === 0 ? (
-                    <div className="text-center p-8 text-gray-500">
-                      No task suggestions available right now
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {aiSuggestedTasks.map(task => (
-                        <div key={task.id} className="bg-[#f0f6ff] p-4 rounded-xl border border-[#B6CAEB] border-opacity-30">
-                          <h4 className="font-medium text-gray-800 mb-2">{task.title}</h4>
-                          <p className="text-sm text-gray-600 mb-3">{task.description}</p>
-                          <div className="text-xs text-gray-500 italic mb-3">
-                            <Lightbulb className="h-3 w-3 inline mr-1" />
-                            {task.source}
-                          </div>
-                          <div className="flex items-center gap-2 mt-3">
-                            <Badge className={`${
-                              task.priority === 'high' 
-                                ? 'bg-red-100 text-red-700' 
-                                : task.priority === 'low' 
-                                  ? 'bg-green-100 text-green-700' 
-                                  : 'bg-orange-100 text-orange-700'
-                            }`}>
-                              {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)} priority
-                            </Badge>
-                            <div className="flex-1"></div>
-                            <Button 
-                              onClick={() => addSuggestedTask(task)}
-                              className="bg-[#9AAB63] hover:bg-[#8a9a58] text-white text-xs px-3"
-                              size="sm"
-                            >
-                              <Check className="h-3.5 w-3.5 mr-1.5" /> Add Task
-                            </Button>
-                            <Button 
-                              variant="outline"
-                              onClick={() => {
-                                setAiSuggestedTasks(prev => prev.filter(t => t.id !== task.id));
-                              }}
-                              className="text-gray-500 text-xs px-2 border-gray-300 bg-white"
-                              size="sm"
-                            >
-                              <X className="h-3.5 w-3.5" />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </TabsContent>
-
-                {/* Goal suggestions tab */}
-                <TabsContent value="goals">
-                  {aiSuggestedGoals.length === 0 ? (
-                    <div className="text-center p-8 text-gray-500">
-                      No goal suggestions available right now
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {aiSuggestedGoals.map(goal => (
-                        <div key={goal.id} className="bg-[#fff8f9] p-5 rounded-xl border border-[#F5B8DB] border-opacity-30">
-                          <h4 className="font-medium text-gray-800 text-lg mb-3">{goal.name}</h4>
-                          <p className="text-sm text-gray-600 mb-4">{goal.description}</p>
-
-                          {goal.relatedTasks && goal.relatedTasks.length > 0 && (
-                            <div className="mb-4">
-                              <h5 className="text-sm font-medium text-gray-700 mb-2">Related Tasks:</h5>
-                              <ul className="list-disc pl-5 space-y-1">
-                                {goal.relatedTasks.map((task, i) => (
-                                  <li key={i} className="text-sm text-gray-600">{task}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-
-                          <div className="flex items-center gap-2 mt-4">
-                            <div className="flex-1"></div>
-                            <Button 
-                              onClick={() => addSuggestedGoal(goal)}
-                              className="bg-[#F5B8DB] hover:bg-[#f096c9] text-white text-xs"
-                              size="sm"
-                            >
-                              <Check className="h-3.5 w-3.5 mr-1.5" /> Add Goal
-                            </Button>
-                            <Button 
-                              variant="outline"
-                              onClick={() => {
-                                setAiSuggestedGoals(prev => prev.filter(g => g.id !== goal.id));
-                              }}
-                              className="text-gray-500 text-xs border-gray-300 bg-white"
-                              size="sm"
-                            >
-                              <X className="h-3.5 w-3.5" />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </TabsContent>
-              </Tabs>
+              <TaskList 
+                tasks={tasks}
+                isLoading={isTasksLoading}
+                filter={filter}
+                selectedGoalId={selectedGoalId}
+                sortBy={sortBy}
+                sortDirection={sortDirection}
+                isDateFilterActive={dateFilterActive}
+                isDateInRange={isDateInRange}
+              />
             </CardContent>
           </Card>
-        )}
-
-        <div className="bg-white dark:bg-gray-950 rounded-lg shadow-sm p-6 mb-8">
-          <h2 className="text-xl font-semibold mb-4">
-            {selectedGoalId === null
-              ? 'All Tasks'
-              : selectedGoalId === 0
-              ? 'Tasks without Goal'
-              : `Tasks for: ${goals.find((g) => g.id === selectedGoalId)?.name || 'Selected Goal'}`}
-          </h2>
-          <TaskList 
-            userId={user.id} 
-            selectedGoalId={selectedGoalId} 
-            statusFilter={filter}
-            sortBy={sortBy}
-            sortDirection={sortDirection}
-            dateRange={dateFilterActive ? dateRange : undefined}
-          />
         </div>
 
         {/* Create Task Dialog */}
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogContent className="sm:max-w-[600px]">
+          <DialogContent className="sm:max-w-[550px]">
             <DialogHeader>
               <DialogTitle>Create New Task</DialogTitle>
+              <DialogDescription>
+                Add a new task to track your progress
+              </DialogDescription>
             </DialogHeader>
-            <TaskForm userId={user.id} onSuccess={() => setIsCreateDialogOpen(false)} />
+            
+            <TaskForm 
+              onSuccess={() => {
+                setIsCreateDialogOpen(false);
+                queryClient.invalidateQueries({ queryKey: ['/api/tasks', user?.id] });
+              }}
+              goals={goals}
+            />
           </DialogContent>
         </Dialog>
       </div>

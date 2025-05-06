@@ -33,26 +33,29 @@ import {
 import TaskForm from './task-form';
 
 interface TaskListProps {
-  userId: number;
+  tasks?: any[];
+  isLoading?: boolean;
   selectedGoalId?: number | null;
-  statusFilter?: 'all' | 'completed' | 'pending';
+  filter?: 'all' | 'completed' | 'pending';
   sortBy?: 'dueDate' | 'priority' | 'createdAt';
   sortDirection?: 'asc' | 'desc';
-  dateRange?: {
-    from: Date | undefined;
-    to: Date | undefined;
-  };
+  isDateFilterActive?: boolean;
+  isDateInRange?: (date: string | null | undefined) => boolean;
   setActiveTab?: (tab: string) => void; // Optional function to switch tabs in parent component
+  userId?: number;
 }
 
 export default function TaskList({ 
-  userId, 
+  tasks: propTasks,
+  isLoading: propIsLoading,
   selectedGoalId,
-  statusFilter = 'all',
+  filter = 'all',
   sortBy = 'dueDate',
   sortDirection = 'asc',
-  dateRange,
-  setActiveTab
+  isDateFilterActive = false,
+  isDateInRange,
+  setActiveTab,
+  userId
 }: TaskListProps) {
   const { toast } = useToast();
   const [editingTask, setEditingTask] = useState<Task | null>(null);
