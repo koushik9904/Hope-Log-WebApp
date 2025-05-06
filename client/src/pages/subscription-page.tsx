@@ -349,6 +349,18 @@ const SubscriptionPage = () => {
       heading="Subscription Management"
       subheading="Manage your subscription and payment information"
     >
+      <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+        <div className="flex items-start gap-3">
+          <AlertTriangle className="h-6 w-6 text-amber-500 flex-shrink-0 mt-1" />
+          <div>
+            <h3 className="font-medium text-amber-700 mb-1">Coming Soon</h3>
+            <p className="text-sm text-amber-600">
+              Our subscription packages are under development. The preview below shows what's coming!
+            </p>
+          </div>
+        </div>
+      </div>
+      
       <Tabs value={currentTab} onValueChange={setCurrentTab} className="space-y-4">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="plans">Subscription Plans</TabsTrigger>
@@ -470,21 +482,13 @@ const SubscriptionPage = () => {
                         // Allow subscribing or re-subscribing regardless of other plan status
                         <Button 
                           variant="default" 
-                          className="w-full"
-                          onClick={() => handleSubscribe(plan)}
-                          disabled={createOrderMutation.isPending || processingPayPal}
+                          className="w-full opacity-70 cursor-not-allowed"
+                          disabled={true}
                         >
-                          {createOrderMutation.isPending || processingPayPal ? (
-                            <span className="flex items-center gap-2">
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                              Processing...
-                            </span>
-                          ) : (
-                            <span className="flex items-center gap-2">
-                              <CreditCard className="h-4 w-4" />
-                              {currentSubscription?.subscription?.cancelAtPeriodEnd ? "Resubscribe" : "Subscribe Now"}
-                            </span>
-                          )}
+                          <span className="flex items-center gap-2">
+                            <CreditCard className="h-4 w-4" />
+                            Coming Soon
+                          </span>
                         </Button>
                       )
                     )}
@@ -507,26 +511,7 @@ const SubscriptionPage = () => {
               </div>
             </div>
             
-            {/* Sandbox testing info in development only */}
-            <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
-              <div className="flex items-start gap-3">
-                <AlertTriangle className="h-6 w-6 text-blue-500 flex-shrink-0 mt-1" />
-                <div>
-                  <h3 className="font-medium mb-1 text-blue-700">PayPal Sandbox Testing</h3>
-                  <p className="text-sm text-blue-600">
-                    This is running in PayPal sandbox mode. For testing, use a PayPal sandbox account or these test credit card details:
-                  </p>
-                  <ul className="text-sm text-blue-600 mt-2 list-disc pl-5 space-y-1">
-                    <li>Card: 4111 1111 1111 1111 (Visa)</li>
-                    <li>Expiry: Any future date</li>
-                    <li>CVV: Any 3 digits</li>
-                  </ul>
-                  <p className="text-sm text-blue-600 mt-2">
-                    <strong>Note:</strong> Real PayPal accounts and real credit cards will not work in sandbox mode.
-                  </p>
-                </div>
-              </div>
-            </div>
+
           </div>
         </TabsContent>
         
