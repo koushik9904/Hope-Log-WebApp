@@ -869,22 +869,6 @@ export default function GoalsPage() {
     },
   });
   
-  // Goal form setup
-  const goalForm = useForm<GoalFormValues>({
-    resolver: zodResolver(goalSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-      targetDate: "",
-      category: "Personal",
-      target: 100,
-      progress: 0,
-      unit: "%",
-      colorScheme: 1,
-      userId: user?.id
-    },
-  });
-  
   // Handle goal submission
   const onGoalSubmit = (values: GoalFormValues) => {
     if (!user) return;
