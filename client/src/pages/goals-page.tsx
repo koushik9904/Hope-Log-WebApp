@@ -2474,16 +2474,19 @@ export default function GoalsPage() {
                     console.log("Submitting goal update for:", goalToEdit.id);
                     console.log("Form values:", values);
                     
-                    // Ensure proper data formatting
+                    // Ensure proper data formatting with explicit ID preservation
                     const updatedGoal = {
                       id: goalToEdit.id,
-                      name: values.name,
-                      description: values.description || null,
+                      name: values.name.trim(),
+                      description: values.description?.trim() || "",
                       category: values.category || "Personal",
-                      targetDate: values.targetDate,
+                      targetDate: values.targetDate || null,
                       target: Number(values.target) || 100,
                       progress: Number(values.progress) || 0,
-                      unit: values.unit || "%"
+                      unit: values.unit || "%",
+                      // Preserve important fields from original goal
+                      userId: goalToEdit.userId,
+                      createdAt: goalToEdit.createdAt
                     };
                     
                     console.log("Processed update data:", updatedGoal);
