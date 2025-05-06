@@ -1768,18 +1768,38 @@ export default function GoalsPage() {
                 <CardContent className="pt-6">
                 {/* Advanced Filtering UI for Tasks */}
                 <div className="flex flex-wrap gap-2 mb-6">
-                  {/* Goal Filter Button - Styled like screenshot */}
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    className="rounded-full bg-[#9AAB63]/10 text-sm px-4 border-[#9AAB63]/20 text-gray-700 gap-1"
-                    onClick={() => {
-                      // You can implement dropdown logic here
-                    }}
-                  >
-                    <Filter className="h-3.5 w-3.5 mr-1" />
-                    Filter by Goal
-                  </Button>
+                  {/* Goal Filter Dropdown */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="rounded-full bg-[#9AAB63]/10 text-sm px-4 border-[#9AAB63]/20 text-gray-700 gap-1"
+                      >
+                        <Filter className="h-3.5 w-3.5 mr-1" />
+                        {taskSelectedGoalId ? 
+                          goals.find(g => g.id === taskSelectedGoalId)?.name || "Filter by Goal" : 
+                          "Filter by Goal"}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="bg-white">
+                      <DropdownMenuLabel>Filter Tasks by Goal</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => setTaskSelectedGoalId(null)}>
+                        All Goals
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      {goals.map(goal => (
+                        <DropdownMenuItem 
+                          key={goal.id} 
+                          onClick={() => setTaskSelectedGoalId(goal.id)}
+                          className={taskSelectedGoalId === goal.id ? "bg-[#9AAB63]/10" : ""}
+                        >
+                          {goal.name}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                   
                   {/* Status Filter Pills - Unified style matching screenshot */}
                   <div className="flex items-center gap-1">
@@ -1862,18 +1882,66 @@ export default function GoalsPage() {
                     </PopoverContent>
                   </Popover>
                   
-                  {/* Sort Button - Styled like screenshot */}
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    className="rounded-full bg-[#9AAB63]/10 text-sm px-4 border-[#9AAB63]/20 text-gray-700 gap-1 ml-auto"
-                    onClick={() => {
-                      // You can implement your sort dropdown here
-                    }}
-                  >
-                    <ArrowUpDown className="h-3.5 w-3.5 mr-1" />
-                    Sort
-                  </Button>
+                  {/* Sort Dropdown */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="rounded-full bg-[#9AAB63]/10 text-sm px-4 border-[#9AAB63]/20 text-gray-700 gap-1 ml-auto"
+                      >
+                        <ArrowUpDown className="h-3.5 w-3.5 mr-1" />
+                        Sort
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="bg-white">
+                      <DropdownMenuLabel>Sort Tasks</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      
+                      <DropdownMenuSub>
+                        <DropdownMenuSubTrigger>
+                          Sort by
+                        </DropdownMenuSubTrigger>
+                        <DropdownMenuSubContent className="bg-white">
+                          <DropdownMenuItem 
+                            onClick={() => setTaskSortBy('title')}
+                            className={taskSortBy === 'title' ? "bg-[#9AAB63]/10" : ""}
+                          >
+                            Title
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => setTaskSortBy('dueDate')}
+                            className={taskSortBy === 'dueDate' ? "bg-[#9AAB63]/10" : ""}
+                          >
+                            Due Date
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => setTaskSortBy('priority')}
+                            className={taskSortBy === 'priority' ? "bg-[#9AAB63]/10" : ""}
+                          >
+                            Priority
+                          </DropdownMenuItem>
+                        </DropdownMenuSubContent>
+                      </DropdownMenuSub>
+                      
+                      <DropdownMenuSeparator />
+                      
+                      <DropdownMenuItem 
+                        onClick={() => setTaskSortDirection('asc')}
+                        className={taskSortDirection === 'asc' ? "bg-[#9AAB63]/10" : ""}
+                      >
+                        <ArrowUp className="h-3.5 w-3.5 mr-2" />
+                        Ascending
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => setTaskSortDirection('desc')}
+                        className={taskSortDirection === 'desc' ? "bg-[#9AAB63]/10" : ""}
+                      >
+                        <ArrowDown className="h-3.5 w-3.5 mr-2" />
+                        Descending
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
                 
                 {user && <TaskList 
