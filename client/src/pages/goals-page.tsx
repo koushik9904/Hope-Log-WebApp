@@ -1752,6 +1752,7 @@ export default function GoalsPage() {
                   sortBy={taskSortBy}
                   sortDirection={taskSortDirection}
                   dateRange={taskDateFilterActive ? taskDateRange : undefined}
+                  setActiveTab={setActiveTab}
                 />}
                 </CardContent>
               </Card>
