@@ -310,12 +310,16 @@ export default function GoalsPage() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/goals", user?.id] });
-      queryClient.invalidateQueries({ queryKey: ["/api/tasks", user?.id] });
+      // Use the correct query key format to match other queries in the file
+      queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/tasks/${user?.id}`] });
       toast({
         title: "Goal converted",
         description: "Goal has been converted to a task successfully.",
       });
+      
+      // Switch to tasks tab to show the newly created task
+      setActiveTab("tasks");
     },
     onError: (error) => {
       console.error("Failed to convert goal to task:", error);
