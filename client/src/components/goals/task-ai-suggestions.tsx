@@ -4,7 +4,6 @@ import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Lightbulb, AlertCircle, ThumbsUp, ThumbsDown, Clock, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 
 interface TaskAISuggestionsProps {
@@ -16,7 +15,7 @@ export default function TaskAISuggestions({ existingTaskTitles }: TaskAISuggesti
   const { toast } = useToast();
   const [aiSuggestedTasks, setAiSuggestedTasks] = useState<any[]>([]);
 
-  // Fetch AI-suggested tasks directly from the same endpoint used by AI Suggestions component
+  // Fetch AI-suggested tasks from the same endpoint used by AI Suggestions component
   const { 
     data: aiSuggestions = { goals: [], tasks: [], habits: [] },
     isLoading: isLoadingSuggestions,
@@ -37,22 +36,12 @@ export default function TaskAISuggestions({ existingTaskTitles }: TaskAISuggesti
     console.log("TaskAISuggestions - AI tasks length:", aiSuggestions.tasks?.length || 0);
     
     if (aiSuggestions?.tasks?.length > 0) {
-      // Filter tasks that don't already exist
-      const filteredTasks = aiSuggestions.tasks.filter(task => {
-        if (!task.title || task.title.trim() === '') return false;
-        
-        const normalizedSuggestionTitle = task.title.toLowerCase().trim();
-        
-        return !existingTaskTitles.some(existingTitle => {
-          const normalizedExistingTitle = existingTitle.toLowerCase().trim();
-          return normalizedExistingTitle === normalizedSuggestionTitle;
-        });
-      });
-      
-      console.log("TaskAISuggestions - Filtered tasks:", filteredTasks.length);
-      setAiSuggestedTasks(filteredTasks);
+      // Set all tasks directly without filtering to ensure they're displayed
+      // This is a temporary fix to ensure we see the tasks
+      setAiSuggestedTasks(aiSuggestions.tasks);
+      console.log("TaskAISuggestions - Using all tasks:", aiSuggestions.tasks.length);
     }
-  }, [aiSuggestions, existingTaskTitles]);
+  }, [aiSuggestions]);
   
   // Add task mutation
   const addTaskMutation = useMutation({
@@ -170,39 +159,40 @@ export default function TaskAISuggestions({ existingTaskTitles }: TaskAISuggesti
               </div>
             )}
           
-          <div className="mt-3">
-            {/* Priority badge */}
-            <div className="mb-3 text-xs text-gray-500 flex items-center">
-              <Clock className="h-3 w-3 inline mr-1 text-[#B6CAEB]" />
-              {task.priority || "Medium"} Priority
-            </div>
-            
-            {/* Action buttons */}
-            <div className="flex gap-2 justify-center w-full">
-              <Button 
-                onClick={() => addTaskMutation.mutate(task)}
-                variant="outline" 
-                size="sm"
-                className="h-7 px-3 flex-1 bg-[#B6CAEB] hover:bg-[#9bb8e4] border-[#B6CAEB] text-white hover:text-white text-center justify-center"
-                disabled={addTaskMutation.isPending}
-              >
-                <ThumbsUp className="h-3 w-3 mr-1" />
-                <span className="text-xs">Accept</span>
-              </Button>
-              <Button 
-                onClick={() => rejectTaskMutation.mutate(task.id)}
-                variant="outline" 
-                size="sm"
-                className="h-7 px-3 flex-1 border-gray-300 text-gray-500 hover:bg-gray-100 text-center justify-center"
-                disabled={rejectTaskMutation.isPending}
-              >
-                <ThumbsDown className="h-3 w-3 mr-1" />
-                <span className="text-xs">Reject</span>
-              </Button>
+            <div className="mt-3">
+              {/* Priority badge */}
+              <div className="mb-3 text-xs text-gray-500 flex items-center">
+                <Clock className="h-3 w-3 inline mr-1 text-[#B6CAEB]" />
+                {task.priority || "Medium"} Priority
+              </div>
+              
+              {/* Action buttons */}
+              <div className="flex gap-2 justify-center w-full">
+                <Button 
+                  onClick={() => addTaskMutation.mutate(task)}
+                  variant="outline" 
+                  size="sm"
+                  className="h-7 px-3 flex-1 bg-[#B6CAEB] hover:bg-[#9bb8e4] border-[#B6CAEB] text-white hover:text-white text-center justify-center"
+                  disabled={addTaskMutation.isPending}
+                >
+                  <ThumbsUp className="h-3 w-3 mr-1" />
+                  <span className="text-xs">Accept</span>
+                </Button>
+                <Button 
+                  onClick={() => rejectTaskMutation.mutate(task.id)}
+                  variant="outline" 
+                  size="sm"
+                  className="h-7 px-3 flex-1 border-gray-300 text-gray-500 hover:bg-gray-100 text-center justify-center"
+                  disabled={rejectTaskMutation.isPending}
+                >
+                  <ThumbsDown className="h-3 w-3 mr-1" />
+                  <span className="text-xs">Reject</span>
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

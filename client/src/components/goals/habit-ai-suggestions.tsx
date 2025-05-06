@@ -36,22 +36,12 @@ export default function HabitAISuggestions({ existingHabitTitles }: HabitAISugge
     console.log("HabitAISuggestions - AI habits length:", aiSuggestions.habits?.length || 0);
     
     if (aiSuggestions?.habits?.length > 0) {
-      // Filter habits that don't already exist
-      const filteredHabits = aiSuggestions.habits.filter(habit => {
-        if (!habit.title || habit.title.trim() === '') return false;
-        
-        const normalizedSuggestionTitle = habit.title.toLowerCase().trim();
-        
-        return !existingHabitTitles.some(existingTitle => {
-          const normalizedExistingTitle = existingTitle.toLowerCase().trim();
-          return normalizedExistingTitle === normalizedSuggestionTitle;
-        });
-      });
-      
-      console.log("HabitAISuggestions - Filtered habits:", filteredHabits.length);
-      setAiSuggestedHabits(filteredHabits);
+      // Set all habits directly without filtering to ensure they're displayed
+      // This is a temporary fix to ensure we see the habits
+      setAiSuggestedHabits(aiSuggestions.habits);
+      console.log("HabitAISuggestions - Using all habits:", aiSuggestions.habits.length);
     }
-  }, [aiSuggestions, existingHabitTitles]);
+  }, [aiSuggestions]);
   
   // Accept habit mutation
   const acceptHabitMutation = useMutation({
