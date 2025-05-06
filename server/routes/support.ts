@@ -48,7 +48,7 @@ const transporter = nodemailer.createTransport({
 
 const unlinkAsync = promisify(fs.unlink);
 
-router.post('/support', upload.single('attachment'), async (req, res) => {
+router.post('/api/support', upload.single('attachment'), async (req, res) => {
   try {
     const { name, username, email, subject, message } = req.body;
     const file = req.file;
