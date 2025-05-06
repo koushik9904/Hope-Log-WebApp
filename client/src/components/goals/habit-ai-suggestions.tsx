@@ -49,45 +49,17 @@ export default function HabitAISuggestions({ existingHabitTitles }: HabitAISugge
   console.log("AI Habits (initial):", aiSuggestions.habits?.length || 0);
   console.log("Existing Habit Titles:", existingHabitTitles?.length || 0);
   
-  // Process AI suggestions whenever they change
+  // Process AI suggestions whenever they change - DISPLAY ALL HABITS without filtering
   useEffect(() => {
     console.log("HabitAISuggestions - AI suggestions:", aiSuggestions);
     console.log("HabitAISuggestions - AI habits length:", aiSuggestions.habits?.length || 0);
     
     if (aiSuggestions?.habits?.length > 0) {
-      // Filter habits that don't already exist
-      const filteredHabits = aiSuggestions.habits.filter(habit => {
-        // Skip habits with empty titles
-        if (!habit.title || habit.title.trim() === '') {
-          console.log("Skipping empty habit title");
-          return false;
-        }
-        
-        const normalizedSuggestionTitle = habit.title.toLowerCase().trim();
-        
-        // Check if this suggestion is already in the existing habits - using less strict filtering
-        const isDuplicate = existingHabitTitles.some(existingTitle => {
-          if (!existingTitle) return false;
-          
-          const normalizedHabitTitle = existingTitle.toLowerCase().trim();
-          
-          // Only filter exact matches
-          const exactMatch = normalizedHabitTitle === normalizedSuggestionTitle;
-          
-          if (exactMatch) {
-            console.log(`Filtering out habit suggestion "${habit.title}" - exact match with existing habit "${existingTitle}"`);
-          }
-          
-          return exactMatch;
-        });
-        
-        return !isDuplicate;
-      });
-      
-      console.log("HabitAISuggestions - Filtered habits:", filteredHabits.length);
-      setAiSuggestedHabits(filteredHabits);
+      // Set ALL habits from the AI suggestions without any filtering
+      setAiSuggestedHabits(aiSuggestions.habits);
+      console.log("HabitAISuggestions - Using ALL habits:", aiSuggestions.habits.length);
     }
-  }, [aiSuggestions, existingHabitTitles]);
+  }, [aiSuggestions]);
   
   // Accept habit mutation
   const acceptHabitMutation = useMutation({

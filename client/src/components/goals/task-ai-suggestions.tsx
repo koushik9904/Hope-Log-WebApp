@@ -51,45 +51,17 @@ export default function TaskAISuggestions({ existingTaskTitles }: TaskAISuggesti
   console.log("AI Tasks (initial):", aiSuggestions.tasks?.length || 0);
   console.log("Existing Task Titles:", existingTaskTitles?.length || 0);
   
-  // Process AI suggestions whenever they change
+  // Process AI suggestions whenever they change - DISPLAY ALL TASKS without filtering
   useEffect(() => {
     console.log("TaskAISuggestions - AI suggestions:", aiSuggestions);
     console.log("TaskAISuggestions - AI tasks length:", aiSuggestions.tasks?.length || 0);
     
     if (aiSuggestions?.tasks?.length > 0) {
-      // Filter tasks that don't already exist
-      const filteredTasks = aiSuggestions.tasks.filter(task => {
-        // Skip tasks with empty titles
-        if (!task.title || task.title.trim() === '') {
-          console.log("Skipping empty task title");
-          return false;
-        }
-        
-        const normalizedSuggestionTitle = task.title.toLowerCase().trim();
-        
-        // Check if this suggestion is already in the existing tasks - using less strict filtering
-        const isDuplicate = existingTaskTitles.some(existingTitle => {
-          if (!existingTitle) return false;
-          
-          const normalizedTaskTitle = existingTitle.toLowerCase().trim();
-          
-          // Only filter exact matches
-          const exactMatch = normalizedTaskTitle === normalizedSuggestionTitle;
-          
-          if (exactMatch) {
-            console.log(`Filtering out task suggestion "${task.title}" - exact match with existing task "${existingTitle}"`);
-          }
-          
-          return exactMatch;
-        });
-        
-        return !isDuplicate;
-      });
-      
-      console.log("TaskAISuggestions - Filtered tasks:", filteredTasks.length);
-      setAiSuggestedTasks(filteredTasks);
+      // Set ALL tasks from the AI suggestions without any filtering
+      setAiSuggestedTasks(aiSuggestions.tasks);
+      console.log("TaskAISuggestions - Using ALL tasks:", aiSuggestions.tasks.length);
     }
-  }, [aiSuggestions, existingTaskTitles]);
+  }, [aiSuggestions]);
   
   // Add task mutation
   const addTaskMutation = useMutation({
