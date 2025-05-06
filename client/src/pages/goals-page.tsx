@@ -101,6 +101,7 @@ import {
   Lightbulb,
   Filter,
   CalendarDays,
+  Calendar as CalendarIcon,
   ArrowUpDown,
   SortAsc,
   SortDesc,
@@ -252,21 +253,23 @@ export default function GoalsPage() {
   }>({});
   const [activeTab, setActiveTab] = useState<string>("goals");
   
-  // The AI suggestion data is defined at the top of the file
-  
-  // Initialize the form for goal editing with default values
+  // Goal form setup
   const goalForm = useForm<GoalFormValues>({
     resolver: zodResolver(goalSchema),
     defaultValues: {
       name: "",
       description: "",
+      targetDate: "",
       category: "Personal",
-      targetDate: null,
       target: 100,
       progress: 0,
-      unit: "%"
-    }
+      unit: "%",
+      colorScheme: 1,
+      userId: user?.id
+    },
   });
+  
+  // The AI suggestion data is defined at the top of the file
   
   // State for goals tab filtering
   const [goalFilter, setGoalFilter] = useState<string>("all");
@@ -613,6 +616,21 @@ export default function GoalsPage() {
   const deletedTasks = deletedTasksData;
   const deletedHabits = deletedHabitsData;
   
+  // Reset the form when goalToEdit changes
+  useEffect(() => {
+    if (goalToEdit) {
+      goalForm.reset({
+        name: goalToEdit.name,
+        description: goalToEdit.description || "",
+        category: goalToEdit.category,
+        targetDate: goalToEdit.targetDate,
+        target: goalToEdit.target || 100,
+        progress: goalToEdit.progress || 0,
+        unit: goalToEdit.unit || "%"
+      });
+    }
+  }, [goalToEdit, goalForm]);
+
   // Helper function for clearing date filters
   const clearTaskDateFilter = () => {
     setTaskDateRange({ from: undefined, to: undefined });
@@ -2426,5 +2444,223 @@ export default function GoalsPage() {
         </Tabs>
       </div>
     </DashboardLayout>
+    
+    {/* Edit Goal Dialog */}
+    <Dialog open={showEditGoalDialog} onOpenChange={setShowEditGoalDialog}>
+      <DialogContent className="sm:max-w-[500px] bg-white">
+        <DialogHeader>
+          <DialogTitle className="font-['Montserrat_Variable']">Edit Goal</DialogTitle>
+          <DialogDescription>
+            Update your goal details.
+          </DialogDescription>
+        </DialogHeader>
+        
+        {goalToEdit && (
+          <Form {...goalForm}>
+            <form 
+              onSubmit={goalForm.handleSubmit((values) => {
+                if (goalToEdit) {
+                  editGoalMutation.mutate({
+                    ...values,
+                    id: goalToEdit.id
+                  });
+                }
+              })} 
+              className="space-y-6 py-4"
+            >
+              <FormField
+                control={goalForm.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Title</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter goal title" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={goalForm.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Describe your goal in more detail" 
+                        className="resize-none h-20"
+                        {...field}
+                        value={field.value || ""}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={goalForm.control}
+                  name="category"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Category</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select category" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {GOAL_CATEGORIES.map(category => (
+                            <SelectItem key={category} value={category}>
+                              {category}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={goalForm.control}
+                  name="targetDate"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Target Date</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? (
+                                format(new Date(field.value), "PPP")
+                              ) : (
+                                <span>Pick a date</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <CalendarComponent
+                            mode="single"
+                            selected={field.value ? new Date(field.value) : undefined}
+                            onSelect={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : null)}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              <div className="grid grid-cols-3 gap-4">
+                <FormField
+                  control={goalForm.control}
+                  name="progress"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Progress</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          min="0" 
+                          step="1" 
+                          {...field}
+                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={goalForm.control}
+                  name="target"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Target</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          min="1" 
+                          step="1" 
+                          {...field}
+                          onChange={(e) => field.onChange(parseInt(e.target.value) || 100)} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={goalForm.control}
+                  name="unit"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Unit</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select unit" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="%">%</SelectItem>
+                          <SelectItem value="items">items</SelectItem>
+                          <SelectItem value="pages">pages</SelectItem>
+                          <SelectItem value="sessions">sessions</SelectItem>
+                          <SelectItem value="days">days</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              <DialogFooter>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setShowEditGoalDialog(false)}
+                  className="bg-white"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  className="bg-[#F5B8DB] hover:bg-[#f096c9] text-white"
+                  disabled={editGoalMutation.isPending}
+                >
+                  {editGoalMutation.isPending ? "Updating..." : "Update Goal"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
