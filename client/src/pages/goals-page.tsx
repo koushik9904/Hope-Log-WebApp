@@ -1915,7 +1915,7 @@ export default function GoalsPage() {
               {/* Main Habits Card */}
               <Card className="md:col-span-3 bg-white border-0 shadow-sm">
                 <CardHeader className="border-b border-gray-100">
-                  <CardTitle className="font-['Montserrat_Variable'] text-base">Your Habits</CardTitle>
+                  <CardTitle className="font-['Montserrat_Variable'] text-lg font-bold">Your Habits</CardTitle>
                   <CardDescription>
                     Track your recurring routines and daily practices
                   </CardDescription>
@@ -2066,7 +2066,7 @@ export default function GoalsPage() {
               
               <Card className="bg-white border-0 shadow-sm">
                 <CardHeader className="border-b border-gray-100">
-                  <CardTitle className="font-['Montserrat_Variable'] text-base">Habit Stats</CardTitle>
+                  <CardTitle className="font-['Montserrat_Variable'] text-lg font-bold">Habit Stats</CardTitle>
                 </CardHeader>
                 <CardContent className="pt-6">
                   <div className="space-y-4">
