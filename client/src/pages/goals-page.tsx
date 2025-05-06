@@ -190,6 +190,8 @@ import {
 } from "@/components/ui/popover";
 
 import AISuggestions from "@/components/goals/ai-suggestions";
+import TaskAISuggestions from "@/components/goals/task-ai-suggestions";
+import HabitAISuggestions from "@/components/goals/habit-ai-suggestions";
 
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 
@@ -1744,19 +1746,11 @@ export default function GoalsPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="pt-6">
-                  <div className="space-y-4">
-                    <div className="text-center p-4">
-                      <p className="text-gray-500">
-                        Suggestions will appear in the AI Suggestions panel
-                      </p>
-                      <div className="flex items-center justify-center mt-3">
-                        <AlertCircle className="h-4 w-4 mr-2 text-[#B6CAEB]" />
-                        <span className="text-xs text-gray-500">Suggestions are generated automatically</span>
-                      </div>
-                    </div>
-                    
-                    {/* Generate suggestions button removed - now in AISuggestions component */}
-                  </div>
+                  {user && (
+                    <TaskAISuggestions 
+                      existingTaskTitles={allTasks.map(task => task.title || '')}
+                    />
+                  )}
                 </CardContent>
               </Card>
 
@@ -2003,54 +1997,11 @@ export default function GoalsPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="pt-6">
-                  <div className="space-y-4">
-                    {isSuggestionsLoading ? (
-                      <div className="flex flex-col items-center justify-center p-4">
-                        <Loader2 className="h-8 w-8 animate-spin text-[#9AAB63] mb-2" />
-                        <p className="text-sm text-gray-500">Loading suggestions...</p>
-                      </div>
-                    ) : aiSuggestions.habits.length > 0 ? (
-                      aiSuggestions.habits.slice(0, 3).map(habit => (
-                        <div key={habit.id} className="bg-[#f8fff6] p-4 rounded-xl border border-[#9AAB63] border-opacity-30">
-                          <h4 className="font-medium text-gray-800 text-sm mb-1">{habit.title}</h4>
-                          <p className="text-xs text-gray-600 mb-3 line-clamp-2">{habit.description}</p>
-                          <div className="flex justify-between gap-2">
-                            <div className="flex flex-1">
-                              <Button 
-                                onClick={() => {
-                                  // Accept the habit using the proper mutation to remove it from suggestions
-                                  if (!user) return;
-                                  
-                                  // Call the accept mutation which will:
-                                  // 1. Add the habit to the main habits table
-                                  // 2. Delete it from the AI suggestions table
-                                  acceptHabitSuggestionMutation.mutate(habit.id);
-                                }}
-                                className="bg-[#9AAB63] hover:bg-[#8a9a58] text-white text-xs px-3"
-                                size="sm"
-                                disabled={acceptHabitSuggestionMutation.isPending}
-                              >
-                                <Plus className="h-3.5 w-3.5 mr-1.5" /> 
-                                {acceptHabitSuggestionMutation.isPending ? "Adding..." : "Add Habit"}
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="flex flex-col items-center justify-center p-4 text-center">
-                        <div className="bg-gray-50 rounded-full p-3 mb-3">
-                          <Lightbulb className="h-6 w-6 text-gray-300" />
-                        </div>
-                        <p className="text-sm text-gray-500 mb-2">No habit suggestions yet</p>
-                        <p className="text-xs text-gray-400">
-                          Write more in your journal to get AI-suggested habits
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Generate suggestions button removed - now in AISuggestions component */}
-                  </div>
+                  {user && (
+                    <HabitAISuggestions 
+                      existingHabitTitles={habits.map(habit => habit.title || '')}
+                    />
+                  )}
                 </CardContent>
               </Card>
 
