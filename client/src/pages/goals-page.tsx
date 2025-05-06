@@ -568,8 +568,72 @@ export default function GoalsPage() {
     setTaskDateFilterActive(false);
   };
   
-  // Group goals by category (for display purposes)
-  const goalsByCategory = goals.reduce((acc, goal) => {
+  // Apply filters to goals
+  let filteredGoals = [...goals];
+  
+  // Apply category filter if selected
+  if (goalCategoryFilter !== null) {
+    filteredGoals = filteredGoals.filter(goal => goal.category === goalCategoryFilter);
+  }
+
+  // Apply date filter if active
+  if (goalDateFilterActive && goalDateRange.from) {
+    filteredGoals = filteredGoals.filter(goal => {
+      if (!goal.targetDate) return false;
+      
+      const targetDate = new Date(goal.targetDate);
+      
+      if (goalDateRange.from && !goalDateRange.to) {
+        return targetDate >= goalDateRange.from;
+      }
+      
+      if (goalDateRange.from && goalDateRange.to) {
+        const start = new Date(goalDateRange.from);
+        start.setHours(0, 0, 0, 0);
+        
+        const end = new Date(goalDateRange.to);
+        end.setHours(23, 59, 59, 999);
+        
+        return targetDate >= start && targetDate <= end;
+      }
+      
+      return false;
+    });
+  }
+  
+  // Apply sorting
+  filteredGoals = [...filteredGoals].sort((a, b) => {
+    if (goalSortBy === 'targetDate') {
+      if (!a.targetDate && !b.targetDate) return 0;
+      if (!a.targetDate) return goalSortDirection === 'asc' ? 1 : -1;
+      if (!b.targetDate) return goalSortDirection === 'asc' ? -1 : 1;
+      
+      return goalSortDirection === 'asc'
+        ? new Date(a.targetDate).getTime() - new Date(b.targetDate).getTime()
+        : new Date(b.targetDate).getTime() - new Date(a.targetDate).getTime();
+    }
+    
+    if (goalSortBy === 'progress') {
+      return goalSortDirection === 'asc'
+        ? a.progress - b.progress
+        : b.progress - a.progress;
+    }
+    
+    if (goalSortBy === 'createdAt') {
+      if (!a.createdAt && !b.createdAt) return 0;
+      if (!a.createdAt) return goalSortDirection === 'asc' ? 1 : -1;
+      if (!b.createdAt) return goalSortDirection === 'asc' ? -1 : 1;
+      
+      return goalSortDirection === 'asc'
+        ? new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        : new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    }
+    
+    return 0;
+  });
+  
+  // Group filtered goals by category (for display purposes)
+  const goalsByCategory = filteredGoals.reduce((acc, goal) => {
     const category = goal.category || "Other";
     
     if (!acc[category]) {
@@ -1920,36 +1984,61 @@ export default function GoalsPage() {
                 <CardContent className="pt-6">
                   {/* Habit Filtering UI - Matches the style of Tasks tab */}
                   <div className="flex flex-wrap gap-2 mb-6">
-                    {/* Frequency Filter Button */}
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      className="rounded-full bg-[#B6CAEB]/10 text-sm px-4 border-[#B6CAEB]/20 text-gray-700 gap-1"
-                    >
-                      <Filter className="h-3.5 w-3.5 mr-1" />
-                      Filter by Frequency
-                    </Button>
+                    {/* Frequency Filter Dropdown */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="rounded-full bg-[#B6CAEB]/10 text-sm px-4 border-[#B6CAEB]/20 text-gray-700 gap-1"
+                        >
+                          <Filter className="h-3.5 w-3.5 mr-1" />
+                          {habitFrequencyFilter ? 
+                            `${habitFrequencyFilter.charAt(0).toUpperCase() + habitFrequencyFilter.slice(1)}` : 
+                            "All Frequencies"}
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="bg-white">
+                        <DropdownMenuLabel>Filter by Frequency</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => setHabitFrequencyFilter(null)}>
+                          All Frequencies
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setHabitFrequencyFilter("daily")}>
+                          Daily
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setHabitFrequencyFilter("weekly")}>
+                          Weekly
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setHabitFrequencyFilter("monthly")}>
+                          Monthly
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                     
                     {/* Status Filter Pills */}
                     <div className="flex items-center gap-1">
                       <Button 
-                        variant="default"
+                        variant={habitFilter === "all" ? "default" : "outline"}
                         size="sm" 
-                        className="rounded-full bg-[#B6CAEB] hover:bg-[#B6CAEB]/90"
+                        className={`rounded-full ${habitFilter === "all" ? "bg-[#B6CAEB] hover:bg-[#B6CAEB]/90" : "bg-[#B6CAEB]/10 hover:bg-[#B6CAEB]/20 border-[#B6CAEB]/20"}`}
+                        onClick={() => setHabitFilter("all")}
                       >
                         All
                       </Button>
                       <Button 
-                        variant="outline" 
+                        variant={habitFilter === "today" ? "default" : "outline"}
                         size="sm" 
-                        className="rounded-full bg-[#B6CAEB]/10 hover:bg-[#B6CAEB]/20 border-[#B6CAEB]/20"
+                        className={`rounded-full ${habitFilter === "today" ? "bg-[#B6CAEB] hover:bg-[#B6CAEB]/90" : "bg-[#B6CAEB]/10 hover:bg-[#B6CAEB]/20 border-[#B6CAEB]/20"}`}
+                        onClick={() => setHabitFilter("today")}
                       >
                         Today
                       </Button>
                       <Button 
-                        variant="outline" 
+                        variant={habitFilter === "streaks" ? "default" : "outline"}
                         size="sm" 
-                        className="rounded-full bg-[#B6CAEB]/10 hover:bg-[#B6CAEB]/20 border-[#B6CAEB]/20"
+                        className={`rounded-full ${habitFilter === "streaks" ? "bg-[#B6CAEB] hover:bg-[#B6CAEB]/90" : "bg-[#B6CAEB]/10 hover:bg-[#B6CAEB]/20 border-[#B6CAEB]/20"}`}
+                        onClick={() => setHabitFilter("streaks")}
                       >
                         Streaks
                       </Button>
@@ -1960,8 +2049,13 @@ export default function GoalsPage() {
                       variant="outline" 
                       size="sm"
                       className="rounded-full bg-[#B6CAEB]/10 text-sm px-4 border-[#B6CAEB]/20 text-gray-700 gap-1 ml-auto"
+                      onClick={() => setHabitSortDirection(habitSortDirection === 'asc' ? 'desc' : 'asc')}
                     >
-                      <ArrowUpDown className="h-3.5 w-3.5 mr-1" />
+                      {habitSortDirection === 'asc' ? (
+                        <ArrowUp className="h-3.5 w-3.5 mr-1" />
+                      ) : (
+                        <ArrowDown className="h-3.5 w-3.5 mr-1" />
+                      )}
                       Sort
                     </Button>
                   </div>
