@@ -607,22 +607,33 @@ export class DatabaseStorage implements IStorage {
       throw new Error(`AI Goal with id ${id} not found`);
     }
     
-    // Create a new goal in the main goals table
-    const newGoal = await this.createGoal({
-      userId: aiGoal.userId,
-      name: aiGoal.name,
-      description: aiGoal.description || '',
-      category: aiGoal.category,
-      target: 100, // Default
-      status: 'in_progress',
-      source: 'ai',
-      aiExplanation: aiGoal.explanation
-    });
+    console.log(`Accepting AI Goal with id ${id}:`, aiGoal);
     
-    // Delete the AI goal
-    await this.deleteAiGoal(id);
-    
-    return newGoal;
+    try {
+      // Create a new goal in the main goals table
+      const newGoal = await this.createGoal({
+        userId: aiGoal.userId,
+        name: aiGoal.name,
+        description: aiGoal.description || '',
+        category: aiGoal.category || 'Personal',
+        target: 100, // Default
+        progress: 0,
+        status: 'in_progress',
+        source: 'ai',
+        aiExplanation: aiGoal.explanation
+      });
+      
+      console.log(`Created new goal from AI suggestion:`, newGoal);
+      
+      // Delete the AI goal
+      await this.deleteAiGoal(id);
+      console.log(`Deleted AI Goal with id ${id}`);
+      
+      return newGoal;
+    } catch (error) {
+      console.error(`Error accepting AI Goal with id ${id}:`, error);
+      throw error;
+    }
   }
   
   async updateGoalStatus(id: number, status: string): Promise<Goal> {

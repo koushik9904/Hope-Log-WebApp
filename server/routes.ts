@@ -931,24 +931,35 @@ Your role is to:
     try {
       const goalId = Number(req.params.id);
       
+      console.log(`Accepting AI goal with ID: ${goalId}, user: ${req.user?.id}`);
+      
       // Get the AI goal to verify ownership
       const aiGoal = await storage.getAiGoalById(goalId);
       if (!aiGoal) {
+        console.error(`AI goal with ID ${goalId} not found`);
         return res.status(404).json({ error: "AI suggested goal not found" });
       }
       
+      console.log(`Found AI goal:`, aiGoal);
+      
       // Verify ownership
       if (req.user?.id !== aiGoal.userId) {
-        return res.sendStatus(403);
+        console.error(`User ${req.user?.id} tried to accept AI goal belonging to user ${aiGoal.userId}`);
+        return res.status(403).json({ error: "You don't have permission to accept this goal" });
       }
       
       // Accept the goal (moves it to main goals table and deletes from AI table)
       const newGoal = await storage.acceptAiGoal(goalId);
       
+      console.log(`Successfully accepted AI goal:`, newGoal);
+      
       res.status(200).json(newGoal);
     } catch (error) {
       console.error("Error accepting AI suggested goal:", error);
-      res.status(500).json({ error: "Failed to accept AI suggested goal" });
+      res.status(500).json({ 
+        error: "Failed to accept AI suggested goal",
+        message: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   });
   
@@ -959,24 +970,35 @@ Your role is to:
     try {
       const taskId = Number(req.params.id);
       
+      console.log(`Accepting AI task with ID: ${taskId}, user: ${req.user?.id}`);
+      
       // Get the AI task to verify ownership
       const aiTask = await storage.getAiTaskById(taskId);
       if (!aiTask) {
+        console.error(`AI task with ID ${taskId} not found`);
         return res.status(404).json({ error: "AI suggested task not found" });
       }
       
+      console.log(`Found AI task:`, aiTask);
+      
       // Verify ownership
       if (req.user?.id !== aiTask.userId) {
-        return res.sendStatus(403);
+        console.error(`User ${req.user?.id} tried to accept AI task belonging to user ${aiTask.userId}`);
+        return res.status(403).json({ error: "You don't have permission to accept this task" });
       }
       
       // Accept the task (moves it to main tasks table and deletes from AI table)
       const newTask = await storage.acceptAiTask(taskId);
       
+      console.log(`Successfully accepted AI task:`, newTask);
+      
       res.status(200).json(newTask);
     } catch (error) {
       console.error("Error accepting AI suggested task:", error);
-      res.status(500).json({ error: "Failed to accept AI suggested task" });
+      res.status(500).json({ 
+        error: "Failed to accept AI suggested task", 
+        message: error.message || "Unknown error"
+      });
     }
   });
   
@@ -987,24 +1009,35 @@ Your role is to:
     try {
       const habitId = Number(req.params.id);
       
+      console.log(`Accepting AI habit with ID: ${habitId}, user: ${req.user?.id}`);
+      
       // Get the AI habit to verify ownership
       const aiHabit = await storage.getAiHabitById(habitId);
       if (!aiHabit) {
+        console.error(`AI habit with ID ${habitId} not found`);
         return res.status(404).json({ error: "AI suggested habit not found" });
       }
       
+      console.log(`Found AI habit:`, aiHabit);
+      
       // Verify ownership
       if (req.user?.id !== aiHabit.userId) {
-        return res.sendStatus(403);
+        console.error(`User ${req.user?.id} tried to accept AI habit belonging to user ${aiHabit.userId}`);
+        return res.status(403).json({ error: "You don't have permission to accept this habit" });
       }
       
       // Accept the habit (moves it to main habits table and deletes from AI table)
       const newHabit = await storage.acceptAiHabit(habitId);
       
+      console.log(`Successfully accepted AI habit:`, newHabit);
+      
       res.status(200).json(newHabit);
     } catch (error) {
       console.error("Error accepting AI suggested habit:", error);
-      res.status(500).json({ error: "Failed to accept AI suggested habit" });
+      res.status(500).json({ 
+        error: "Failed to accept AI suggested habit",
+        message: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   });
   

@@ -100,6 +100,8 @@ export default function TaskList({
   // Toggle task completion
   const toggleCompletionMutation = useMutation({
     mutationFn: async ({ id, completed, goalId }: { id: number; completed: boolean; goalId?: number | null }) => {
+      console.log(`Toggling task ${id} completion to ${completed}, goalId: ${goalId}`);
+      
       // Add completedAt date when marking as completed
       const data: any = { completed };
       if (completed) {
@@ -113,6 +115,8 @@ export default function TaskList({
       
       // If task belongs to a goal, update the goal progress
       if (goalId && completed !== undefined) {
+        console.log(`Task ${id} belongs to goal ${goalId}, updating goal progress...`);
+        
         // First get all tasks for this goal
         const tasksRes = await fetch(`/api/tasks/goal/${goalId}`);
         if (!tasksRes.ok) {
@@ -120,6 +124,7 @@ export default function TaskList({
         }
         
         const goalTasks = await tasksRes.json();
+        console.log(`Found ${goalTasks.length} tasks for goal ${goalId}`);
         
         // Calculate new progress based on completed tasks
         const totalTasks = goalTasks.length;
@@ -128,6 +133,7 @@ export default function TaskList({
           : goalTasks.filter((t: Task) => t.completed && t.id !== id).length;
         
         const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+        console.log(`Goal ${goalId} new progress: ${progress}% (${completedTasks}/${totalTasks} tasks completed)`);
         
         // Update the goal progress
         await apiRequest('PATCH', `/api/goals/${goalId}`, { progress });
@@ -135,11 +141,30 @@ export default function TaskList({
       
       return updatedTask;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/tasks', userId] });
-      queryClient.invalidateQueries({ queryKey: ['/api/goals', userId] });
+    onSuccess: async (updatedTask) => {
+      console.log('Task update successful:', updatedTask);
+      
+      // Invalidate and immediately refetch queries to ensure UI is up-to-date
+      await queryClient.invalidateQueries({ queryKey: ['/api/tasks', userId] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/goals', userId] });
+      
+      // Also make sure to use the string format as well
+      await queryClient.invalidateQueries({ queryKey: [`/api/tasks/${userId}`] }); 
+      await queryClient.invalidateQueries({ queryKey: [`/api/goals/${userId}`] });
+      
       if (selectedGoalId) {
-        queryClient.invalidateQueries({ queryKey: ['/api/tasks/goal', selectedGoalId] });
+        await queryClient.invalidateQueries({ queryKey: ['/api/tasks/goal', selectedGoalId] });
+      }
+      
+      // If this task belongs to a goal, make sure to refetch the goals data
+      if (updatedTask.goalId) {
+        console.log(`Refetching data for goal ${updatedTask.goalId}`);
+        await queryClient.invalidateQueries({ queryKey: ['/api/tasks/goal', updatedTask.goalId] });
+        const goalQueryKey = [`/api/goals/${updatedTask.goalId}`];
+        await queryClient.invalidateQueries({ queryKey: goalQueryKey });
+        
+        // Force a refetch of goals data
+        await queryClient.refetchQueries({ queryKey: ['/api/goals', userId] });
       }
     },
     onError: (error) => {
@@ -188,12 +213,32 @@ export default function TaskList({
       const res = await apiRequest('PATCH', `/api/tasks/${taskId}`, { goalId });
       return res.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/tasks', userId] });
-      queryClient.invalidateQueries({ queryKey: ['/api/goals', userId] });
+    onSuccess: async (updatedTask) => {
+      console.log('Task move successful:', updatedTask);
+      
+      // Invalidate and immediately refetch queries to ensure UI is up-to-date
+      await queryClient.invalidateQueries({ queryKey: ['/api/tasks', userId] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/goals', userId] });
+      
+      // Also make sure to use the string format as well
+      await queryClient.invalidateQueries({ queryKey: [`/api/tasks/${userId}`] }); 
+      await queryClient.invalidateQueries({ queryKey: [`/api/goals/${userId}`] });
+      
       if (selectedGoalId) {
-        queryClient.invalidateQueries({ queryKey: ['/api/tasks/goal', selectedGoalId] });
+        await queryClient.invalidateQueries({ queryKey: ['/api/tasks/goal', selectedGoalId] });
       }
+      
+      // If we moved to a new goal, make sure to refetch that goal's tasks
+      if (updatedTask.goalId) {
+        console.log(`Refetching tasks for goal ${updatedTask.goalId}`);
+        await queryClient.invalidateQueries({ queryKey: ['/api/tasks/goal', updatedTask.goalId] });
+        await queryClient.refetchQueries({ queryKey: ['/api/tasks/goal', updatedTask.goalId] });
+      }
+      
+      // Force a refetch of all relevant data
+      await queryClient.refetchQueries({ queryKey: ['/api/tasks', userId] });
+      await queryClient.refetchQueries({ queryKey: ['/api/goals', userId] });
+        
       toast({
         title: 'Task moved',
         description: 'The task has been moved successfully.',
@@ -242,12 +287,33 @@ export default function TaskList({
       
       return moveRes.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/tasks', userId] });
-      queryClient.invalidateQueries({ queryKey: ['/api/goals', userId] });
+    onSuccess: async (updatedTask) => {
+      console.log('Goal creation and task move successful:', updatedTask);
+      
+      // Invalidate and immediately refetch queries to ensure UI is up-to-date
+      await queryClient.invalidateQueries({ queryKey: ['/api/tasks', userId] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/goals', userId] });
+      
+      // Also make sure to use the string format as well
+      await queryClient.invalidateQueries({ queryKey: [`/api/tasks/${userId}`] }); 
+      await queryClient.invalidateQueries({ queryKey: [`/api/goals/${userId}`] });
+      
       if (selectedGoalId) {
-        queryClient.invalidateQueries({ queryKey: ['/api/tasks/goal', selectedGoalId] });
+        await queryClient.invalidateQueries({ queryKey: ['/api/tasks/goal', selectedGoalId] });
       }
+      
+      // If we moved to a new goal, make sure to refetch that goal's tasks
+      if (updatedTask.goalId) {
+        console.log(`Refetching tasks for new goal ${updatedTask.goalId}`);
+        await queryClient.invalidateQueries({ queryKey: ['/api/tasks/goal', updatedTask.goalId] });
+        const goalQueryKey = [`/api/goals/${updatedTask.goalId}`];
+        await queryClient.invalidateQueries({ queryKey: goalQueryKey });
+        
+        // Force a refetch of goals data
+        await queryClient.refetchQueries({ queryKey: ['/api/goals', userId] });
+        await queryClient.refetchQueries({ queryKey: ['/api/tasks/goal', updatedTask.goalId] });
+      }
+      
       toast({
         title: 'Goal created',
         description: 'New goal created and task moved successfully.',
