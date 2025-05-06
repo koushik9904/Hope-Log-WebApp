@@ -107,11 +107,14 @@ export default function AISuggestions({ existingGoals, existingTasks, existingHa
   
   // Enhanced debugging for AI suggestions
   console.log("Active Tab:", activeTab);
+  console.log("AI Suggestions API endpoint:", `/api/goals/${user?.id}/ai-suggestions`);
   console.log("AI Suggestions data:", aiSuggestions);
+  console.log("AI Goals (initial):", aiSuggestions.goals?.length || 0);
   console.log("AI Tasks (initial):", aiSuggestions.tasks?.length || 0);
   console.log("AI Habits (initial):", aiSuggestions.habits?.length || 0);
-  console.log("Existing Tasks:", existingTasks.length);
-  console.log("Existing Habits:", existingHabits.length);
+  console.log("Existing Goals:", existingGoals?.length || 0);
+  console.log("Existing Tasks:", existingTasks?.length || 0);
+  console.log("Existing Habits:", existingHabits?.length || 0);
   
   // Accept/reject mutations
   const acceptGoalSuggestionMutation = useMutation({

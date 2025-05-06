@@ -32,26 +32,41 @@ export default function HabitAISuggestions({ existingHabitTitles }: HabitAISugge
   
   // Process AI suggestions whenever they change
   useEffect(() => {
+    console.log("HabitAISuggestions - API endpoint:", `/api/goals/${user?.id}/ai-suggestions`);
     console.log("HabitAISuggestions - AI suggestions:", aiSuggestions);
     console.log("HabitAISuggestions - AI habits length:", aiSuggestions.habits?.length || 0);
+    console.log("HabitAISuggestions - Existing habit titles:", existingHabitTitles);
     
     if (aiSuggestions?.habits?.length > 0) {
       // Filter habits that don't already exist
       const filteredHabits = aiSuggestions.habits.filter(habit => {
-        if (!habit.title || habit.title.trim() === '') return false;
+        if (!habit.title || habit.title.trim() === '') {
+          console.log("HabitAISuggestions - Skipping habit with empty title");
+          return false;
+        }
         
         const normalizedSuggestionTitle = habit.title.toLowerCase().trim();
         
-        return !existingHabitTitles.some(existingTitle => {
+        const isDuplicate = existingHabitTitles.some(existingTitle => {
+          if (!existingTitle) return false;
           const normalizedExistingTitle = existingTitle.toLowerCase().trim();
           return normalizedExistingTitle === normalizedSuggestionTitle;
         });
+        
+        if (isDuplicate) {
+          console.log(`HabitAISuggestions - Skipping duplicate habit: ${habit.title}`);
+        }
+        
+        return !isDuplicate;
       });
       
       console.log("HabitAISuggestions - Filtered habits:", filteredHabits.length);
       setAiSuggestedHabits(filteredHabits);
+    } else {
+      console.log("HabitAISuggestions - No habits in AI suggestions");
+      setAiSuggestedHabits([]);
     }
-  }, [aiSuggestions, existingHabitTitles]);
+  }, [aiSuggestions, existingHabitTitles, user?.id]);
   
   // Accept habit mutation
   const acceptHabitSuggestionMutation = useMutation({
