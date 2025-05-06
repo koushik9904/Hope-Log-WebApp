@@ -16,7 +16,7 @@ import { Loader2, RefreshCw, Mail, FileCheck, Clock, CheckCircle, XCircle, Alert
 import { SupportRequest } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
-function formatDate(dateString: string | undefined) {
+function formatDate(dateString: string | undefined | null) {
   if (!dateString) return "Unknown date";
   return new Date(dateString).toLocaleString();
 }

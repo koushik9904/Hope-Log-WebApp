@@ -7,7 +7,9 @@ import {
   Settings,
   Home,
   LogOut,
-  MessagesSquare
+  MessagesSquare,
+  HeadphonesIcon,
+  HelpCircle
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -40,6 +42,11 @@ const navigationItems = [
     label: "OpenAI Settings",
     href: "/admin/openai",
     icon: MessagesSquare,
+  },
+  {
+    label: "Support Requests",
+    href: "/admin/support",
+    icon: HelpCircle,
   },
   {
     label: "Logout",
