@@ -1047,10 +1047,25 @@ export default function GoalsPage() {
         
         {/* Main Content Tabs */}
         <Tabs defaultValue="goals" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="bg-muted w-full justify-start mb-6">
-            <TabsTrigger value="goals">Goals</TabsTrigger>
-            <TabsTrigger value="tasks">Tasks</TabsTrigger>
-            <TabsTrigger value="habits">Habits</TabsTrigger>
+          <TabsList className="bg-[#F5B8DB]/20 border-none rounded-full w-full justify-start mb-6">
+            <TabsTrigger 
+              value="goals" 
+              className={`rounded-full ${activeTab === "goals" ? "bg-[#F5B8DB] text-white" : "bg-transparent text-gray-600"}`}
+            >
+              Goals
+            </TabsTrigger>
+            <TabsTrigger 
+              value="tasks" 
+              className={`rounded-full ${activeTab === "tasks" ? "bg-[#F5B8DB] text-white" : "bg-transparent text-gray-600"}`}
+            >
+              Tasks
+            </TabsTrigger>
+            <TabsTrigger 
+              value="habits" 
+              className={`rounded-full ${activeTab === "habits" ? "bg-[#F5B8DB] text-white" : "bg-transparent text-gray-600"}`}
+            >
+              Habits
+            </TabsTrigger>
           </TabsList>
           
           {/* Goal Dialog */}
@@ -1206,7 +1221,7 @@ export default function GoalsPage() {
             <div className="flex justify-end mb-6">
               <Button 
                 onClick={() => setShowNewGoalDialog(true)}
-                className="bg-[#F5B8DB] hover:bg-[#f096c9] text-white"
+                className="bg-[#F5B8DB] hover:bg-[#f096c9] text-white rounded-full"
               >
                 <Plus className="h-4 w-4 mr-2" /> Add Goal
               </Button>
