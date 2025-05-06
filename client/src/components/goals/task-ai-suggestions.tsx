@@ -84,7 +84,8 @@ export default function TaskAISuggestions({ existingTaskTitles }: TaskAISuggesti
         description: "The suggested task has been added to your tasks.",
         variant: "default",
       });
-      queryClient.invalidateQueries({ queryKey: [`/api/tasks/${user?.id}`] });
+      // Fixed query key to match the format used in tasks-page.tsx
+      queryClient.invalidateQueries({ queryKey: ['/api/tasks', user?.id] });
       queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}/ai-suggestions`] });
     },
     onError: (error) => {

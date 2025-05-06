@@ -1879,10 +1879,10 @@ export default function GoalsPage() {
                 {user && <TaskList 
                   userId={user.id} 
                   selectedGoalId={taskSelectedGoalId} 
-                  statusFilter={taskFilter === "all" ? undefined : taskFilter as "completed" | "pending"} 
+                  filter={taskFilter === "all" ? undefined : taskFilter as "completed" | "pending"} 
                   sortBy={taskSortBy}
                   sortDirection={taskSortDirection}
-                  dateRange={taskDateFilterActive ? taskDateRange : undefined}
+                  isDateFilterActive={taskDateFilterActive}
                   setActiveTab={setActiveTab}
                 />}
                 </CardContent>
