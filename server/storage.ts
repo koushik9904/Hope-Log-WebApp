@@ -871,23 +871,33 @@ export class DatabaseStorage implements IStorage {
       throw new Error(`AI Task with id ${id} not found`);
     }
     
-    // Create a new task in the main tasks table
-    const newTask = await this.createTask({
-      userId: aiTask.userId,
-      title: aiTask.title,
-      description: aiTask.description || '',
-      priority: aiTask.priority || 'medium',
-      goalId: aiTask.goalId,
-      dueDate: aiTask.dueDate,
-      status: 'pending',
-      source: 'ai',
-      aiExplanation: aiTask.explanation
-    });
+    console.log(`Accepting AI Task with id ${id}:`, aiTask);
     
-    // Delete the AI task
-    await this.deleteAiTask(id);
-    
-    return newTask;
+    try {
+      // Create a new task in the main tasks table
+      const newTask = await this.createTask({
+        userId: aiTask.userId,
+        title: aiTask.title,
+        description: aiTask.description || '',
+        priority: aiTask.priority || 'medium',
+        goalId: aiTask.goalId,
+        dueDate: aiTask.dueDate,
+        status: 'pending',
+        source: 'ai',
+        aiExplanation: aiTask.explanation
+      });
+      
+      console.log(`Created new task from AI suggestion:`, newTask);
+      
+      // Delete the AI task
+      await this.deleteAiTask(id);
+      console.log(`Deleted AI Task with id ${id}`);
+      
+      return newTask;
+    } catch (error) {
+      console.error(`Error accepting AI Task with id ${id}:`, error);
+      throw error;
+    }
   }
   
   // Conversion functions between tasks and goals

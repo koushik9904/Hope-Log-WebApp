@@ -997,7 +997,7 @@ Your role is to:
       console.error("Error accepting AI suggested task:", error);
       res.status(500).json({ 
         error: "Failed to accept AI suggested task", 
-        message: error.message || "Unknown error"
+        message: error instanceof Error ? error.message : "Unknown error"
       });
     }
   });
