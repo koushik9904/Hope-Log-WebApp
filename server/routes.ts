@@ -1298,6 +1298,31 @@ Your role is to:
     }
   });
   
+  // Endpoint to convert a task to a goal
+  app.post("/api/tasks/:id/convert-to-goal", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const taskId = Number(req.params.id);
+    
+    try {
+      const task = await storage.getTaskById(taskId);
+      
+      if (!task) {
+        return res.status(404).json({ error: "Task not found" });
+      }
+      
+      if (task.userId !== req.user?.id) {
+        return res.status(403).json({ error: "You don't have permission to convert this task" });
+      }
+      
+      const newGoal = await storage.convertTaskToGoal(taskId);
+      res.status(200).json(newGoal);
+    } catch (error) {
+      console.error("Error converting task to goal:", error);
+      res.status(500).json({ error: "Failed to convert task to goal" });
+    }
+  });
+  
   // Endpoint to get deleted habits for a user
   app.get("/api/habits/:userId/deleted", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
@@ -1485,6 +1510,31 @@ Your role is to:
     } catch (error) {
       console.error("Goal deletion error:", error);
       res.status(500).json({ error: "Failed to delete goal" });
+    }
+  });
+  
+  // Endpoint to convert a goal to a task
+  app.post("/api/goals/:id/convert-to-task", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const goalId = Number(req.params.id);
+    
+    try {
+      const goal = await storage.getGoalById(goalId);
+      
+      if (!goal) {
+        return res.status(404).json({ error: "Goal not found" });
+      }
+      
+      if (goal.userId !== req.user?.id) {
+        return res.status(403).json({ error: "You don't have permission to convert this goal" });
+      }
+      
+      const newTask = await storage.convertGoalToTask(goalId);
+      res.status(200).json(newTask);
+    } catch (error) {
+      console.error("Error converting goal to task:", error);
+      res.status(500).json({ error: "Failed to convert goal to task" });
     }
   });
 
