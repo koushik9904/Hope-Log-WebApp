@@ -379,7 +379,8 @@ export default function GoalsPage() {
     mutationFn: async (goal: GoalFormValues & { id: number }) => {
       try {
         console.log("Updating goal:", goal);
-        const res = await apiRequest("PUT", `/api/goals/${goal.id}`, goal);
+        // Changed from PUT to PATCH to match the server endpoint
+        const res = await apiRequest("PATCH", `/api/goals/${goal.id}`, goal);
         console.log("Update goal response:", res.status, res.statusText);
         
         // Even if the response is a 200 OK, we'll explicitly handle it here
