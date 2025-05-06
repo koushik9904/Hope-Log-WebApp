@@ -35,7 +35,7 @@ export function MobileNav() {
           <NavLink href="/journal" icon={<BookOpen className="w-full h-full" />} label="Journal" />
           <NavLink href="/insights" icon={<BarChart2 className="w-full h-full" />} label="Insights" />
           <NavLink href="/goals" icon={<Target className="w-full h-full" />} label="Goals & Habits" />
-          <NavLink href="/settings" icon={<Settings className="w-full h-full" />} label="Settings" />
+          <NavLink href="/settings/profile" icon={<Settings className="w-full h-full" />} label="Settings" />
         </div>
       </nav>
       
