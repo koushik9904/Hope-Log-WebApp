@@ -141,8 +141,18 @@ export default function AISuggestions({ existingGoals, existingTasks, existingHa
 
   const rejectGoalSuggestionMutation = useMutation({
     mutationFn: async (goalId: number) => {
+      console.log(`Rejecting AI goal with ID: ${goalId}`);
       const res = await apiRequest("DELETE", `/api/ai-goals/${goalId}`, {});
-      return await res.json();
+      // For DELETE endpoints that return 204 No Content, we shouldn't try to parse JSON
+      if (res.status === 204) {
+        return {};
+      }
+      try {
+        return await res.json();
+      } catch (e) {
+        console.log("No JSON response from delete endpoint (expected for 204 status)");
+        return {};
+      }
     },
     onSuccess: () => {
       toast({
@@ -153,6 +163,7 @@ export default function AISuggestions({ existingGoals, existingTasks, existingHa
       queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}/ai-suggestions`] });
     },
     onError: (error) => {
+      console.error("Error rejecting goal suggestion:", error);
       toast({
         title: "Failed to remove suggestion",
         description: "There was an error removing the goal suggestion.",
@@ -186,8 +197,18 @@ export default function AISuggestions({ existingGoals, existingTasks, existingHa
 
   const rejectTaskSuggestionMutation = useMutation({
     mutationFn: async (taskId: number) => {
+      console.log(`Rejecting AI task with ID: ${taskId}`);
       const res = await apiRequest("DELETE", `/api/ai-tasks/${taskId}`, {});
-      return await res.json();
+      // For DELETE endpoints that return 204 No Content, we shouldn't try to parse JSON
+      if (res.status === 204) {
+        return {};
+      }
+      try {
+        return await res.json();
+      } catch (e) {
+        console.log("No JSON response from delete endpoint (expected for 204 status)");
+        return {};
+      }
     },
     onSuccess: () => {
       toast({
@@ -198,6 +219,7 @@ export default function AISuggestions({ existingGoals, existingTasks, existingHa
       queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}/ai-suggestions`] });
     },
     onError: (error) => {
+      console.error("Error rejecting task suggestion:", error);
       toast({
         title: "Failed to remove suggestion",
         description: "There was an error removing the task suggestion.",
@@ -231,8 +253,18 @@ export default function AISuggestions({ existingGoals, existingTasks, existingHa
 
   const rejectHabitSuggestionMutation = useMutation({
     mutationFn: async (habitId: number) => {
+      console.log(`Rejecting AI habit with ID: ${habitId}`);
       const res = await apiRequest("DELETE", `/api/ai-habits/${habitId}`, {});
-      return await res.json();
+      // For DELETE endpoints that return 204 No Content, we shouldn't try to parse JSON
+      if (res.status === 204) {
+        return {};
+      }
+      try {
+        return await res.json();
+      } catch (e) {
+        console.log("No JSON response from delete endpoint (expected for 204 status)");
+        return {};
+      }
     },
     onSuccess: () => {
       toast({
@@ -243,6 +275,7 @@ export default function AISuggestions({ existingGoals, existingTasks, existingHa
       queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}/ai-suggestions`] });
     },
     onError: (error) => {
+      console.error("Error rejecting habit suggestion:", error);
       toast({
         title: "Failed to remove suggestion",
         description: "There was an error removing the habit suggestion.",
