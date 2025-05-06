@@ -1,6 +1,6 @@
 import { useAuth } from "@/hooks/use-auth";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
-import { Download, FileJson, FileText, Database, RefreshCw } from "lucide-react";
+import { Download, FileJson, FileText, Database, RefreshCw, AlertTriangle } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -40,6 +40,18 @@ export default function SettingsDataPage() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
+        <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-6 w-6 text-amber-500 flex-shrink-0 mt-1" />
+            <div>
+              <h3 className="font-medium text-amber-700 mb-1">Coming Soon</h3>
+              <p className="text-sm text-amber-600">
+                Our Data & Export module is under development. The preview below shows what's coming!
+              </p>
+            </div>
+          </div>
+        </div>
+        
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2 font-['Montserrat_Variable']">Data & Export</h1>
           <p className="text-gray-500 font-['Inter_Variable']">
@@ -68,7 +80,7 @@ export default function SettingsDataPage() {
                   variant="outline" 
                   className="w-full justify-start" 
                   onClick={() => handleExport('json')}
-                  disabled={exporting}
+                  disabled={true}
                 >
                   <Download className="h-4 w-4 mr-2" />
                   Export as JSON
@@ -87,7 +99,7 @@ export default function SettingsDataPage() {
                   variant="outline" 
                   className="w-full justify-start" 
                   onClick={() => handleExport('csv')}
-                  disabled={exporting}
+                  disabled={true}
                 >
                   <Download className="h-4 w-4 mr-2" />
                   Export as CSV

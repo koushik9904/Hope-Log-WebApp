@@ -82,6 +82,7 @@ export default function SettingsAppearancePage() {
               className="grid grid-cols-2 gap-4"
               value={theme}
               onValueChange={setTheme}
+              disabled={true}
             >
               <div>
                 <RadioGroupItem value="light" id="light" className="peer sr-only" />
@@ -127,12 +128,12 @@ export default function SettingsAppearancePage() {
                 <div
                   key={scheme.id}
                   className={cn(
-                    "relative cursor-pointer rounded-lg border-2 p-4",
+                    "relative cursor-not-allowed rounded-lg border-2 p-4 opacity-75",
                     colorScheme === scheme.id 
                       ? "border-[#F5D867]" 
                       : "border-transparent hover:border-gray-200"
                   )}
-                  onClick={() => setColorScheme(scheme.id)}
+                  onClick={() => {/* Disabled */}}
                   style={{ backgroundColor: scheme.bg }}
                 >
                   {colorScheme === scheme.id && (
