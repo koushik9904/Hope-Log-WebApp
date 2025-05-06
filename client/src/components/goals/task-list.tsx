@@ -453,12 +453,18 @@ export default function TaskList({
     if (!dateRange?.from) return true;
     if (!task.dueDate) return false; // No due date doesn't match date filter
     
+    // Parse the ISO date string to a Date object
     const taskDate = new Date(task.dueDate);
+    taskDate.setHours(0, 0, 0, 0); // Normalize task date to start of day
     
+    // From date only (on or after this date)
     if (dateRange.from && !dateRange.to) {
-      return taskDate >= dateRange.from;
+      const start = new Date(dateRange.from);
+      start.setHours(0, 0, 0, 0);
+      return taskDate >= start;
     }
     
+    // Date range (between from and to, inclusive)
     if (dateRange.from && dateRange.to) {
       const start = new Date(dateRange.from);
       start.setHours(0, 0, 0, 0);

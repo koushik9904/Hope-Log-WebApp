@@ -588,12 +588,18 @@ export default function GoalsPage() {
     filteredGoals = filteredGoals.filter(goal => {
       if (!goal.targetDate) return false;
       
+      // Parse the ISO date string to a Date object and normalize to start of day
       const targetDate = new Date(goal.targetDate);
+      targetDate.setHours(0, 0, 0, 0);
       
+      // From date only (on or after this date)
       if (goalDateRange.from && !goalDateRange.to) {
-        return targetDate >= goalDateRange.from;
+        const start = new Date(goalDateRange.from);
+        start.setHours(0, 0, 0, 0);
+        return targetDate >= start;
       }
       
+      // Date range (between from and to, inclusive)
       if (goalDateRange.from && goalDateRange.to) {
         const start = new Date(goalDateRange.from);
         start.setHours(0, 0, 0, 0);
