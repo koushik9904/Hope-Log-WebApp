@@ -724,9 +724,9 @@ export default function LandingPage() {
                 </li>
               </ul>
               
-              <Link href="/auth?tab=register&plan=premium" className="block text-center pi-button">
-                Start Premium
-              </Link>
+              <button disabled className="block w-full text-center pi-button opacity-70 cursor-not-allowed">
+                Coming Soon
+              </button>
             </div>
             
             <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
