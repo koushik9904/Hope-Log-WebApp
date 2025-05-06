@@ -1023,33 +1023,54 @@ export class DatabaseStorage implements IStorage {
   }
   
   async deleteAiHabit(id: number): Promise<void> {
-    await db
-      .delete(aiHabits)
-      .where(eq(aiHabits.id, id));
+    try {
+      const result = await db
+        .delete(aiHabits)
+        .where(eq(aiHabits.id, id))
+        .returning();
+      
+      console.log(`Successfully deleted AI habit with ID ${id}. Rows affected: ${result.length}`);
+    } catch (error) {
+      console.error(`Error deleting AI habit with ID ${id}:`, error);
+      throw error;
+    }
   }
   
   async acceptAiHabit(id: number): Promise<Habit> {
-    // Get the AI habit
-    const aiHabit = await this.getAiHabitById(id);
-    if (!aiHabit) {
-      throw new Error(`AI Habit with id ${id} not found`);
+    try {
+      console.log(`Starting to accept AI habit with ID ${id}`);
+      
+      // Get the AI habit
+      const aiHabit = await this.getAiHabitById(id);
+      if (!aiHabit) {
+        throw new Error(`AI Habit with id ${id} not found`);
+      }
+      
+      console.log(`Found AI habit: ${JSON.stringify(aiHabit)}`);
+      
+      // Create a new habit in the main habits table
+      const newHabit = await this.createHabit({
+        userId: aiHabit.userId,
+        title: aiHabit.title,
+        description: aiHabit.description || '',
+        frequency: aiHabit.frequency || 'daily',
+        status: 'active',
+        source: 'ai',
+        aiExplanation: aiHabit.explanation
+      });
+      
+      console.log(`Created new habit in main table: ${JSON.stringify(newHabit)}`);
+      
+      // Delete the AI habit
+      console.log(`Now attempting to delete AI habit with ID ${id} from ai_habits table`);
+      await this.deleteAiHabit(id);
+      console.log(`Successfully completed the accept process for AI habit with ID ${id}`);
+      
+      return newHabit;
+    } catch (error) {
+      console.error(`Error in acceptAiHabit for ID ${id}:`, error);
+      throw error;
     }
-    
-    // Create a new habit in the main habits table
-    const newHabit = await this.createHabit({
-      userId: aiHabit.userId,
-      title: aiHabit.title,
-      description: aiHabit.description || '',
-      frequency: aiHabit.frequency || 'daily',
-      status: 'active',
-      source: 'ai',
-      aiExplanation: aiHabit.explanation
-    });
-    
-    // Delete the AI habit
-    await this.deleteAiHabit(id);
-    
-    return newHabit;
   }
   
   async getDefaultPrompts(): Promise<Prompt[]> {
