@@ -281,16 +281,21 @@ export default function TaskList({
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/tasks', userId] });
+      // Use the correct query key format to match other queries in the application
+      queryClient.invalidateQueries({ queryKey: [`/api/tasks/${userId}`] });
       queryClient.invalidateQueries({ queryKey: [`/api/tasks/${userId}/deleted`] });
-      queryClient.invalidateQueries({ queryKey: ['/api/goals', userId] });
+      queryClient.invalidateQueries({ queryKey: [`/api/goals/${userId}`] });
+      
       if (selectedGoalId) {
+        // For tasks in a specific goal
         queryClient.invalidateQueries({ queryKey: ['/api/tasks/goal', selectedGoalId] });
       }
+      
       toast({
         title: 'Task converted',
         description: 'Task has been converted to a goal successfully.',
       });
+      
       setConvertToGoalDialogOpen(false);
     },
     onError: (error) => {
