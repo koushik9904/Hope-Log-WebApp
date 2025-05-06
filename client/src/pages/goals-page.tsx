@@ -240,6 +240,8 @@ export default function GoalsPage() {
   const [showNewGoalDialog, setShowNewGoalDialog] = useState(false);
   const [showNewHabitDialog, setShowNewHabitDialog] = useState(false);
   const [showNewTaskDialog, setShowNewTaskDialog] = useState(false);
+  const [showEditGoalDialog, setShowEditGoalDialog] = useState(false);
+  const [goalToEdit, setGoalToEdit] = useState<Goal | null>(null);
   const [newTaskInitialData, setNewTaskInitialData] = useState<{
     title?: string;
     description?: string;
@@ -264,7 +266,7 @@ export default function GoalsPage() {
   
   // Task filtering states
   const [taskFilter, setTaskFilter] = useState<string>('all');
-  const [taskSortBy, setTaskSortBy] = useState<'dueDate' | 'priority' | 'createdAt'>('dueDate');
+  const [taskSortBy, setTaskSortBy] = useState<'dueDate' | 'priority' | 'title' | 'createdAt'>('dueDate');
   const [taskSortDirection, setTaskSortDirection] = useState<'asc' | 'desc'>('asc');
   const [taskDateRangeOpen, setTaskDateRangeOpen] = useState(false);
   const [taskDateRange, setTaskDateRange] = useState<{
