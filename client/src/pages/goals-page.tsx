@@ -1883,6 +1883,19 @@ export default function GoalsPage() {
                   sortBy={taskSortBy}
                   sortDirection={taskSortDirection}
                   isDateFilterActive={taskDateFilterActive}
+                  isDateInRange={(dueDate) => {
+                    if (!taskDateRange.from) return true;
+                    
+                    const dateToCheck = new Date(dueDate);
+                    const fromDate = new Date(taskDateRange.from);
+                    const toDate = taskDateRange.to ? new Date(taskDateRange.to) : fromDate;
+                    
+                    // Set times to beginning/end of day for accurate comparison
+                    fromDate.setHours(0, 0, 0, 0);
+                    toDate.setHours(23, 59, 59, 999);
+                    
+                    return dateToCheck >= fromDate && dateToCheck <= toDate;
+                  }}
                   setActiveTab={setActiveTab}
                 />}
                 </CardContent>
