@@ -377,10 +377,20 @@ export default function GoalsPage() {
   // Edit goal mutation
   const editGoalMutation = useMutation({
     mutationFn: async (goal: GoalFormValues & { id: number }) => {
-      const res = await apiRequest("PUT", `/api/goals/${goal.id}`, goal);
-      return await res.json();
+      try {
+        const res = await apiRequest("PUT", `/api/goals/${goal.id}`, goal);
+        // Check if the response is successful
+        if (res.ok) {
+          return await res.json();
+        } else {
+          throw new Error(`Failed to update goal: ${res.statusText}`);
+        }
+      } catch (error) {
+        console.error("Error in goal update mutation:", error);
+        throw error; // Re-throw to trigger onError
+      }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       setShowEditGoalDialog(false);
       queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}`] });
       toast({
