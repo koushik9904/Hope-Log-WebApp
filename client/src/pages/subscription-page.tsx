@@ -685,7 +685,7 @@ const SubscriptionPage = () => {
                  !currentSubscription.subscription.cancelAtPeriodEnd && (
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button variant="destructive">Cancel Subscription</Button>
+                      <Button variant="destructive" disabled={true}>Cancel Subscription</Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
