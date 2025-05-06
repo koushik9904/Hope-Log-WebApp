@@ -1,6 +1,6 @@
 import { useLocation, Link } from "wouter";
 import { cn } from "@/lib/utils";
-import { Home, BookOpen, BarChart2, Settings, Plus, ExternalLink, Info, CreditCard, Target } from "lucide-react";
+import { Home, BookOpen, BarChart2, Settings, Plus, ExternalLink, Info, CreditCard, Target, HelpCircle } from "lucide-react";
 
 export function MobileNav() {
   const [location] = useLocation();
@@ -35,7 +35,7 @@ export function MobileNav() {
           <NavLink href="/journal" icon={<BookOpen className="w-full h-full" />} label="Journal" />
           <NavLink href="/insights" icon={<BarChart2 className="w-full h-full" />} label="Insights" />
           <NavLink href="/goals" icon={<Target className="w-full h-full" />} label="Goals & Habits" />
-          <NavLink href="/settings/profile" icon={<Settings className="w-full h-full" />} label="Settings" />
+          <NavLink href="/support" icon={<HelpCircle className="w-full h-full" />} label="Support" />
         </div>
       </nav>
       

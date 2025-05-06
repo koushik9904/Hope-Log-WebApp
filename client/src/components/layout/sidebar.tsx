@@ -148,7 +148,7 @@ export function Sidebar() {
         
         <NavLink 
           href="/support" 
-          icon={<MessageSquare className="w-full h-full" />} 
+          icon={<HelpCircle className="w-full h-full" />} 
           label="Support & Feedback" 
         />
         
