@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { format } from 'date-fns';
-import { Edit, Trash, Check, X, ArrowRight, Calendar, Clock, Target, Plus, Filter, AlertCircle, BarChart3, ListTodo } from 'lucide-react';
+import { Edit, Trash, Trash2, Check, X, ArrowRight, Calendar, Clock, Target, Plus, Filter, AlertCircle, BarChart3, ListTodo, MoreHorizontal, ClipboardList } from 'lucide-react';
 import { Task, Goal } from '@shared/schema';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
@@ -677,25 +677,39 @@ export default function TaskList({
                         </span>
                       )}
                       
-                      {/* Edit button */}
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-6 w-6" 
-                        onClick={() => handleEdit(task)}
-                      >
-                        <Edit className="h-3 w-3 text-gray-500" />
-                      </Button>
-                      
-                      {/* Delete button */}
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-6 w-6" 
-                        onClick={() => confirmDelete(task)}
-                      >
-                        <Trash className="h-3 w-3 text-gray-500" />
-                      </Button>
+                      {/* Task action menu */}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-6 w-6 p-0">
+                            <MoreHorizontal className="h-3 w-3" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-white">
+                          <DropdownMenuItem onClick={() => handleEdit(task)}>
+                            <Edit className="h-4 w-4 mr-2" />
+                            <span>Edit</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => {
+                            setTaskToMove(task);
+                            setMoveTaskDialogOpen(true);
+                          }}>
+                            <ArrowRight className="h-4 w-4 mr-2" />
+                            <span>Move to Goal</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => {
+                            setTaskToConvert(task);
+                            setNewGoalName(task.title);
+                            setConvertToGoalDialogOpen(true);
+                          }}>
+                            <ClipboardList className="h-4 w-4 mr-2" />
+                            <span>Convert to Goal</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => confirmDelete(task)}>
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            <span>Delete</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </div>
                 ))}
