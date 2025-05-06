@@ -98,6 +98,8 @@ import {
   Lightbulb,
   Filter,
   CalendarDays,
+  Calendar,
+  ArrowUpDown,
   SortAsc,
   SortDesc,
   Plus,
@@ -1914,10 +1916,61 @@ export default function GoalsPage() {
               <Card className="md:col-span-3 bg-white border-0 shadow-sm">
                 <CardHeader className="border-b border-gray-100">
                   <CardTitle className="font-['Montserrat_Variable'] text-base">Your Habits</CardTitle>
+                  <CardDescription>
+                    Track your recurring routines and daily practices
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="pt-6">
+                  {/* Habit Filtering UI - Matches the style of Tasks tab */}
+                  <div className="flex flex-wrap gap-2 mb-6">
+                    {/* Frequency Filter Button */}
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="rounded-full bg-[#B6CAEB]/10 text-sm px-4 border-[#B6CAEB]/20 text-gray-700 gap-1"
+                    >
+                      <Filter className="h-3.5 w-3.5 mr-1" />
+                      Filter by Frequency
+                    </Button>
+                    
+                    {/* Status Filter Pills */}
+                    <div className="flex items-center gap-1">
+                      <Button 
+                        variant="default"
+                        size="sm" 
+                        className="rounded-full bg-[#B6CAEB] hover:bg-[#B6CAEB]/90"
+                      >
+                        All
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="rounded-full bg-[#B6CAEB]/10 hover:bg-[#B6CAEB]/20 border-[#B6CAEB]/20"
+                      >
+                        Today
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="rounded-full bg-[#B6CAEB]/10 hover:bg-[#B6CAEB]/20 border-[#B6CAEB]/20"
+                      >
+                        Streaks
+                      </Button>
+                    </div>
+                    
+                    {/* Sort Button */}
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="rounded-full bg-[#B6CAEB]/10 text-sm px-4 border-[#B6CAEB]/20 text-gray-700 gap-1 ml-auto"
+                    >
+                      <ArrowUpDown className="h-3.5 w-3.5 mr-1" />
+                      Sort
+                    </Button>
+                  </div>
+                  
                   {habits.length > 0 ? (
-                    <div className="mt-4">
+                    <div>
                       {habits.map(habit => (
                         <div key={habit.id} className="flex items-center justify-between bg-[#FFF8E8] p-3 rounded-md mb-3">
                           <div className="flex items-center">
@@ -2002,7 +2055,7 @@ export default function GoalsPage() {
                           });
                           setShowNewHabitDialog(true);
                         }}
-                        className="bg-[#B6CAEB] hover:bg-[#95b9e5] text-white"
+                        className="bg-[#B6CAEB] hover:bg-[#95b9e5] text-white rounded-full"
                       >
                         <Plus className="h-4 w-4 mr-2" /> Create Your First Habit
                       </Button>
