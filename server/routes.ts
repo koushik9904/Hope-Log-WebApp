@@ -1555,13 +1555,18 @@ Your role is to:
           ...updateData
         };
         
-        // Then update in the database by deleting and recreating
-        // This is our current implementation, since we don't have a direct update method
+        // We need to implement a proper update method
+        // First soft-delete the goal to "remove" it
         await storage.deleteGoal(goalId);
+        
+        // Then create a new goal but WITHOUT specifying the ID
+        // Let the database auto-generate a new ID
         const savedGoal = await storage.createGoal({
           ...updatedGoal,
-          id: goalId, // Make sure to preserve the original ID
-          userId: req.user.id
+          // Don't include id here - let the database assign a new ID
+          userId: req.user.id,
+          // Make sure to set deletedAt to null for the new goal
+          deletedAt: null
         });
         
         return res.json(savedGoal);

@@ -404,8 +404,12 @@ export default function GoalsPage() {
     },
     onSuccess: (data) => {
       console.log("Goal update success handler called with:", data);
-      setShowEditGoalDialog(false);
+      // The updated goal will have a new ID since we're doing a delete+create on the server
+      // Make sure we invalidate all relevant cache entries
       queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/tasks/goal/`] }); // Invalidate any related tasks
+      
+      setShowEditGoalDialog(false);
       toast({
         title: "Goal updated",
         description: "Your goal has been successfully updated"
