@@ -971,6 +971,8 @@ export default function GoalsPage() {
                                 // Invalidate both queries
                                 queryClient.invalidateQueries({ queryKey: [`/api/tasks/${user?.id}`] });
                                 queryClient.invalidateQueries({ queryKey: [`/api/tasks/${user?.id}/deleted`] });
+                                // Switch to the tasks tab
+                                setActiveTab("tasks");
                                 toast({
                                   title: "Task restored",
                                   description: "Your task has been successfully restored",
