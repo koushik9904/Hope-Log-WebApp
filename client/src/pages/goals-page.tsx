@@ -299,24 +299,16 @@ export default function GoalsPage() {
   // Delete goal mutation
   const deleteGoalMutation = useMutation({
     mutationFn: async (id: number) => {
-      // Find the goal before deleting it
-      const goalToDelete = goals.find(g => g.id === id);
-      if (goalToDelete) {
-        // Add to deleted goals with timestamp
-        setDeletedGoals(prev => [...prev, {
-          ...goalToDelete,
-          deletedAt: new Date().toISOString()
-        }]);
-      }
-      
       // Proceed with deletion from database
       const res = await apiRequest("DELETE", `/api/goals/${id}`);
       return id;
     },
     onSuccess: (id) => {
+      // Invalidate both regular goals and deleted goals queries
       queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}/deleted`] });
       toast({
-        title: "Goal deleted",
+        title: "Goal moved to recycle bin",
         description: "The goal has been moved to recycle bin",
       });
     },

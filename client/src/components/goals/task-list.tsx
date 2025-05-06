@@ -156,13 +156,17 @@ export default function TaskList({
       await apiRequest('DELETE', `/api/tasks/${id}`);
     },
     onSuccess: () => {
+      // Invalidate both regular tasks and deleted tasks queries
       queryClient.invalidateQueries({ queryKey: ['/api/tasks', userId] });
+      queryClient.invalidateQueries({ queryKey: [`/api/tasks/${userId}/deleted`] });
+      
       if (selectedGoalId) {
         queryClient.invalidateQueries({ queryKey: ['/api/tasks/goal', selectedGoalId] });
       }
+      
       toast({
-        title: 'Task deleted',
-        description: 'The task has been deleted successfully.',
+        title: 'Task moved to recycle bin',
+        description: 'The task has been moved to the recycle bin.',
       });
       setDeleteDialogOpen(false);
     },
@@ -288,6 +292,7 @@ export default function TaskList({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/tasks', userId] });
+      queryClient.invalidateQueries({ queryKey: [`/api/tasks/${userId}/deleted`] });
       queryClient.invalidateQueries({ queryKey: ['/api/goals', userId] });
       if (selectedGoalId) {
         queryClient.invalidateQueries({ queryKey: ['/api/tasks/goal', selectedGoalId] });
