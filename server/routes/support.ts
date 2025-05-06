@@ -30,7 +30,7 @@ const storage = multer.diskStorage({
 const upload = multer({ 
   storage: storage,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
+    fileSize: 2 * 1024 * 1024, // 2MB limit (Gmail attachment size is relatively small)
   },
   fileFilter: function (req, file, cb: any) {
     // Accept images only
@@ -42,13 +42,18 @@ const upload = multer({
   }
 });
 
-// Configure nodemailer transporter
+// Configure nodemailer transporter for Gmail
+// Gmail requires app passwords with 2FA or "Less secure app access" turned on
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true, // use SSL
   auth: {
     user: process.env.EMAIL_USER || 'noreply@hopelog.com',
     pass: process.env.EMAIL_PASSWORD || '',
   },
+  debug: true, // Enable debug output
+  logger: true // Log information about the mail transport
 });
 
 const unlinkAsync = promisify(fs.unlink);
@@ -90,8 +95,16 @@ router.post('/api/support', upload.single('attachment'), async (req, res) => {
     // Only attempt to send if credentials are set
     let emailSent = false;
     if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
-      await transporter.sendMail(mailOptions);
-      emailSent = true;
+      console.log(`Attempting to send email using: ${process.env.EMAIL_USER}`);
+      
+      try {
+        const info = await transporter.sendMail(mailOptions);
+        console.log('Email sent successfully:', info.response);
+        emailSent = true;
+      } catch (emailError) {
+        console.error('Error sending email:', emailError);
+        // Continue with request processing even if email fails
+      }
     } else {
       console.log('Email credentials not set. Would have sent:', mailOptions);
     }

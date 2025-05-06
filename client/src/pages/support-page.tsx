@@ -74,9 +74,15 @@ export default function SupportPage() {
       setFileName(null);
     },
     onError: (error: Error) => {
+      let errorMessage = error.message;
+      
+      if (error.message.includes("File too large") || error.message.includes("limit")) {
+        errorMessage = "Attachment too large. Please use an image smaller than 2MB.";
+      }
+      
       toast({
         title: "Failed to submit request",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
     },
@@ -172,7 +178,7 @@ export default function SupportPage() {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="attachment">Attachment (optional)</Label>
+                <Label htmlFor="attachment">Attachment (optional) <span className="text-xs text-muted-foreground ml-1">(Max 2MB)</span></Label>
                 <div className="flex items-center gap-2">
                   <Button
                     type="button"
