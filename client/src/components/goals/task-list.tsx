@@ -451,10 +451,16 @@ export default function TaskList({
     );
   }
 
-  // Add date range check for tasks
-  const isInDateRange = (task: Task) => {
+  // Use the provided isDateInRange function or our internal one
+  const checkDateInRange = (task: Task) => {
+    // If external date filter function provided, use it
+    if (isDateInRange) {
+      return isDateInRange(task.dueDate);
+    }
+    
+    // Otherwise fall back to our internal implementation
     // If no date range filter is active, include all tasks
-    if (!dateRange?.from) return true;
+    if (!isDateFilterActive) return true;
     
     // If task has no due date, don't include in date-filtered results
     if (!task.dueDate) return false;
@@ -469,48 +475,30 @@ export default function TaskList({
         return false;
       }
       
-      // Normalize times for comparison (start of day)
-      const taskDateNormalized = new Date(taskDate);
-      taskDateNormalized.setHours(0, 0, 0, 0);
-      
-      const fromDate = new Date(dateRange.from);
-      fromDate.setHours(0, 0, 0, 0);
-      
-      // From date only (on or after this date)
-      if (dateRange.from && !dateRange.to) {
-        console.log(`Checking date range: Task ${task.id} date ${taskDateNormalized} >= from ${fromDate}`);
-        return taskDateNormalized >= fromDate;
-      }
-      
-      // Date range (between from and to, inclusive)
-      if (dateRange.from && dateRange.to) {
-        const toDate = new Date(dateRange.to);
-        toDate.setHours(23, 59, 59, 999); // End of the day
-        
-        console.log(`Checking date range: Task ${task.id} date ${taskDateNormalized} between ${fromDate} and ${toDate}`);
-        return taskDateNormalized >= fromDate && taskDateNormalized <= toDate;
-      }
-      
-      return false; // If no conditions match, don't include the task
+      return true; // Default to true if no external filter function provided
     } catch (error) {
       console.error(`Error filtering task ${task.id} by date range:`, error);
       return false;
     }
   };
 
+  // Use provided tasks or fetch from API
+  const allTasks = propTasks || tasksQuery.data || [];
+  const isLoading = propIsLoading !== undefined ? propIsLoading : tasksQuery.isLoading;
+  
   // Apply filters to tasks
-  let filteredTasks = tasksQuery.data || [];
+  let filteredTasks = [...allTasks];
   
   // Apply status filter
-  if (statusFilter === 'pending') {
+  if (filter === 'pending') {
     filteredTasks = filteredTasks.filter(task => !task.completed);
-  } else if (statusFilter === 'completed') {
+  } else if (filter === 'completed') {
     filteredTasks = filteredTasks.filter(task => task.completed);
   }
   
   // Apply date range filter if active
-  if (dateRange?.from) {
-    filteredTasks = filteredTasks.filter(isInDateRange);
+  if (isDateFilterActive) {
+    filteredTasks = filteredTasks.filter(checkDateInRange);
   }
   
   // Apply sorting - improved with error handling and validation
@@ -601,11 +589,11 @@ export default function TaskList({
   }, {} as Record<string, Task[]>);
 
   // Calculate filter stats for displaying to user
-  const totalTasks = tasksQuery.data?.length || 0;
+  const totalTasks = allTasks.length;
   const filteredCount = filteredTasks.length;
   const isFiltered = 
-    statusFilter !== 'all' || 
-    dateRange?.from !== undefined || 
+    filter !== 'all' || 
+    isDateFilterActive || 
     selectedGoalId !== null;
 
   return (
@@ -617,9 +605,9 @@ export default function TaskList({
             <Filter className="h-4 w-4 mr-2 text-muted-foreground" />
             <span>
               Showing {filteredCount} of {totalTasks} tasks
-              {statusFilter !== 'all' && 
-                ` • ${statusFilter === 'completed' ? 'Completed' : 'Pending'} tasks`}
-              {dateRange?.from && 
+              {filter !== 'all' && 
+                ` • ${filter === 'completed' ? 'Completed' : 'Pending'} tasks`}
+              {isDateFilterActive && 
                 ` • Due date filtered`}
             </span>
           </div>
@@ -629,7 +617,7 @@ export default function TaskList({
       {filteredTasks.length === 0 ? (
         <div className="text-center p-8 border rounded-lg bg-muted/30">
           <p className="text-muted-foreground">
-            {tasksQuery.data && tasksQuery.data.length > 0
+            {allTasks.length > 0
               ? "No tasks match your current filters."
               : "No tasks found. Create your first task to get started!"}
           </p>
