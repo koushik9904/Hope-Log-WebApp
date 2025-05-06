@@ -96,13 +96,45 @@ export default function TasksPage() {
     to: undefined,
   });
   const [dateFilterActive, setDateFilterActive] = useState(false);
-  const [aiSuggestedTasks, setAiSuggestedTasks] = useState<typeof AI_SUGGESTED_TASKS>([]);
+  
+  // Fetch AI-suggested tasks directly from the same endpoint used by AISuggestions component
+  const { 
+    data: aiSuggestions = { goals: [], tasks: [], habits: [] },
+    isLoading: isLoadingSuggestions 
+  } = useQuery<{ 
+    goals: any[], 
+    tasks: any[], 
+    habits: any[] 
+  }>({
+    queryKey: [`/api/goals/${user?.id}/ai-suggestions`],
+    enabled: !!user?.id,
+    staleTime: 300000, // 5 minutes
+  });
+  
+  const [aiSuggestedTasks, setAiSuggestedTasks] = useState<any[]>([]);
   const [aiSuggestedGoals, setAiSuggestedGoals] = useState<{
     id: string;
     name: string;
     description: string;
     relatedTasks: string[];
   }[]>([]);
+  
+  // Process AI suggestions whenever they change
+  useEffect(() => {
+    console.log("AI tasks data in tasks-page:", aiSuggestions?.tasks);
+    if (aiSuggestions?.tasks?.length > 0) {
+      const processedTasks = aiSuggestions.tasks.map((task, index) => ({
+        id: task.id || `ai-task-${index}`,
+        title: task.title,
+        description: task.description,
+        priority: task.priority || "medium",
+        explanation: task.explanation || "Based on your journal entries"
+      }));
+      
+      console.log("Processed AI tasks:", processedTasks);
+      setAiSuggestedTasks(processedTasks);
+    }
+  }, [aiSuggestions]);
 
   // Fetch goals for filter dropdown
   const { data: goals = [] } = useQuery<Goal[]>({
@@ -113,35 +145,6 @@ export default function TasksPage() {
       if (!res.ok) throw new Error('Failed to fetch goals');
       return res.json();
     },
-  });
-
-  // Define interface for task and goal suggestions
-  interface TaskSuggestion {
-    name: string;
-    description: string;
-    isTask: boolean; // Added to differentiate tasks from goals
-  }
-
-  interface GoalSuggestion {
-    name: string;
-    description: string;
-    relatedTasks: string[];
-    isTask: boolean; // Added to differentiate tasks from goals
-  }
-
-  interface TasksSuggestionResponse {
-    tasks: TaskSuggestion[];
-    goalSuggestions: GoalSuggestion[];
-  }
-
-  // Fetch AI-suggested tasks and goals from the API.  This assumes the API returns the data in the TasksSuggestionResponse format.
-  const { 
-    data: aiSuggestions, 
-    isLoading: isSuggestionsLoading 
-  } = useQuery<TasksSuggestionResponse>({
-    queryKey: [`/api/tasks/${user?.id}/ai-suggestions`],
-    enabled: !!user?.id,
-    staleTime: 300000 // 5 minutes
   });
 
   // Update AI suggested tasks and goals when data is loaded
