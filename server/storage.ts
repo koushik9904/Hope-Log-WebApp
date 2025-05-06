@@ -318,7 +318,8 @@ export class DatabaseStorage implements IStorage {
       .insert(journalEntries)
       .values({
         ...entry,
-        sentiment: entry.sentiment || { score: 3, emotions: [], themes: [] }
+        sentiment: entry.sentiment || { score: 3, emotions: [], themes: [] },
+        analyzed: false // Explicitly set analyzed to false for new entries
       })
       .returning();
       
