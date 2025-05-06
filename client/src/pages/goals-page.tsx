@@ -1688,20 +1688,20 @@ export default function GoalsPage() {
                             <div className="flex flex-1">
                               <Button 
                                 onClick={() => {
-                                  // Add suggested habit
+                                  // Accept the habit using the proper mutation to remove it from suggestions
                                   if (!user) return;
-                                  setNewHabit({
-                                    title: habit.title,
-                                    description: habit.description,
-                                    frequency: habit.frequency || "daily",
-                                    userId: user.id
-                                  });
-                                  setShowNewHabitDialog(true);
+                                  
+                                  // Call the accept mutation which will:
+                                  // 1. Add the habit to the main habits table
+                                  // 2. Delete it from the AI suggestions table
+                                  acceptHabitSuggestionMutation.mutate(habit.id);
                                 }}
                                 className="bg-[#9AAB63] hover:bg-[#8a9a58] text-white text-xs px-3"
                                 size="sm"
+                                disabled={acceptHabitSuggestionMutation.isPending}
                               >
-                                <Plus className="h-3.5 w-3.5 mr-1.5" /> Add Habit
+                                <Plus className="h-3.5 w-3.5 mr-1.5" /> 
+                                {acceptHabitSuggestionMutation.isPending ? "Adding..." : "Add Habit"}
                               </Button>
                             </div>
                           </div>
