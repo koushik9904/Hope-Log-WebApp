@@ -299,6 +299,33 @@ export default function GoalsPage() {
   });
 
   // Delete goal mutation
+  const convertGoalToTaskMutation = useMutation({
+    mutationFn: async (id: number) => {
+      // Convert goal to task using the new API endpoint
+      const response = await apiRequest("POST", `/api/goals/${id}/convert-to-task`);
+      if (!response.ok) {
+        throw new Error("Failed to convert goal to task");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/goals", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks", user?.id] });
+      toast({
+        title: "Goal converted",
+        description: "Goal has been converted to a task successfully.",
+      });
+    },
+    onError: (error) => {
+      console.error("Failed to convert goal to task:", error);
+      toast({
+        title: "Error",
+        description: "Failed to convert goal to task. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const deleteGoalMutation = useMutation({
     mutationFn: async (id: number) => {
       // Proceed with deletion from database
