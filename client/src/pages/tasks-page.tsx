@@ -332,7 +332,7 @@ export default function TasksPage() {
                 setIsCreateDialogOpen(false);
                 queryClient.invalidateQueries({ queryKey: ['/api/tasks', user?.id] });
               }}
-              goals={goals}
+              userId={user?.id || 0}
             />
           </DialogContent>
         </Dialog>

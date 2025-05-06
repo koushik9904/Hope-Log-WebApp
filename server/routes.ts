@@ -900,10 +900,20 @@ Your role is to:
   
   // This endpoint retrieves all AI suggested goals, tasks, and habits for a user
   app.get("/api/goals/:userId/ai-suggestions", async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
+    console.log(`AI suggestions endpoint called for userId: ${req.params.userId}`);
+    console.log(`Is user authenticated? ${req.isAuthenticated()}`);
+    console.log(`Current user ID: ${req.user?.id}`);
+    
+    if (!req.isAuthenticated()) {
+      console.log('AI suggestions endpoint: User not authenticated');
+      return res.sendStatus(401);
+    }
     
     const userId = Number(req.params.userId);
-    if (req.user?.id !== userId) return res.sendStatus(403);
+    if (req.user?.id !== userId) {
+      console.log(`AI suggestions endpoint: User ID mismatch. Requested: ${userId}, Authenticated: ${req.user?.id}`);
+      return res.sendStatus(403);
+    }
     
     try {
       // Get AI suggestions from their respective tables
@@ -912,6 +922,18 @@ Your role is to:
       const habitSuggestions = await storage.getAiHabitsByUserId(userId);
       
       console.log(`Retrieved AI suggestions for user ${userId}: ${goalSuggestions.length} goals, ${taskSuggestions.length} tasks, ${habitSuggestions.length} habits`);
+      
+      if (goalSuggestions.length > 0) {
+        console.log('First goal suggestion:', goalSuggestions[0].name);
+      }
+      
+      if (taskSuggestions.length > 0) {
+        console.log('First task suggestion:', taskSuggestions[0].title);
+      }
+      
+      if (habitSuggestions.length > 0) {
+        console.log('First habit suggestion:', habitSuggestions[0].title);
+      }
       
       res.json({ 
         goals: goalSuggestions, 
