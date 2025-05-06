@@ -7,6 +7,7 @@ import { promisify } from 'util';
 import { fileURLToPath } from 'url';
 import { db } from '../db';
 import { supportRequests } from '@shared/schema';
+import { eq, desc } from 'drizzle-orm';
 
 // Get the directory path for the current module
 const __filename = fileURLToPath(import.meta.url);
@@ -185,7 +186,7 @@ router.get('/api/admin/support-requests', async (req, res) => {
     }
     
     // Get support requests from database, ordered by newest first
-    const requests = await db.select().from(supportRequests).orderBy(supportRequests.createdAt, 'desc');
+    const requests = await db.select().from(supportRequests).orderBy(desc(supportRequests.createdAt));
     
     return res.status(200).json(requests);
   } catch (err) {
@@ -224,7 +225,7 @@ router.patch('/api/admin/support-requests/:id', async (req, res) => {
         assignedTo: req.user.id,
         updatedAt: new Date().toISOString()
       })
-      .where(supportRequests.id === parseInt(id))
+      .where(eq(supportRequests.id, parseInt(id)))
       .returning();
     
     if (!updatedRequest || updatedRequest.length === 0) {

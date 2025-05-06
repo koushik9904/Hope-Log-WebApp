@@ -253,7 +253,7 @@ export default function AdminSupportPage() {
                 {selectedRequest.hasAttachment && (
                   <div>
                     <Label className="text-xs text-muted-foreground">Attachment</Label>
-                    <p>{selectedRequest.attachmentName || "Unnamed attachment"}</p>
+                    <p>{selectedRequest.attachmentName || undefined}</p>
                     <p className="text-xs text-muted-foreground">
                       Note: Attachments are stored temporarily during development
                     </p>

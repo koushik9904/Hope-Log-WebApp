@@ -52,6 +52,7 @@ const AdminDashboardPage = lazy(() => import("@/pages/admin-dashboard-page"));
 const AdminOAuthPage = lazy(() => import("@/pages/admin-oauth-page"));
 const AdminOpenAIPage = lazy(() => import("@/pages/admin-openai-page"));
 const AdminPayPalPage = lazy(() => import("@/pages/admin-paypal-page"));
+const AdminSupportPage = lazy(() => import("@/pages/admin-support-page"));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -290,6 +291,14 @@ function Router() {
           component={() => (
             <Suspense fallback={<LoadingFallback />}>
               <AdminPayPalPage />
+            </Suspense>
+          )} 
+        />
+        <ProtectedRoute 
+          path="/admin/support" 
+          component={() => (
+            <Suspense fallback={<LoadingFallback />}>
+              <AdminSupportPage />
             </Suspense>
           )} 
         />
