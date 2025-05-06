@@ -2,9 +2,23 @@ import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Lightbulb, AlertCircle, ThumbsUp, ThumbsDown, Clock, Sparkles } from 'lucide-react';
+import { Loader2, Lightbulb, AlertCircle, ThumbsUp, ThumbsDown, Clock, Sparkles, ListChecks } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { apiRequest, queryClient } from '@/lib/queryClient';
+
+// Interface for AI task suggestions
+interface AISuggestedTask {
+  id: number;
+  title: string;
+  description: string | null;
+  priority?: string;
+  goalId?: number | null;
+  journalEntryId?: number;
+  explanation?: string;
+  createdAt: string;
+  userId: number;
+  dueDate?: string | null;
+}
 
 interface TaskAISuggestionsProps {
   existingTaskTitles: string[];
@@ -13,22 +27,29 @@ interface TaskAISuggestionsProps {
 export default function TaskAISuggestions({ existingTaskTitles }: TaskAISuggestionsProps) {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [aiSuggestedTasks, setAiSuggestedTasks] = useState<any[]>([]);
+  const [aiSuggestedTasks, setAiSuggestedTasks] = useState<AISuggestedTask[]>([]);
 
-  // Fetch AI-suggested tasks from the same endpoint used by AI Suggestions component
+  // Fetch AI-suggested tasks
   const { 
     data: aiSuggestions = { goals: [], tasks: [], habits: [] },
     isLoading: isLoadingSuggestions,
     error: suggestionsError,
   } = useQuery<{ 
     goals: any[], 
-    tasks: any[], 
+    tasks: AISuggestedTask[], 
     habits: any[] 
   }>({
     queryKey: [`/api/goals/${user?.id}/ai-suggestions`],
     enabled: !!user?.id,
     staleTime: 300000, // 5 minutes
+    refetchOnMount: true
   });
+  
+  // Enhanced debugging for AI suggestions
+  console.log("AI Suggestions API endpoint:", `/api/goals/${user?.id}/ai-suggestions`);
+  console.log("AI Suggestions data:", aiSuggestions);
+  console.log("AI Tasks (initial):", aiSuggestions.tasks?.length || 0);
+  console.log("Existing Task Titles:", existingTaskTitles?.length || 0);
   
   // Process AI suggestions whenever they change
   useEffect(() => {
@@ -36,33 +57,65 @@ export default function TaskAISuggestions({ existingTaskTitles }: TaskAISuggesti
     console.log("TaskAISuggestions - AI tasks length:", aiSuggestions.tasks?.length || 0);
     
     if (aiSuggestions?.tasks?.length > 0) {
-      // Set all tasks directly without filtering to ensure they're displayed
-      // This is a temporary fix to ensure we see the tasks
-      setAiSuggestedTasks(aiSuggestions.tasks);
-      console.log("TaskAISuggestions - Using all tasks:", aiSuggestions.tasks.length);
+      // Filter tasks that don't already exist
+      const filteredTasks = aiSuggestions.tasks.filter(task => {
+        // Skip tasks with empty titles
+        if (!task.title || task.title.trim() === '') {
+          console.log("Skipping empty task title");
+          return false;
+        }
+        
+        const normalizedSuggestionTitle = task.title.toLowerCase().trim();
+        
+        // Check if this suggestion is already in the existing tasks - using less strict filtering
+        const isDuplicate = existingTaskTitles.some(existingTitle => {
+          if (!existingTitle) return false;
+          
+          const normalizedTaskTitle = existingTitle.toLowerCase().trim();
+          
+          // Only filter exact matches
+          const exactMatch = normalizedTaskTitle === normalizedSuggestionTitle;
+          
+          if (exactMatch) {
+            console.log(`Filtering out task suggestion "${task.title}" - exact match with existing task "${existingTitle}"`);
+          }
+          
+          return exactMatch;
+        });
+        
+        return !isDuplicate;
+      });
+      
+      console.log("TaskAISuggestions - Filtered tasks:", filteredTasks.length);
+      setAiSuggestedTasks(filteredTasks);
     }
-  }, [aiSuggestions]);
+  }, [aiSuggestions, existingTaskTitles]);
   
   // Add task mutation
   const addTaskMutation = useMutation({
-    mutationFn: async (task: any) => {
-      const res = await apiRequest("POST", `/api/ai-tasks/${task.id}/accept`, {});
+    mutationFn: async (taskId: number) => {
+      console.log(`Accepting AI task with ID: ${taskId}`);
+      const res = await apiRequest("POST", `/api/ai-tasks/${taskId}/accept`, {});
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error("Error accepting AI task:", errorData);
+        throw new Error(errorData.error || "Unknown error");
+      }
       return await res.json();
     },
     onSuccess: () => {
       toast({
-        title: "Task added",
-        description: "Task has been added to your list",
+        title: "Task added successfully",
+        description: "The suggested task has been added to your tasks.",
         variant: "default",
       });
-      // Invalidate queries to refresh the tasks list and AI suggestions
       queryClient.invalidateQueries({ queryKey: [`/api/tasks/${user?.id}`] });
       queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}/ai-suggestions`] });
     },
     onError: (error) => {
       toast({
         title: "Failed to add task",
-        description: "There was an error adding the task",
+        description: "There was an error adding the suggested task.",
         variant: "destructive",
       });
     },
@@ -71,28 +124,37 @@ export default function TaskAISuggestions({ existingTaskTitles }: TaskAISuggesti
   // Reject task mutation
   const rejectTaskMutation = useMutation({
     mutationFn: async (taskId: number) => {
+      console.log(`Rejecting AI task with ID: ${taskId}`);
       const res = await apiRequest("DELETE", `/api/ai-tasks/${taskId}`, {});
       
       // For DELETE endpoints that return 204 No Content, we shouldn't try to parse JSON
       if (res.status === 204) {
+        console.log("Task rejected successfully (204 No Content)");
         return {};
       }
       
-      return await res.json();
+      try {
+        const data = await res.json();
+        console.log("Reject task response data:", data);
+        return data;
+      } catch (e) {
+        console.log("No JSON response from delete endpoint (expected for 204 status)");
+        return {};
+      }
     },
     onSuccess: () => {
       toast({
-        title: "Task rejected",
-        description: "Task suggestion has been removed",
+        title: "Suggestion removed",
+        description: "The task suggestion has been removed.",
         variant: "default",
       });
-      // Refresh AI suggestions after rejection
       queryClient.invalidateQueries({ queryKey: [`/api/goals/${user?.id}/ai-suggestions`] });
     },
     onError: (error) => {
+      console.error("Error rejecting task suggestion:", error);
       toast({
-        title: "Failed to reject task",
-        description: "There was an error removing the task suggestion",
+        title: "Failed to remove suggestion",
+        description: "There was an error removing the task suggestion.",
         variant: "destructive",
       });
     },
@@ -124,7 +186,7 @@ export default function TaskAISuggestions({ existingTaskTitles }: TaskAISuggesti
     return (
       <div className="flex flex-col items-center justify-center p-6 text-center">
         <div className="bg-gray-50 rounded-full p-3 mb-3">
-          <Lightbulb className="h-6 w-6 text-gray-300" />
+          <ListChecks className="h-6 w-6 text-gray-300" />
         </div>
         <p className="text-sm text-gray-500 mb-2">No task suggestions yet</p>
         <p className="text-xs text-gray-400 mb-4">
@@ -136,13 +198,12 @@ export default function TaskAISuggestions({ existingTaskTitles }: TaskAISuggesti
 
   console.log("Rendering TaskAISuggestions with:", {
     aiSuggestedTasks,
-    count: aiSuggestedTasks.length,
-    originalTasksCount: aiSuggestions.tasks?.length
+    count: aiSuggestedTasks.length
   });
   
   return (
     <div className="space-y-4">
-      {aiSuggestedTasks.map(task => {
+      {aiSuggestedTasks.slice(0, 3).map(task => {
         console.log("Rendering task item:", task);
         return (
           <div key={task.id} className="bg-[#f5f8ff] p-4 rounded-xl border border-[#B6CAEB] border-opacity-30">
@@ -169,7 +230,7 @@ export default function TaskAISuggestions({ existingTaskTitles }: TaskAISuggesti
               {/* Action buttons */}
               <div className="flex gap-2 justify-center w-full">
                 <Button 
-                  onClick={() => addTaskMutation.mutate(task)}
+                  onClick={() => addTaskMutation.mutate(task.id)}
                   variant="outline" 
                   size="sm"
                   className="h-7 px-3 flex-1 bg-[#B6CAEB] hover:bg-[#9bb8e4] border-[#B6CAEB] text-white hover:text-white text-center justify-center"
