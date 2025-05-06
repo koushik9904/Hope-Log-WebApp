@@ -353,6 +353,35 @@ export const insertSubscriptionSchema = createInsertSchema(subscriptions).omit({
 export type InsertSubscription = z.infer<typeof insertSubscriptionSchema>;
 export type Subscription = typeof subscriptions.$inferSelect;
 
+// Support Requests table for storing support form submissions
+export const supportRequests = pgTable("support_requests", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  username: text("username").notNull(),
+  email: text("email").notNull(),
+  subject: text("subject").notNull(),
+  message: text("message").notNull(),
+  hasAttachment: boolean("has_attachment").default(false),
+  attachmentName: text("attachment_name"),
+  attachmentPath: text("attachment_path"),
+  status: text("status").notNull().default("new"), // 'new', 'in_progress', 'resolved', 'closed'
+  assignedTo: integer("assigned_to").references(() => users.id),
+  notes: text("admin_notes"),
+  createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
+  updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
+});
+
+export const insertSupportRequestSchema = createInsertSchema(supportRequests).omit({ 
+  id: true, 
+  status: true, 
+  assignedTo: true, 
+  notes: true, 
+  createdAt: true, 
+  updatedAt: true 
+});
+export type InsertSupportRequest = z.infer<typeof insertSupportRequestSchema>;
+export type SupportRequest = typeof supportRequests.$inferSelect;
+
 // AI Suggested Goals table
 export const aiGoals = pgTable("ai_goals", {
   id: serial("id").primaryKey(),
