@@ -1216,6 +1216,47 @@ Your role is to:
     }
   });
   
+  // Endpoint to get deleted habits for a user
+  app.get("/api/habits/:userId/deleted", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const userId = Number(req.params.userId);
+    if (req.user?.id !== userId) return res.sendStatus(403);
+    
+    try {
+      const deletedHabits = await storage.getDeletedHabitsByUserId(userId);
+      res.json(deletedHabits);
+    } catch (error) {
+      console.error("Error fetching deleted habits:", error);
+      res.status(500).json({ error: "Failed to fetch deleted habits" });
+    }
+  });
+  
+  // Endpoint to restore a deleted habit
+  app.post("/api/habits/:id/restore", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const habitId = Number(req.params.id);
+    
+    try {
+      const habit = await storage.getHabitById(habitId);
+      
+      if (!habit) {
+        return res.status(404).json({ error: "Habit not found" });
+      }
+      
+      if (habit.userId !== req.user?.id) {
+        return res.status(403).json({ error: "You don't have permission to restore this habit" });
+      }
+      
+      const restoredHabit = await storage.restoreHabit(habitId);
+      res.status(200).json(restoredHabit);
+    } catch (error) {
+      console.error("Error restoring habit:", error);
+      res.status(500).json({ error: "Failed to restore habit" });
+    }
+  });
+  
   app.get("/api/habits/:userId/suggestions", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     

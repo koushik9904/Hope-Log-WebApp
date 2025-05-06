@@ -497,7 +497,16 @@ export default function GoalsPage() {
   // Recycle bin states
   const [showRecycleBin, setShowRecycleBin] = useState(false);
   const [deletedGoals, setDeletedGoals] = useState<DeletedGoal[]>([]);
-  const [deletedHabits, setDeletedHabits] = useState<DeletedHabit[]>([]);
+  
+  // Fetch deleted habits from the API
+  const { data: deletedHabitsData = [] } = useQuery<Habit[]>({
+    queryKey: [`/api/habits/${user?.id}/deleted`],
+    enabled: !!user?.id && showRecycleBin,
+    staleTime: 60000, // 1 minute
+  });
+  
+  // Use fetched data for deleted habits
+  const deletedHabits = deletedHabitsData;
   
   // Helper function for clearing date filters
   const clearTaskDateFilter = () => {
@@ -707,19 +716,13 @@ export default function GoalsPage() {
   // Delete habit mutation
   const deleteHabitMutation = useMutation({
     mutationFn: async (id: number) => {
-      const habitToDelete = habits.find(h => h.id === id);
-      if (habitToDelete) {
-        setDeletedHabits(prev => [...prev, {
-          ...habitToDelete,
-          deletedAt: new Date().toISOString()
-        }]);
-      }
-      
       const res = await apiRequest("DELETE", `/api/habits/${id}`);
       return id;
     },
     onSuccess: () => {
+      // Invalidate both regular habits and deleted habits queries
       queryClient.invalidateQueries({ queryKey: [`/api/habits/${user?.id}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/habits/${user?.id}/deleted`] });
       toast({
         title: "Habit moved to recycle bin",
         description: "You can restore this habit within 7 days",
