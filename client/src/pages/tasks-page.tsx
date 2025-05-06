@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Goal } from '@shared/schema';
 import TaskList from '@/components/goals/task-list';
 import TaskForm from '@/components/goals/task-form';
-import TaskAISuggestions from '@/components/goals/task-ai-suggestions';
+import AISuggestions from '@/components/goals/ai-suggestions';
 import PageHeader from '@/components/ui/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { apiRequest, queryClient } from '@/lib/queryClient';
@@ -99,8 +99,12 @@ export default function TasksPage() {
     return <div>Loading...</div>;
   }
   
-  // Get the existing task titles for filtering AI suggestions
-  const existingTaskTitles = tasks.map(task => task.title);
+  // Get task data for AI suggestions component
+  const typedTasks = tasks.map((task: any) => ({
+    id: task.id,
+    title: task.title,
+    description: task.description,
+  }));
 
   return (
     <DashboardLayout>
@@ -277,7 +281,12 @@ export default function TasksPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-4">
-                <TaskAISuggestions existingTaskTitles={existingTaskTitles} />
+                <AISuggestions 
+                  existingGoals={[]} 
+                  existingTasks={typedTasks} 
+                  existingHabits={[]}
+                  activeTab="tasks" 
+                />
               </CardContent>
             </Card>
           </div>

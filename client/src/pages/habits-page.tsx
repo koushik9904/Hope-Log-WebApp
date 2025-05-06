@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import HabitList from '@/components/goals/habit-list';
 import HabitForm from '@/components/goals/habit-form';
-import HabitAISuggestions from '@/components/goals/habit-ai-suggestions';
+import AISuggestions from '@/components/goals/ai-suggestions';
 import PageHeader from '@/components/ui/page-header';
 
 // Helper component to fetch habit titles and pass them to children
