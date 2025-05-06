@@ -729,6 +729,8 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
   
+
+  
   async getCompletedTasksByUserId(userId: number): Promise<Task[]> {
     return await db
       .select()
