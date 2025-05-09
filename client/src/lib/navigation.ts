@@ -7,7 +7,6 @@ export type NavLink = {
 // Primary navigation links for the main header
 export const primaryNavLinks: NavLink[] = [
   { label: "Features", href: "#features", isExternal: false },
-  { label: "Pricing", href: "#pricing", isExternal: false },
   { label: "Testimonials", href: "#testimonials", isExternal: false },
   { label: "Blog", href: "https://jazeeljabbar.substack.com/", isExternal: true },
   { label: "About Us", href: "/about-us", isExternal: false }
@@ -18,7 +17,6 @@ export const platformLinks = [
   { label: "Home", href: "/", isExternal: false },
   { label: "About Us", href: "/about-us", isExternal: false },
   { label: "Features", href: "#features", isExternal: false },
-  { label: "Pricing", href: "#pricing", isExternal: false },
   { label: "Community", href: "/community", isExternal: false },
 ];
 
