@@ -1,0 +1,49 @@
+substitutions:
+  _ENV: dev  
+  _SERVICE: hopelog-app-dev
+
+
+steps:
+  # 1. Build Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - build
+      - -t
+      - asia-south1-docker.pkg.dev/${PROJECT_ID}/hopelog-${_ENV}-repo/hopelog_${_ENV}:${SHORT_SHA}
+      - .
+
+  # 2. Push to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - push
+      - asia-south1-docker.pkg.dev/${PROJECT_ID}/hopelog-${_ENV}-repo/hopelog_${_ENV}:${SHORT_SHA}
+  
+  # 3. Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'bash'
+    args:
+      - -c
+      - |
+        set -e
+        echo "Deploying to Cloud Run: $_SERVICE"
+        echo "The secret is: $_DATABASE_URL"
+        echo "The secret is: $_OPENAI_API_KEY"
+        echo "The secret is: $_GOOGLE_CLIENT_ID"
+        echo "The secret is: $_GOOGLE_CLIENT_SECRET"
+        echo "The secret is: $_PAYPAL_CLIENT_ID"
+        echo "The secret is: $_PAYPAL_CLIENT_SECRET"
+
+        gcloud run deploy $_SERVICE \
+          --image asia-south1-docker.pkg.dev/${PROJECT_ID}/hopelog-${_ENV}-repo/hopelog_${_ENV}:${SHORT_SHA} \
+          --region asia-south1 \
+          --platform managed \
+          --allow-unauthenticated \
+          --port 5000 \
+          --set-secrets "DATABASE_URL=$_DATABASE_URL,OPENAI_API_KEY=$_OPENAI_API_KEY,GOOGLE_CLIENT_SECRET=$_GOOGLE_CLIENT_SECRET,PAYPAL_CLIENT_ID=$_PAYPAL_CLIENT_ID,PAYPAL_CLIENT_SECRET=$_PAYPAL_CLIENT_SECRET" \
+          --set-env-vars "NODE_ENV=production, GOOGLE_CLIENT_ID=$_GOOGLE_CLIENT_ID"
+
+images:
+  - asia-south1-docker.pkg.dev/${PROJECT_ID}/hopelog-${_ENV}-repo/hopelog_${_ENV}:${SHORT_SHA}
+
+options:
+  logging: CLOUD_LOGGING_ONLY
